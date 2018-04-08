@@ -31,10 +31,11 @@ echo "#############################################"
 # module purge
 # module load anaconda/python3
 # module list
+# 
 # # add new job to the queue
 # output=$(qsub \
 #     -v "TEST_CPU_COUNT='[1, 2, 4, 8, 16, 18, 36, 54, 72]'" \
-#     -N "benchmark-$now" \
+#     -N "benchmark-s-$NOW" \
 #     -l select=1:ncpus=72 \
 #     -l place=excl \
 #     -l walltime=1:59:59 \
@@ -42,5 +43,19 @@ echo "#############################################"
 #     $ROOT/bin/pbs/dolfin.pbs)
 # # wait for the job to finish
 # python3 $ROOT/src/wait_for.py "$output" --timeout 7200 --check-period 30 2>&1 | tee tests.log
+# 
+# in this case, to specify requirements more precisely, the testing to split 
+# into two
+# 
+# output=$(qsub \
+#    -v "TEST_CPU_COUNT='[90, 108, 126, 144]'" \
+#    -N "benchmark-l-$NOW" \
+#    -l select=2:ncpus=72 \
+#    -l place=excl \
+#    -l walltime=1:59:59 \
+#    -A ec036 \
+#     $ROOT/bin/pbs/dolfin.pbs)
+# python3 $ROOT/src/wait_for.py "$output" --timeout 7200 --check-period 30 2>&1 | tee tests.log
+# 
 # exit $?
 # ------------------------------------------------------------------------------
