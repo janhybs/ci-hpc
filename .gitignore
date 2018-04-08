@@ -8,7 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
@@ -41,6 +40,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *.cover
@@ -48,11 +48,7 @@ coverage.xml
 
 # Translations
 *.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
+# *.pot
 
 # Flask stuff:
 instance/
@@ -74,18 +70,19 @@ target/
 .python-version
 
 # celery beat schedule file
-celerybeat-schedule
+celerybeat-schedule.*
 
 # SageMath parsed files
 *.sage.py
 
-# dotenv
+# Environments
 .env
-
-# virtualenv
 .venv
+env/
 venv/
 ENV/
+env.bak/
+venv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -99,3 +96,6 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Pycharm project
+/.idea
