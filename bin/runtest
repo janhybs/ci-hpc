@@ -1,0 +1,46 @@
+#!/bin/bash --login
+
+# usage:
+#   ./runtest
+# example:
+#  ./runtest
+
+# This executable file should load minimum environment and start testing of
+# the project. No argument are provided because it can be tricky to pass the
+# arguments to the PBS job. The easiest way is to create a pbs job, which loads
+# the environment and start the testing.
+# This script can be run on the compute node to not influence other users 
+# on the frontend node.
+
+# For this script, Jenkins (or some other CI server will wait)
+# it is recommended to use python wrapper to wait for the job to end:
+#   python wait_for.py <JOB-ID>
+
+
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+NOW=$(date "+%Y-%m-%d_%H-%M-%S")
+
+echo "#############################################"
+echo "[$NOW] adding job to the queue"
+echo "#############################################"
+
+
+
+# Example for the HPC Cirrus
+# ------------------------------------------------------------------------------
+# module purge
+# module load anaconda/python3
+# module list
+# # add new job to the queue
+# output=$(qsub \
+#     -v "TEST_CPU_COUNT='[1, 2, 4, 8, 16, 18, 36, 54, 72]'" \
+#     -N "benchmark-$now" \
+#     -l select=1:ncpus=72 \
+#     -l place=excl \
+#     -l walltime=1:59:59 \
+#     -A ec036 \
+#     $ROOT/bin/pbs/dolfin.pbs)
+# # wait for the job to finish
+# python3 $ROOT/src/wait_for.py "$output" --timeout 7200 --check-period 30 2>&1 | tee tests.log
+# exit $?
+# ------------------------------------------------------------------------------

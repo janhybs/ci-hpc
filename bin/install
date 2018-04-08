@@ -1,0 +1,35 @@
+#!/bin/bash --login
+
+# usage:
+#   ./install [--project=PROJECT_NAME] 
+#             [[--commit=subproject:GIT_COMMIT] ...]
+#             [[--branch=subproject:GIT_BRANCH] ...  ]
+# example:
+#  ./install --project=dolfin --commit=dolfin:7eae222 --commit=dolfin:master
+
+# This executable file should load minimum environment and start installation of
+# the given project. After the script is done, the project should be prepared
+# for the testing. This script can be run on the frontend node to save your
+# budget hours.
+
+
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+NOW=$(date "+%Y-%m-%d_%H-%M-%S")
+
+echo "#############################################"
+echo "[$NOW] running installation script with following args:"
+echo "$@"
+echo "#############################################"
+
+
+
+
+# Example for the HPC Cirrus
+# ------------------------------------------------------------------------------
+# module purge
+# module load anaconda/python3
+# module list
+# 
+# python3 $ROOT/src/main.py install "$@" 2>&1 | tee install.log
+# exit $?
+# ------------------------------------------------------------------------------
