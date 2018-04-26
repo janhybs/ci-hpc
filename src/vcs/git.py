@@ -41,7 +41,7 @@ class Git(object):
 
     def checkout(self, commit='', branch='master'):
         if branch:
-            branch = branch.split('/')[-1]
+            branch = branch.replace('origin/', '')
 
         print('Processing repo {self.repo}'.format(self=self))
         print('-'*60)
