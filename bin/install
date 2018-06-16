@@ -1,11 +1,7 @@
 #!/bin/bash --login
 
 # usage:
-#   ./install [--project=PROJECT_NAME] 
-#             [[--commit=subproject:GIT_COMMIT] ...]
-#             [[--branch=subproject:GIT_BRANCH] ...  ]
-# example:
-#  ./install --project=dolfin --commit=dolfin:7eae222 --commit=dolfin:master
+#   ./install [PROJECT_NAME] [GIT_URL] [GIT_COMMIT] [GIT_BRANCH] [CONFIG_DIR]
 
 # This executable file should load minimum environment and start installation of
 # the given project. After the script is done, the project should be prepared
@@ -13,7 +9,7 @@
 # budget hours.
 
 
-ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 NOW=$(date "+%Y-%m-%d_%H-%M-%S")
 
 echo "#############################################"
@@ -26,10 +22,43 @@ echo "#############################################"
 
 # Example for the HPC Cirrus
 # ------------------------------------------------------------------------------
-# module purge
-# module load anaconda/python3
-# module list
-# 
-# python3 $ROOT/src/main.py install "$@" 2>&1 | tee install.log
-# exit $?
+module purge
+module load python-3.6.2-gcc
+module load python36-modules-gcc
+module list
+
+set -x
+
+project=$1
+git_url=$2
+git_commit=$3
+git_branch=$4
+config_dir=$5
+
+
+clone_dir=$ROOT/projects/$project
+mkdir -p $clone_dir
+
+
+# get to the correct commit
+cd $clone_dir
+if [[ -d "$project" ]]; then
+  echo "already cloned"
+  cd $project
+  git pull
+  git reset --hard $git_commit
+else
+  git clone $git_url $project
+  cd $project
+  git reset --hard $git_commit
+fi
+
+
+
+echo python3 $ROOT/src/main.py install \
+  --project=$project \
+  --commit=$project:$git_commit \
+  --branch=$project:$git_branch \
+  --config=$(pwd)/$config_dir
+exit $?
 # ------------------------------------------------------------------------------
