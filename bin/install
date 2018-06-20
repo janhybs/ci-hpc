@@ -20,9 +20,11 @@ echo "#############################################"
 
 
 
-# Example for the HPC Cirrus
+# Example for the HPC charon.nti.tul.cz
 # ------------------------------------------------------------------------------
+. /etc/profile
 module purge
+module load metabase
 module load python-3.6.2-gcc
 module load python36-modules-gcc
 module list
@@ -45,7 +47,7 @@ cd $clone_dir
 if [[ -d "$project" ]]; then
   echo "already cloned"
   cd $project
-  git pull
+  git fetch
   git reset --hard $git_commit
 else
   git clone $git_url $project
@@ -55,7 +57,7 @@ fi
 
 
 
-echo python3 $ROOT/src/main.py install \
+python3 $ROOT/ci-hpc/main.py install \
   --project=$project \
   --commit=$project:$git_commit \
   --branch=$project:$git_branch \

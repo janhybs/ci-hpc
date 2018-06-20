@@ -17,7 +17,7 @@
 #   python wait_for.py <JOB-ID>
 
 
-ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 NOW=$(date "+%Y-%m-%d_%H-%M-%S")
 
 echo "#############################################"
@@ -26,36 +26,30 @@ echo "#############################################"
 
 
 
-# Example for the HPC Cirrus
+# Example for the HPC charon.nti.tul.cz
 # ------------------------------------------------------------------------------
-# module purge
-# module load anaconda/python3
-# module list
-# 
+. /etc/profile
+module purge
+module load metabase
+module load python-3.6.2-gcc
+module load python36-modules-gcc
+module list
+
+
+bash $ROOT/bin/pbs/flow123d.pbs
+
 # # add new job to the queue
 # output=$(qsub \
-#     -v "TEST_CPU_COUNT='[1, 2, 4, 8, 16, 18, 36, 54, 72]'" \
-#     -N "benchmark-s-$NOW" \
-#     -l select=1:ncpus=72 \
+#     -N "bench-flow-$NOW" \
+#     -l select=1:ncpus=8:mem=8gb \
 #     -l place=excl \
 #     -l walltime=1:59:59 \
-#     -A ec036 \
-#     $ROOT/bin/pbs/dolfin.pbs)
+#     -q charon \
+#     -o $ROOT/logs/bench-flow-$NOW.txt \
+#     $ROOT/bin/pbs/flow123d.pbs)
+# 
 # # wait for the job to finish
-# python3 $ROOT/src/wait_for.py "$output" --timeout 7200 --check-period 30 2>&1 | tee tests.log
-# 
-# in this case, to specify requirements more precisely, the testing to split 
-# into two
-# 
-# output=$(qsub \
-#    -v "TEST_CPU_COUNT='[90, 108, 126, 144]'" \
-#    -N "benchmark-l-$NOW" \
-#    -l select=2:ncpus=72 \
-#    -l place=excl \
-#    -l walltime=1:59:59 \
-#    -A ec036 \
-#     $ROOT/bin/pbs/dolfin.pbs)
-# python3 $ROOT/src/wait_for.py "$output" --timeout 7200 --check-period 30 2>&1 | tee tests.log
-# 
+# python3 $ROOT/ci-hpc/wait_for.py "$output" --timeout 7200 --check-period 30 2>&1 | tee tests-$NOW.log
+
 # exit $?
 # ------------------------------------------------------------------------------
