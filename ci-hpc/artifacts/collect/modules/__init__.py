@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # author:   Jan Hybs
 
+
 import enum
 import os
 
@@ -21,7 +22,6 @@ class LogPolicy(enum.Enum):
     ON_ERROR = 1
     ALWAYS = 2
     NEVER = 3
-
 
 
 class CollectResult(object):

@@ -5,6 +5,7 @@
 import sys
 import os
 import subprocess
+from utils.logging import logger
 
 
 def construct(start, *rest, shell=False):
@@ -15,9 +16,9 @@ def construct(start, *rest, shell=False):
 
 def execute(*args, **kwargs):
     command = construct(*args, shell=kwargs.get('shell', False))
-    cwd = kwargs.get('dir', '.')
+    cwd = kwargs.pop('dir', '.')
 
-    print('$>', construct(*args, shell=True))
+    logger.info('$> %s', construct(*args, shell=True))
     sys.stdout.flush()
 
     if os.path.exists(cwd):

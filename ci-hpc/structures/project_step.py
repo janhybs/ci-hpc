@@ -20,6 +20,7 @@ class ProjectStep(object):
         self.enabled = kwargs.get('enabled', True)
         self.verbose = pick(kwargs, False, 'verbose', 'debug')
         self.container = ProjectStepContainer(**kwargs.get('container', {})) if kwargs.get('container', {}) else None
+        self.repeat = kwargs.get('repeat', 1)
 
         self.shell = kwargs.get('shell', None)
 

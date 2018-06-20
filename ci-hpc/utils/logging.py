@@ -12,7 +12,6 @@ class Logger(object):
     :type logger: utils.Logger
     """
     def __init__(self, logger):
-        print('creating new logger')
         self._indent = 0
         self.logger = logger
 
@@ -69,6 +68,8 @@ class Logger(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.exit()
         return False
+    
+    warning = warn
 
     @classmethod
     def init(cls, log_dir=None):

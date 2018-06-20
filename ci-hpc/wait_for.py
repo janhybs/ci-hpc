@@ -1,4 +1,7 @@
-#!/bin/python3
+#!/usr/bin/python
+# author: Jan Hybs
+
+
 """
 A simple script which waits for the PBS Job to end. Can also kill the job
 if timeout is passed.

@@ -2,6 +2,8 @@
 # author: Jan Hybs
 
 import os
+from copy import deepcopy
+
 import yaml
 import utils.extend_yaml
 
@@ -52,14 +54,15 @@ class Config(object):
         :rtype: dict or list or string or int or bool
         """
         self.__class__.init()
+        cfg_copy = deepcopy(self.__class__._cfg)
         if key is None:
-            return self.__class__._cfg
+            return cfg_copy
 
         keys = str(key).split('.')
         if len(keys) == 1:
-            return self.__class__._cfg.get(key, default)
+            return cfg_copy.get(key, default)
 
-        r = self.__class__._cfg
+        r = cfg_copy
         for k in keys:
             r = r.get(k, {})
         return r

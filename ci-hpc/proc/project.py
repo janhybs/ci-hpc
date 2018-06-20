@@ -51,7 +51,9 @@ class ProcessProject(object):
 
         for step in section:
             with logger:
-                self.process_step(step, section)
+                for i in range(step.repeat):
+                    logger.debug('Repetition %02d of %02d', i + 1, step.repeat)
+                    self.process_step(step, section)
 
     def process_step_with_vars(self, step, section, vars):
         """

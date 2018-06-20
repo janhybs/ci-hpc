@@ -17,7 +17,7 @@ class Mongo(object):
         kwargs = cfg.get('pymongo')
         username = kwargs.pop('username')
         password = kwargs.pop('password')
-        logger.info('Connecting to database')
+        logger.info('establishing connection to the database')
         self.client = MongoClient(**kwargs)
         self.needs_auth = True
 
@@ -25,10 +25,10 @@ class Mongo(object):
             self.auth(username, password)
             self.needs_auth = False
 
-        logger.info('Connection established %s', str(self.client))
+        logger.debug('Connection established %s', str(self.client))
 
     def auth(self, username=None, password=None):
-        logger.info('authenticating...')
+        logger.debug('authenticating...')
         return self.client.admin.authenticate(username, password)
 
     def __repr__(self):
