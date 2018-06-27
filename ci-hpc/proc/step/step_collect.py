@@ -4,10 +4,10 @@
 
 import glob
 import os
+import importlib
 from datetime import datetime
 
 from utils.logging import logger
-from artifacts.collect.modules.flow123d_profiler_module import CollectModule
 
 
 def process_step_collect(step):
@@ -19,9 +19,19 @@ def process_step_collect(step):
     files = glob.glob(step.collect.files, recursive=True)
     logger.debug('found %d files to collect', len(files))
 
+    module = importlib.import_module(step.collect.module)
+    CollectModule = module.CollectModule
+
     if files:
-        CollectModule.init(files[0])
-        CollectModule.add_extra(step.collect.extra)
+        # get git information
+        if step.collect.repo:
+            CollectModule.init_collection(step.collect.repo)
+
+        # enrich system section
+        if step.collect.extra:
+            CollectModule.add_extra(step.collect.extra)
+
+        # create instance of the CollectModule
         profiler = CollectModule()
         results = list()
 
@@ -30,8 +40,10 @@ def process_step_collect(step):
                 results.append(profiler.process_file(file))
 
         # insert artifacts into db
-        CollectModule.save_to_db(results)
+        if step.collect.save_to_db:
+            CollectModule.save_to_db(results)
 
+        # move results to they are not processed twice
         if step.collect.move_to:
             now = datetime.now().strftime('%Y_%m_%d-%H_%M_%S')
             move_to = step.collect.move_to.format(datetime=now)

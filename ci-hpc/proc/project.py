@@ -14,8 +14,9 @@ from structures.project import Project
 
 from proc import merge_dict, iter_over
 from proc.step.step_git import process_step_git
-from proc.step.step_shell import process_step_shell
+from proc.step.step_shell import process_step_shell, ShellProcessing
 from proc.step.step_collect import process_step_collect
+from proc.step.step_measure import process_step_measure
 
 
 class ProcessProject(object):
@@ -66,7 +67,11 @@ class ProcessProject(object):
         if not step.shell:
             logger.debug('no shell defined in step %s', step.name)
         else:
-            process_step_shell(self.project, section, step, vars)
+            shell_processing = ShellProcessing()
+            if step.measure:
+                process_step_measure(step, step.measure, shell_processing)
+
+            process_step_shell(self.project, section, step, vars, shell_processing)
 
     def process_step(self, step, section):
         """

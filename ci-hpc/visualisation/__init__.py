@@ -44,7 +44,7 @@ def normalise_matrix(matrix, norm='max'):
     normalize(matrix, norm)
 
 
-def load_data(use_cache=True, filename='data.csv', generate=0):
+def load_data(use_cache=True, filename='data.csv', generate=0, filters=dict()):
     """
     :rtype: pandas.core.frame.DataFrame
     """
@@ -81,9 +81,7 @@ def load_data(use_cache=True, filename='data.csv', generate=0):
     reports_col = db.get_collection(opts['reports_col'])
     iterable = reports_col.aggregate([
         {
-            '$match': {
-                'timer.tag': 'Whole Program',
-            }
+            '$match': filters
         },
         {
             "$unwind": "$libs"
