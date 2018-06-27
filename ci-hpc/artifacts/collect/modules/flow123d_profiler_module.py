@@ -11,16 +11,7 @@ import uuid
 from subprocess import check_output
 
 from utils.logging import logger
-from artifacts.collect.modules import CollectResult, system_info, unwind_report
-
-
-def parse_output(out, line=None):
-    lines = out.decode().strip().splitlines()
-    if line:
-        for l in lines:
-            if l.startswith(line):
-                return l[len(line):].replace('"', '')
-    return lines[0].replace('"', '')
+from artifacts.collect.modules import CollectResult, system_info, unwind_report, parse_output
 
 
 class CollectModule(object):
@@ -50,7 +41,7 @@ class CollectModule(object):
     _children = 'children'
 
     @classmethod
-    def init(cls, path):
+    def init_collection(cls, path):
         """
         Given path to a dir or file located within git repository, will try to determine branch/commit
         :param path:
@@ -176,11 +167,11 @@ class CollectModule(object):
         self.report = dict(
             system=CollectModule.system,
             problem=problem,
-            results =results,
+            results=results,
             timers=timers,
             libs=CollectModule.libs,
         )
-        self.reports = unwind_report(self.report)
+        self.reports = unwind_report(self.report, 'timers')
 
         collect_result = CollectResult(
             items=self.reports,

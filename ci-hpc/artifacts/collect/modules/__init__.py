@@ -109,16 +109,25 @@ def system_info():
     )
 
 
-def unwind_report(report):
+def unwind_report(report, fields):
     """
     Method will convert flatten json report format to a list of reports
     :type report: dict
     """
     items = list()
     report_copy = report.copy()
-    timers = report_copy.pop('timers')
+    timers = report_copy.pop(fields)
     for timer in timers:
         item = report_copy.copy()
         item['timer'] = timer
         items.append(item)
     return items
+
+
+def parse_output(out, line=None):
+    lines = out.decode().strip().splitlines()
+    if line:
+        for l in lines:
+            if l.startswith(line):
+                return l[len(line):].replace('"', '')
+    return lines[0].replace('"', '')
