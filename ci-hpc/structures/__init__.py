@@ -2,6 +2,20 @@
 # author: Jan Hybs
 
 
+def new(o, key, cls):
+    """
+    Method will construct given class if key exists in a object
+    or return None
+    :param o:
+    :param key:
+    :param cls:
+    :return:
+    """
+    if key in o:
+        return cls(**o[key])
+    return None
+
+
 def pick(o, default=False, *values):
     """
     Method picks first existing value from object o
