@@ -26,6 +26,11 @@ class TempFile(object):
         if new_line:
             self.lines.append('\n')
 
+    def write_section(self, section_name, s='', new_line=True):
+        self.write('# {:=^60s} #'.format(' %s ' % section_name), new_line=False)
+        self.write(s, new_line=False)
+        self.write('# {:-^60s} #'.format(' %s ' % section_name), new_line=new_line)
+
     def __enter__(self):
         self.lines = []
         return self
