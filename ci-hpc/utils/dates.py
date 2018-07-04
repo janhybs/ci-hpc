@@ -28,6 +28,12 @@ def short_format(datetime):
     return datetime.strftime('%Y/%m/%d')
 
 
+def long_format(datetime):
+    if type(datetime) is maya.MayaDT:
+        return short_format(datetime.datetime())
+    return datetime.strftime('%Y/%m/%d-%H:%M:%S')
+
+
 def human_format(datetime):
     if type(datetime) is maya.MayaDT:
         return human_format(datetime.datetime())
