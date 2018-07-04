@@ -1,25 +1,30 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # author: Jan Hybs
 
 
-from utils.dates import *
-# from visualisation import *
+from utils.logging import logger
+
+import os
+from utils.config import Config as cfg
+
+from visualisation.www import init_flask_server
+from visualisation.www.rest.report import init_report
+from visualisation.www.rest.case_view import init_case_view
+from visualisation.www.rest.tests import init_tests
 
 
+__dir__ = os.path.abspath(os.path.dirname(__file__))
+__root__ = os.path.dirname(os.path.dirname(__dir__))
+__cfg__ = os.path.join(__root__, 'cfg')
+secret_path = os.path.join(__cfg__, 'secret.yaml')
 
-now = now()
+cfg.init(secret_path)
+api, app, m = init_flask_server()
 
 
-print(
-    short_format(now)
-)
-print(
-    human_format(now)
-)
-# data = load_data()
+init_report(api, app, m)
+init_case_view(api, app, m)
+init_tests(api, app, m)
 
-# test_name = '10_darcy'
-# subdata = data[data['test-name'] == test_name]
-# g = sns.FacetGrid(subdata, row="case-name", sharey=False, size=3, aspect=4)
-# # g.map(plt.plot, 'duration')
-# g.map(tsplot, 'git-datetime', 'duration', chart_scale=None)
+if __name__ == '__main__':
+    app.run(debug=True)
