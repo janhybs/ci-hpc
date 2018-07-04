@@ -7,6 +7,12 @@ from utils.config import Config as cfg
 from utils.logging import logger
 
 
+class Fields(object):
+    GIT_DATETIME = 'git-datetime'
+    GIT_COMMIT = 'git-commit'
+    DURATION = 'duration'
+
+
 class Mongo(object):
     """
     Class Mongo manages connection and queries
