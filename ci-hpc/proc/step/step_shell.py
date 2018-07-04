@@ -104,8 +104,6 @@ def process_step_shell(project, section, step, vars, shell_processing):
 
                 with tmp_cont:
                     tmp_cont.write_shebang()
-                    if step.container.load:
-                        tmp_cont.write(step.container.load.format(**format_args))
                     tmp_cont.write((step.container.exec % tmp_sh.path).format(**format_args))
 
                 logger.info('running container shell script %s', tmp_cont.path)

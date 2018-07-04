@@ -7,10 +7,11 @@ import os
 import importlib
 from datetime import datetime
 
+from utils.config import configure_object
 from utils.logging import logger
 
 
-def process_step_collect(step):
+def process_step_collect(step, format_args=None):
     """
     Function will collect artifacts for the given step
     :type step:           structures.project_step.ProjectStep
@@ -29,7 +30,9 @@ def process_step_collect(step):
 
         # enrich system section
         if step.collect.extra:
-            CollectModule.add_extra(step.collect.extra)
+            extra = configure_object(step.collect.extra, format_args)
+            CollectModule.add_extra(extra)
+            print(CollectModule.system)
 
         # create instance of the CollectModule
         profiler = CollectModule()
