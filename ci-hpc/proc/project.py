@@ -78,6 +78,15 @@ class ProcessProject(object):
         :type step:     ProjectStep
         :type section:  ProjectSection
         """
+
+        def extract_first(iterator):
+            return next(iter(iterator))
+
+        def ensure_list(o):
+            if isinstance(o, list):
+                return o
+            return [o]
+
         if not step.enabled:
             logger.debug('step %s is disabled', step.name)
             return
@@ -88,25 +97,31 @@ class ProcessProject(object):
             process_step_git(step.git, self.project.global_args)
 
         if step.variables:
-            logger.info('processing step %s with variables', step.name)
-            variables = step.variables
-            values = [list(y.values())[0] for y in variables]
-            names = [list(y.keys())[0] for y in variables]
-            product = list(dict(zip(names, x)) for x in itertools.product(*values))
+            logger.info('Found %d build matrices', len(step.variables))
+            with logger:
+                for matrix in step.variables:
+                    logger.info('processing step %s with variables', step.name)
+                    variables = extract_first(matrix.values())
+                    values = [ensure_list(extract_first(y.values())) for y in variables]
+                    names = [extract_first(y.keys()) for y in variables]
+                    product = list(dict(zip(names, x)) for x in itertools.product(*values))
+                    logger.info('created build matrix with %d configurations', len(product))
 
-            logger.info('created build matrix with %d configurations', len(product))
+                    for vars, current, total in iter_over(product):
+                        with logger:
+                            vars = merge_dict(vars, dict(__total__=total, __current__=current+1))
+                            self.process_step_with_vars(step, section, vars)
 
-            for vars, current, total in iter_over(product):
-                with logger:
-                    vars = merge_dict(vars, dict(__total__=total, __current__=current+1))
-                    self.process_step_with_vars(step, section, vars)
+                            # artifact collection
+                            if step.collect:
+                                format_args = merge_dict(
+                                    self.project.global_args,
+                                    vars,
+                                )
+                                process_step_collect(step, format_args)
         else:
             logger.info('processing step %s without variables', step.name)
             self.process_step_with_vars(step, section, None)
-
-        # artifact collection
-        if step.collect:
-            process_step_collect(step)
 
     @classmethod
     def configure(cls, o, d):
