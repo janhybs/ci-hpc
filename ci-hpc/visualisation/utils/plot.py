@@ -37,3 +37,19 @@ def tsplot(x, y, reduce=np.mean, chart_scale=20, area_alpha=0.25, plot_linestyle
 
 def plot_mean(y, **kwargs):
     plt.axhline(y=np.mean(y), ls=":", **kwargs)
+
+
+def plot_mean_with_area(x, y, data=None, estimator=np.mean, percentiles=((-2.5, +2.5), (-5.0, +5.0)), **kwargs):
+    if not data:
+        data = pd.DataFrame([x, y]).T
+
+    first_x = sorted(list(set(data[x.name])))[0]
+    estimate = estimator(data[data[x.name] == first_x][y.name])
+    estimate_p = estimate / 100.0
+
+    for pl, pu in percentiles:
+        lower_estimate = estimate + estimate_p * pl
+        upper_estimate = estimate + estimate_p * pu
+        plt.fill_between(data[x.name], lower_estimate, upper_estimate, alpha=0.1, **kwargs)
+
+
