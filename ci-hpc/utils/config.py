@@ -5,10 +5,13 @@ import os
 from copy import deepcopy
 
 import yaml
+import re
 import utils.extend_yaml
 
 from utils.logging import logger
 
+_configure_object_regex = re.compile('<([a-zA-Z0-9_\.-]+)(\|[a-zA-Z_]+)?>')
+_configure_object_dict = dict(s=str,i=int,f=float,b=bool)
 
 class Config(object):
     """
@@ -111,6 +114,56 @@ def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):
         content = content.replace('%s%s%s' % (start, k, stop), v)
 
     return convert(content)
+
+
+def configure_object(obj, vars):
+    """
+    Configure given object (replaces placeholders <KEY> with VALUE contained in a given vars)
+        by default, everything is converted to string, to change conversion type use syntax:
+        <KEY|i> to convert value to int
+        <KEY|f> to convert value to float
+        <KEY|s> to convert value to string (default)
+    :type obj: dict
+    :type vars: dict
+    """
+    if not vars:
+        return obj
+
+    def get_property(obj, val, default=None):
+        """
+        :type val: str
+        :type obj: dict
+        """
+        root = obj
+        for k in val.split('.'):
+            try:
+                if isinstance(root, dict):
+                    root = root[k]
+                else:
+                    root = getattr(root, k)
+            except:
+                return default
+        return root
+
+    def configure_item(value, vars):
+        matches = _configure_object_regex.findall(str(value))
+        if matches:
+            value = str(value)
+            for key, dtype in matches:
+                orig = '<%s%s>' % (key, dtype)
+                value = _configure_object_dict.get(dtype[1:], str)(value.replace(orig, str(get_property(vars, key))))
+        return value
+
+    obj_copy = deepcopy(obj)
+    for k, v in obj_copy.items():
+        if isinstance(v, list):
+            for i in range(len(v)):
+                v[i] = configure_item(v[i], vars)
+        elif isinstance(v, dict):
+            configure_object(v, vars)
+        else:
+            obj_copy[k] = configure_item(v, vars)
+    return obj_copy
 
 
 utils.extend_yaml.extend()
