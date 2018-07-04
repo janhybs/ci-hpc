@@ -12,7 +12,9 @@ def new(o, key, cls):
     :return:
     """
     if key in o:
-        return cls(**o[key])
+        if isinstance(o[key], dict):
+            return cls(**o[key])
+        return cls(o[key])
     return None
 
 

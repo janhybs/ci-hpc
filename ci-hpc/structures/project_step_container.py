@@ -6,9 +6,8 @@ class ProjectStepContainer(object):
     """
     Helper class which holds information about singularity/docker
     """
-    def __init__(self, **kwargs):
-        self.load = kwargs.get('load', None)  # load module
-        self.exec = kwargs.get('exec', None)  # command to exec singularity
+    def __init__(self, value):
+        self.exec = value  # lines to load container module and to exec singularity/docker
 
     def __bool__(self):
         return bool(self.exec)
