@@ -20,4 +20,4 @@ class ProjectStepCollect(object):
         self.cut_prefix = kwargs.get('cut-prefix', None)
         self.extra = kwargs.get('extra', dict())
         self.repo = kwargs.get('repo', None)
-        self.save_to_db = kwargs.get('save_to_db', True)
+        self.save_to_db = kwargs.get('save-to-db', True)
