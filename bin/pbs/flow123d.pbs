@@ -23,12 +23,17 @@ module list
 ROOT=/storage/liberec1-tul/home/jan-hybs/projects/ci-hpc
 cd $ROOT
 
-echo "Running job $PBS_JOBNAME ($PBS_JOBID) in `pwd`"
-echo "Time: `date`"
-echo "Running on master node: `hostname`"
-echo "Using nodefile :         $PBS_NODEFILE"
-cat $PBS_NODEFILE
-
+if [[ -n "$PBS_JOBID" ]]; then
+  echo "Running job $PBS_JOBNAME ($PBS_JOBID) in `pwd`"
+  echo "Time: `date`"
+  echo "Running on master node: `hostname`"
+  echo "Using nodefile :         $PBS_NODEFILE"
+  cat $PBS_NODEFILE
+else
+  echo "Running job on frontend in `pwd`"
+  echo "Time: `date`"
+  echo "Running on master node: `hostname`"
+fi
 set -x
 
 
