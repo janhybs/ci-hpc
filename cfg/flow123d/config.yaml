@@ -1,0 +1,117 @@
+workdir: <flow123d-workdir>
+init-shell: |
+  set -x
+  export PACKAGES_HOME=/usr/local
+  export FLOW123D_HOME=<flow123d-home>
+
+
+install:
+  - name: compile-flow123d
+    git:
+    - url: https://github.com/flow123d/bench_data.git
+    - url: https://github.com/flow123d/flow123d.git
+      commit: "{arg[commit][flow123d]}" # checkout to this commit
+      branch: "{arg[branch][flow123d]}" # under this branch's name
+      
+    container: |
+      module load singularity-apr2017
+      singularity exec -B /auto -B /storage -B /mnt <flow123d-sin-dbg> %s
+    # container: docker run --rm -v $(pwd):$(pwd) -w $(pwd) <flow123d-doc-dbg> %s
+        
+    shell: |
+      # download large meshes
+      make -C bench_data/benchmarks download
+      
+      cd flow123d
+      cat <<EOT > config.cmake
+      set(FLOW_BUILD_TYPE        debug)
+      set(PETSC_DIR              $PACKAGES_HOME/petsc-3.8.3/)
+      set(BDDCML_ROOT            $PACKAGES_HOME/bddcml-2.5.0/bddcml)
+      set(Armadillo_ROOT_HINT    $PACKAGES_HOME/armadillo-8.3.4)
+      set(YamlCpp_ROOT_HINT      $PACKAGES_HOME/yamlcpp-0.5.2)
+      set(USE_CCACHE             On)
+      set(CMAKE_VERBOSE_MAKEFILE On)
+      EOT
+      make -j4
+      bin/flow123d --help
+
+test:
+  - name: integration
+    repeat: 1
+    container: |
+      module load singularity-apr2017
+      singularity exec -B /auto -B /storage -B /mnt <flow123d-sin-dbg> %s
+    # container: docker run --rm -v $(pwd):$(pwd) -w $(pwd) <flow123d-doc-dbg> %s
+
+        
+    variables:
+      - matrix:
+        - benchmark: 01_square_regular_grid
+        - mesh:
+          - 1_15662_el
+          - 2_31498_el
+          - 3_47122_el
+          - 4_62302_el
+          # - 5_78010_el
+          # - 6_93742_el
+          # - 7_109042_el
+          # - 8_124498_el
+          # - 9_139918_el
+          # - 10_155122_el
+          # - 11_171110_el
+          # - 12_186658_el
+          # - 13_201610_el
+          # - 14_217138_el
+          # - 15_233242_el
+          # - 16_248510_el
+      - matrix:
+        - benchmark: 02_cube_123d
+        - mesh:
+          - 1_15786_el
+          - 2_29365_el
+          - 3_47367_el
+          - 4_58803_el
+          # - 5_78379_el
+          # - 6_89683_el
+          # - 7_104912_el
+          # - 8_118696_el
+          # - 9_139280_el
+          # - 10_152389_el
+          # - 11_165361_el
+          # - 12_183061_el
+          # - 13_197786_el
+          # - 14_211246_el
+          # - 15_233079_el
+          # - 16_261685_el
+      - matrix:
+        - benchmark: 03_mesh_read
+        - mesh:
+          - 1_15786_el
+          - 2_29365_el
+          - 4_58803_el
+          - 8_118696_el
+          - 16_261685_el
+      - matrix:
+        - benchmark: 04_kravi_hora
+        - mesh:
+          - 1_212773_el
+      - matrix:
+        - benchmark: 05_dfn_2d
+        - mesh:
+          - 1_1618_el
+          
+    shell: |
+      echo "BENCHMARK: {benchmark}, INPUT-DIR: {mesh}"
+      flow123d/bin/runtest bench_data/benchmarks/{benchmark}/ --cpu 1 --status-file --no-compare -a -- -i {mesh}
+
+    collect:
+      repo: <flow123d-workdir>/flow123d
+      files: bench_data/benchmarks/**/profiler*.json
+      module: artifacts.collect.modules.flow123d_profiler_module
+      move-to: <flow123d-workdir>/artifacts/{datetime}
+      cut-prefix: <flow123d-home>/tests
+      save-to-db: true
+      extra:
+        machine:    charon.nti.tul.cz
+        mesh:       <mesh>
+        benchmark:  <benchmark>
