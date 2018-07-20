@@ -97,15 +97,15 @@ class ProcessProject(object):
             process_step_git(step.git, self.project.global_args)
 
         if step.variables:
-            logger.info('Found %d build matrices', len(step.variables))
+            logger.debug('Found %d build matrices', len(step.variables))
             with logger:
                 for matrix in step.variables:
-                    logger.info('processing step %s with variables', step.name)
+                    logger.debug('processing step %s with variables', step.name)
                     variables = extract_first(matrix.values())
                     values = [ensure_list(extract_first(y.values())) for y in variables]
                     names = [extract_first(y.keys()) for y in variables]
                     product = list(dict(zip(names, x)) for x in itertools.product(*values))
-                    logger.info('created build matrix with %d configurations', len(product))
+                    logger.debug('created build matrix with %d configurations', len(product))
 
                     for vars, current, total in iter_over(product):
                         with logger:
@@ -120,7 +120,7 @@ class ProcessProject(object):
                                 )
                                 process_step_collect(step, format_args)
         else:
-            logger.info('processing step %s without variables', step.name)
+            logger.debug('processing step %s without variables', step.name)
             self.process_step_with_vars(step, section, None)
 
     @classmethod

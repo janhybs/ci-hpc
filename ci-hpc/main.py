@@ -27,9 +27,14 @@ from utils.logging import logger
 from proc.project import ProcessProject
 from structures.project import Project
 from utils.strings import generate_random_key as rands
+from colorama import init as colorama_init
 
 
 def main():
+    colorama_init()
+    # change stream_handler level to info
+    logger.set_level('info', logger.LOGGER_STREAMHANDLER)
+    
     __dir__ = os.path.abspath(os.path.dirname(__file__))
     __root__ = os.path.dirname(__dir__)
     __cfg__ = os.path.join(__root__, 'cfg')
@@ -84,7 +89,7 @@ def main():
 
     # parse given arguments
     args = parser.parse_args()
-    print(args)
+    logger.debug('app args: %s', str(args), skip_format=True)
 
     # convert list ["key:value", "key2:value2", ...] to dict {key:value, key2:value2}
     # default value for this dictionary is string value 'master'
@@ -126,7 +131,7 @@ def main():
 
         name = 'tmp.entrypoint-%d-%s.sh' % (time.time(), rands(6))
         bash_path = os.path.join(__root__, 'tmp', name)
-        logger.info('Generating script %s', bash_path)
+        logger.debug('Generating script %s', bash_path)
 
         with open(bash_path, 'w') as fp:
             exec_args = [
@@ -190,8 +195,8 @@ def main():
 
     # load config
     project_config = cfgutil.configure_file(config_path, variables)
-    logger.info('yaml configuration:')
-    logger.info(cfgutil.yaml_dump(project_config), skip_format=True)
+    logger.debug('yaml configuration:')
+    logger.debug(cfgutil.yaml_dump(project_config), skip_format=True)
 
     # specify some useful global arguments which will be available in the config file
     global_args = {

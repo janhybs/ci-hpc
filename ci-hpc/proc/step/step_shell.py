@@ -53,7 +53,7 @@ def process_step_shell(project, section, step, vars, shell_processing):
     :type step:            structures.project_step.ProjectStep
     :type shell_processing: ShellProcessing
     """
-    logger.info('processing shell script in step %s', step.name)
+    logger.debug('processing shell script in step %s', step.name)
     format_args = project.global_args
 
     if vars:
@@ -98,22 +98,23 @@ def process_step_shell(project, section, step, vars, shell_processing):
         # ---------------------------------------------------------------------
 
         result = ProcessStepResult()
-        with shell_processing.process(result):
-            if not step.container:
-                logger.info('running vanilla shell script %s', tmp_sh.path)
-                process = sp.Popen(['/bin/bash', tmp_sh.path])
-            else:
-                tmp_cont = TempFile(os.path.join(tmp_dir, 'cont.sh'), verbose=step.verbose)
+        with open(logger.log_file, 'a') as fp:
+            with shell_processing.process(result):
+                if not step.container:
+                    logger.info('running vanilla shell script %s', tmp_sh.path)
+                    process = sp.Popen(['/bin/bash', tmp_sh.path], stdout=fp, stderr=sp.STDOUT)
+                else:
+                    tmp_cont = TempFile(os.path.join(tmp_dir, 'cont.sh'), verbose=step.verbose)
 
-                with tmp_cont:
-                    tmp_cont.write_shebang()
-                    tmp_cont.write(configure_string(step.container.exec % tmp_sh.path, format_args))
+                    with tmp_cont:
+                        tmp_cont.write_shebang()
+                        tmp_cont.write(configure_string(step.container.exec % tmp_sh.path, format_args))
 
-                logger.info('running container shell script %s', tmp_cont.path)
-                process = sp.Popen(['/bin/bash', tmp_cont.path])
+                    logger.info('running container shell script %s', tmp_cont.path)
+                    process = sp.Popen(['/bin/bash', tmp_cont.path], stdout=fp, stderr=sp.STDOUT)
 
-            result.process = process
-            with result:
-                result.returncode = process.wait()
+                result.process = process
+                with result:
+                    result.returncode = process.wait()
 
         return result

@@ -23,7 +23,7 @@ class CollectModule(object):
         if cls.inited:
             return
 
-        logger.info('getting git information')
+        logger.debug('getting git information')
         root = path
         if os.path.isfile(path):
             root = os.path.dirname(path)

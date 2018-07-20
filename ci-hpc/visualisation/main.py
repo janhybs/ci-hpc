@@ -2,8 +2,6 @@
 # author: Jan Hybs
 
 import os, sys
-# sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-# print('\n'.join(sys.path))
 
 from utils.logging import logger
 from utils.config import Config as cfg

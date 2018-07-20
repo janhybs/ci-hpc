@@ -17,7 +17,7 @@ def process_step_collect(step, format_args=None):
     Function will collect artifacts for the given step
     :type step:           structures.project_step.ProjectStep
     """
-    logger.info('collecting artifacts')
+    logger.debug('collecting artifacts')
     files = glob.glob(step.collect.files, recursive=True)
     logger.debug('found %d files to collect', len(files))
 
@@ -38,10 +38,20 @@ def process_step_collect(step, format_args=None):
         profiler = CollectModule()
         results = list()
 
+        timers_info = []
+        timers_total = 0
         for file in files:
             with logger:
-                results.append(profiler.process_file(file))
-
+                collect_result = profiler.process_file(file)
+                timers_total += len(collect_result.items)
+                timers_info.append((os.path.basename(file), len(collect_result.items)))
+                results.append(collect_result)
+        
+        with logger:
+            for file, timers in timers_info:
+                logger.debug('%20s: %5d timers found', file, timers)
+            logger.info('artifacts: found %d timer(s) in %d file(s)', len(files), timers_total)
+            
         # insert artifacts into db
         if step.collect.save_to_db:
             CollectModule.save_to_db(results)

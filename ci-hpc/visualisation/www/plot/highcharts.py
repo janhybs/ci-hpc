@@ -111,7 +111,6 @@ def highcharts_frame_in_time(df, estimator=np.mean, title=None, color=None, args
         x=x, rename={'x': x}
     )
 
-    # print(result)
     commits, uuids = result[db.GIT_COMMIT]['first'], result[db.UUID]['first']
     mean, std = result['duration']['mean'], result['duration']['std']
 
