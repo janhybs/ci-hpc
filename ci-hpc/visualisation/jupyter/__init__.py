@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # author: Jan Hybs
-
+import collections
 
 from utils.logging import logger
 
@@ -24,8 +24,8 @@ import scipy as sc
 import pandas as pd
 import seaborn as sns
 import ipywidgets as w
-import utils.dates as dateutils
-import utils.data as datautils
+import utils.dateutils as dateutils
+import utils.datautils as datautils
 
 
 from matplotlib import pyplot as plt
@@ -34,6 +34,17 @@ from visualisation.utils.plot import tsplot, plot_mean, plot_mean_with_area
 
 cfg.init(secret_path)
 
+
+def ensure_iterable(inst):
+    """
+    Wraps scalars or string types as a list, or returns the iterable instance.
+    """
+    if isinstance(inst, str):
+        return [inst]
+    elif not isinstance(inst, collections.Iterable):
+        return [inst]
+    else:
+        return inst
 
 def normalise_vector(vector, norm='max'):
     if type(vector) is pd.Series:
@@ -98,6 +109,7 @@ def load_data(use_cache=True, filename='data.csv', generate=0, filters=dict()):
                 'git-datetime': '$libs.datetime',
                 'returncode': '$problem.returncode',
 
+                "mesh": "$system.mesh",
                 "test-name": "$problem.test-name",
                 "case-name": "$problem.case-name",
                 "cpu": "$problem.cpu",
@@ -141,12 +153,63 @@ def dual_plot(conditions, *args, plot_func, error_kwargs, **kwargs):
     plot_func(*er_args, **kwargs)
 
 
+def plot_data(
+        data, x='commit-date', y='duration',
+        filters=None, type='line',
+        groups=['case-name', 'test-size'],
+        hue=None,
+        sharex=False, sharey=None):
+    """
+    :type filters: dict
+    """
+    groups = ensure_iterable(groups)
+    subdata = datautils.filter_rows(data, **filters) if filters else data
+    opts = dict(
+        aspect=2,
+        size=3,
+        sharex=sharex if sharex is not None else False,
+        sharey=sharey if sharey is not None else (y.find('relative') != -1)
+    )
+    if len(groups) == 2:
+        a_count, b_count = [len(subdata.groupby(g).groups) for g in groups]
+        if a_count > b_count:
+            groups = groups[::-1]
+            a_count, b_count = b_count, a_count
+        if a_count == 1:
+            opts.update(dict(col=groups[1], col_wrap=2))
+            opts['hue'] = groups[1] if hue is None else hue
+        else:
+            opts.update(dict(zip(['col', 'row'], groups)))
+            opts['hue'] = groups[1] if hue is None else hue
+    else:
+        opts.update(dict(col=groups[0], col_wrap=2))
+        opts['hue'] = groups[0] if hue is None else hue
+
+    if type == 'line':
+        g = sns.FacetGrid(subdata, **opts)
+        g.map(plot_mean_with_area, x, y)
+        g.map(tsplot, x, y, chart_scale=None, reduce=np.median)
+
+        ok_args = dict(alpha=0.3, marker='x', plot_func=plt.scatter)
+        error_kwargs = dict(marker='D', color='r', alpha=1)
+        g.map(dual_plot, 'returncode', x, y, **ok_args, error_kwargs=error_kwargs)
+
+    elif type == 'hist':
+        opts.update(dict(aspect=4, size=1.5), hue='case-name' if hue is None else hue)
+        g = sns.FacetGrid(subdata, **opts)
+        g.map(plt.hist, y)
+
+    return subdata
+
+
+# {'col': 'case-name', 'col_wrap': 2, 'aspect': 2, 'size': 3, 'hue': 'case-name', 'sharey': False, 'sharex': True}
 def facetgrid_opts(data, x, y, z, x_space=15, aspect=2, sharex=False, sharey=False):
     # g = sns.FacetGrid(subdata, row='case-name', sharey=False, sharex=sharex, size=3, aspect=2, hue='case-name')
     # g = sns.FacetGrid(subdata, col='case-name', col_wrap=2, sharey=False, sharex=sharex, size=3, aspect=2, hue='case-name')
 
     x_series, y_series = data[x], data[y]
     col_wrap = 1 + int(np.floor(x_space / len(datautils.olist(x_series))))
+    col_wrap = min(3, col_wrap)
     inches = 8
 
     if col_wrap == 1:
@@ -173,7 +236,7 @@ def facetgrid_opts(data, x, y, z, x_space=15, aspect=2, sharex=False, sharey=Fal
 
 __all__ = [
     'np', 'pd', 'sns', 'plt', 'sc', 'w', 'logger', 'mongo', 'normalise_vector', 'normalise_matrix',
-    'tsplot', 'plot_mean', 'plot_mean_with_area', 'dual_plot',
-    'dateutils', 'datautils',
+    'tsplot', 'plot_mean', 'plot_mean_with_area', 'dual_plot', 'plot_data',
+    'dateutils', 'datautils', 'ensure_iterable',
     'load_data', 'add_metrics', 'facetgrid_opts',
 ]
