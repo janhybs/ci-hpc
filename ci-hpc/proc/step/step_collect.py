@@ -50,7 +50,7 @@ def process_step_collect(step, format_args=None):
         with logger:
             for file, timers in timers_info:
                 logger.debug('%20s: %5d timers found', file, timers)
-            logger.info('artifacts: found %d timer(s) in %d file(s)', len(files), timers_total)
+            logger.info('artifacts: found %d timer(s) in %d file(s)', timers_total, len(files))
             
         # insert artifacts into db
         if step.collect.save_to_db:
