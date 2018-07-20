@@ -9,6 +9,9 @@ from utils.logging import logger
 
 class Fields(object):
     GIT_DATETIME = 'git-datetime'
+    TEST_SIZE = 'test-size'
+    GIT_TIMESTAMP = 'git-timestamp'
+    UUID = 'uuid'
     GIT_COMMIT = 'git-commit'
     DURATION = 'duration'
 
