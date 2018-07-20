@@ -52,7 +52,8 @@ class AdditiveDateFormatter(logging.Formatter):
         result = '%1.9f' % (time.time() - self.start_time)
         self.start_time = time.time()
         return result[:datefmt+1]
-        
+
+
 class RelativeDateFormatter(logging.Formatter):
     """
     Simple Formatter which returns time relative since the start of the logger
@@ -78,6 +79,7 @@ class RelativeDateFormatter(logging.Formatter):
     def formatTime(self, record, datefmt):
         result = '%1.9f' % (time.time() - self.start_time)
         return result[:datefmt]
+
 
 class Logger(object):
     """

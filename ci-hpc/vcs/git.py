@@ -38,7 +38,7 @@ class Git(object):
         if branch:
             branch = branch.replace('origin/', '')
 
-        logger.info('Git checkout repo={self.git.repo} to branch={branch}, commit={commit}'.format(**locals()))
+        logger.info('Git checkout repo={self.git.repo} to branch={self.git.branch}, commit={self.git.commit}'.format(self=self))
         self.execute("git config core.pager", "", dir=self.dir) # turn of less pager
         self.execute('pwd', dir=self.dir).wait()
         self.execute('git branch -vv', dir=self.dir).wait()
