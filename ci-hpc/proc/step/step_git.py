@@ -2,6 +2,7 @@
 # author: Jan Hybs
 
 from utils.logging import logger
+from utils.config import configure_string
 from vcs.git import Git
 
 
@@ -15,8 +16,8 @@ def process_step_git(step_git, global_args=None):
     for git in step_git:
         with logger:
             if global_args:
-                git.branch = git.branch.format(**global_args)
-                git.commit = git.commit.format(**global_args)
+                git.branch = configure_string(git.branch, global_args)
+                git.commit = configure_string(git.commit, global_args)
 
             git_control = Git(git)
             logger.debug('initializing git %s to (%s, %s)', git.repo, git.branch, git.commit)

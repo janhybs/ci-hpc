@@ -9,6 +9,7 @@ from datetime import datetime
 
 from utils.config import configure_object
 from utils.logging import logger
+from utils.config import configure_string
 
 
 def process_step_collect(step, format_args=None):
@@ -32,7 +33,6 @@ def process_step_collect(step, format_args=None):
         if step.collect.extra:
             extra = configure_object(step.collect.extra, format_args)
             CollectModule.add_extra(extra)
-            print(CollectModule.system)
 
         # create instance of the CollectModule
         profiler = CollectModule()
@@ -48,8 +48,7 @@ def process_step_collect(step, format_args=None):
 
         # move results to they are not processed twice
         if step.collect.move_to:
-            now = datetime.now().strftime('%Y_%m_%d-%H_%M_%S')
-            move_to = step.collect.move_to.format(datetime=now)
+            move_to = configure_string(step.collect.move_to, format_args)
             logger.debug('moving %d files to %s', len(files), move_to)
 
             for file in files:

@@ -13,6 +13,7 @@ from files.temp_file import TempFile
 from proc import merge_dict
 from utils.events import Event, EnterExitEvent
 from utils.logging import logger
+from utils.config import configure_string
 
 
 class ShellProcessing(object):
@@ -53,7 +54,7 @@ def process_step_shell(project, section, step, vars, shell_processing):
     :type shell_processing: ShellProcessing
     """
     logger.info('processing shell script in step %s', step.name)
-    format_args = project.global_args.copy()
+    format_args = project.global_args
 
     if vars:
         format_args = merge_dict(
@@ -87,10 +88,12 @@ def process_step_shell(project, section, step, vars, shell_processing):
 
             with shell_processing.init(tmp_sh):
                 if project.init_shell:
-                    tmp_sh.write_section('INIT SHELL', project.init_shell.format(**format_args))
+                    configured = configure_string(project.init_shell, format_args)
+                    tmp_sh.write_section('INIT SHELL', configured)
 
             with shell_processing.shell(tmp_sh):
-                tmp_sh.write(step.shell.format(**format_args))
+                configured = configure_string(step.shell, format_args)
+                tmp_sh.write(configured)
 
         # ---------------------------------------------------------------------
 
@@ -104,7 +107,7 @@ def process_step_shell(project, section, step, vars, shell_processing):
 
                 with tmp_cont:
                     tmp_cont.write_shebang()
-                    tmp_cont.write((step.container.exec % tmp_sh.path).format(**format_args))
+                    tmp_cont.write(configure_string(step.container.exec % tmp_sh.path, format_args))
 
                 logger.info('running container shell script %s', tmp_cont.path)
                 process = sp.Popen(['/bin/bash', tmp_cont.path])
