@@ -116,6 +116,11 @@ def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):
     return convert(content)
 
 
+def configure_string(string, vars):
+    result = configure_object(dict(str=string), vars)
+    return result.get('str')
+
+
 def configure_object(obj, vars):
     """
     Configure given object (replaces placeholders <KEY> with VALUE contained in a given vars)
