@@ -105,3 +105,4 @@ venv.bak/
 /images
 /logs
 /queue
+ci-hpc.log
