@@ -23,7 +23,7 @@ def main(args=None):
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', '-t', type=int, default=None)
-    parser.add_argument('--check-period', type=int, default=10)
+    parser.add_argument('--check-interval', type=int, default=10)
     parser.add_argument('pbs_job_id')
     parser_args = parser.parse_args()
     print(parser_args)
@@ -38,7 +38,7 @@ def main(args=None):
 
     start_time = time.time()
     timeout = parser_args.timeout
-    check_period = parser_args.check_period
+    check_interval = parser_args.check_interval
 
     # TODO add timeout for the wait command as well
     while subprocess.Popen(command, **kwargs).wait() == 0:
@@ -47,7 +47,7 @@ def main(args=None):
         print('Waiting for %s to finish | runtime: %s' % (jid, duration))
         print('-' * 80)
 
-        for i in range(check_period):
+        for i in range(check_interval):
             time.sleep(1)
             if timeout and timeout > 0:
                 if (time.time()-start_time) > timeout:
