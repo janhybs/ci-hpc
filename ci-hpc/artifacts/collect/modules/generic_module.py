@@ -110,7 +110,6 @@ class CollectModule(object):
         logger.debug('inserted %d reports', len(results))
         return results
 
-
     def __init__(self):
         self.report = None
 
@@ -122,8 +121,10 @@ class CollectModule(object):
         self.report = dict(
             system=CollectModule.system,
             problem=dict(),
-            results=obj,
-            timer=obj,
+            results=None,
+            timers=None,
             libs=CollectModule.libs,
         )
-        return CollectResult([self.report], list())
+        self.report.update(obj)
+        items = unwind_report(self.report)
+        return CollectResult(items, list())
