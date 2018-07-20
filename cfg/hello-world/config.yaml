@@ -1,0 +1,63 @@
+# workdir: /storage/liberec1-tul/home/jan-hybs/projects/ci-hpc/projects/hello-world
+workdir: /home/jan-hybs/projects/ci-hpc/projects/hello-world
+init-shell: |
+  # this will be executed everytime before each script
+  echo "make some preparation here"
+  set -x
+  
+install:
+  - name: compilation-phase
+    git:
+    - url: git@github.com:janhybs/bench-stat.git
+      commit: <arg.commit.hello-world> # checkout to this commit
+      branch: <arg.branch.hello-world> # under this branch's name
+      
+    shell: |
+      cd bench-stat
+      
+      # compile source code
+      make -C benchmarks compile
+      
+
+test:
+  - name: testing-phase
+    repeat: 1
+    variables:
+      - matrix:
+        - test:
+            - id: 0
+              name: memory-cache-test-all
+            # - id: 1
+            #   name: memory-cache-test-l1
+            # - id: 2
+            #   name: memory-cache-test-l2
+            
+    shell: |
+      cd bench-stat
+      echo "Running test <test.name> (id=<test.id>)"
+      
+      # usage:
+      #   benchmarks/O3.out [json-output-path] [test-id]
+      
+      
+      # To get reasonable looking output file name we use <__project__> placeholder
+      #   1) one option is to use date and some random string to avoid collision
+      #      unique_name=<__project__.current.datetime>-<__project__.current.random>
+      #
+      #   2) another option is to simply count
+      #      unique_name=<__project__.counter.next-05d>
+      
+      unique_name=<__project__.counter.next-05d>
+      benchmarks/O3.out benchmark-${unique_name}.json <test.id>
+      
+    collect:
+      repo: bench-stat
+      files: bench-stat/benchmark-*.json
+      module: artifacts.collect.modules.generic_module
+      move-to: bench-stat/artifacts/<__project__.start.datetime>
+      cut-prefix: null
+      save-to-db: false
+      extra:
+        metric:     foobar # additional property of the test you want to save
+        test-id:    <test.id|i> # accessing current test
+        test-name:  <test.name> # accessing current build matric data
