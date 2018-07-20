@@ -4,9 +4,11 @@
 # This shell script starts the main python script with --execute flag set to local
 # 
 # usage: run-local [-h] --project PROJECT [--git-url GIT_URL]
-#                [--git-commit GIT_COMMIT] [--git-branch GIT_BRANCH]
-#                [--config-dir CONFIG_DIR] [--timeout TIMEOUT]
-#                [--check-interval CHECK_INTERVAL] [step [step ...]]
+#                  [--git-commit GIT_COMMIT] [--git-branch GIT_BRANCH]
+#                  [--config-dir CONFIG_DIR] [--execute {local,pbs}]
+#                  [--timeout TIMEOUT] [--check-interval CHECK_INTERVAL]
+#                  [step [step ...]]
+
 # 
 # positional arguments:
 #   step
@@ -36,6 +38,9 @@
 #                         variables.yaml) file is/are located. If no value is set
 #                         default value will cfg/<project>,
 #                         where <project> is name of the project given.
+#   --execute {local,pbs}
+#                         If set, will generate bash file where it calls itself 
+#                         once again, but without --generate flag.
 #   --timeout TIMEOUT, -t TIMEOUT
 #                         If --execute is pbs (or any value besides local) will wait for the job to finish.
 #                         By default there is no timeout. Specify in seconds.
@@ -45,4 +50,4 @@
 #                         Specify in seconds.
 
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-python3 $ROOT/ci-hpc/main.py --execute=local $*
+python3 $ROOT/ci-hpc/main.py $*
