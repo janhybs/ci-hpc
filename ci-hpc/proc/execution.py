@@ -14,14 +14,16 @@ def construct(start, *rest, shell=False):
     return ' '.join(args) if shell else args
 
 
-def execute(*args, **kwargs):
-    command = construct(*args, shell=kwargs.get('shell', False))
-    cwd = kwargs.pop('dir', '.')
+def create_execute_command(logger_method, stdout):
+    def execute(*args, **kwargs):
+        command = construct(*args, shell=kwargs.get('shell', False))
+        cwd = kwargs.pop('dir', '.')
 
-    logger.debug('$> %s', construct(*args, shell=True))
-    sys.stdout.flush()
+        logger_method('$> %s', construct(*args, shell=True))
+        sys.stdout.flush()
 
-    if os.path.exists(cwd):
-        return subprocess.Popen(command, **kwargs, cwd=cwd)
-    else:
-        return subprocess.Popen(command, **kwargs)
+        if os.path.exists(cwd):
+            return subprocess.Popen(command, **kwargs, cwd=cwd, stdout=stdout, stderr=subprocess.STDOUT)
+        else:
+            return subprocess.Popen(command, **kwargs, stdout=stdout, stderr=subprocess.STDOUT)
+    return execute
