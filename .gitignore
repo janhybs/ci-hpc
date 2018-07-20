@@ -100,7 +100,6 @@ venv.bak/
 # Pycharm project
 /.idea
 /projects
-/tmp
 /cfg/secret.yaml
 /images
 /logs
