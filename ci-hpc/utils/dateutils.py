@@ -2,7 +2,6 @@
 # author: Jan Hybs
 
 import datetime as dt
-import time as t
 import maya
 
 
@@ -38,3 +37,9 @@ def human_format(datetime):
     if type(datetime) is maya.MayaDT:
         return human_format(datetime.datetime())
     return maya.MayaDT.from_datetime(datetime).slang_time()
+
+
+def human_format2(datetime):
+    if type(datetime) is maya.MayaDT:
+        return human_format2(datetime.datetime())
+    return maya.MayaDT.from_datetime(datetime).slang_date()
