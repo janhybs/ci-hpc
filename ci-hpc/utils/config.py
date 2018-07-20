@@ -48,7 +48,7 @@ class Config(object):
         try:
             cls._cfg = yaml.load(open(config_file, 'r').read()) or dict()
         except Exception as e:
-            logger.warn('Failed to load/parse %s configuration file, will use empty dict', config_file)
+            logger.warn_exception('Failed to load/parse %s configuration file, will use empty dict', config_file)
             logger.warn('You may want to create this file in order to use database connection', config_file)
             cls._cfg = dict()
         return cls._instance
