@@ -167,7 +167,7 @@ def main():
             p.wait()
 
         elif args.execute == 'pbs':
-            qsub_output = str(subprocess.check_output(['bash', bash_path]).decode()).strip()
+            qsub_output = str(subprocess.check_output(['qsub', bash_path]).decode()).strip()
             subprocess.Popen([
                 sys.executable,
                 os.path.join(__src__, 'wait_for.py'),
