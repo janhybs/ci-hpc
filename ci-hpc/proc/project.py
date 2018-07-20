@@ -90,6 +90,7 @@ class ProcessProject(object):
         if not step.enabled:
             logger.debug('step %s is disabled', step.name)
             return
+        logger.info('processing step %s', step.name)
 
         if not step.git:
             logger.debug('no repos setup')
@@ -97,10 +98,10 @@ class ProcessProject(object):
             process_step_git(step.git, self.project.global_args)
 
         if step.variables:
-            logger.debug('Found %d build matrices', len(step.variables))
+            logger.debug('found %d build matrices', len(step.variables))
+            logger.debug('processing step %s with build matrix', step.name)
             with logger:
                 for matrix in step.variables:
-                    logger.debug('processing step %s with variables', step.name)
                     variables = extract_first(matrix.values())
                     values = [ensure_list(extract_first(y.values())) for y in variables]
                     names = [extract_first(y.keys()) for y in variables]
@@ -120,7 +121,7 @@ class ProcessProject(object):
                                 )
                                 process_step_collect(step, format_args)
         else:
-            logger.debug('processing step %s without variables', step.name)
+            logger.info('processing step %s without variables', step.name)
             self.process_step_with_vars(step, section, None)
 
     @classmethod

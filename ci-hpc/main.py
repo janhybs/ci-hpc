@@ -107,12 +107,12 @@ def main():
     project_dir = args.config_dir if args.config_dir else os.path.join(__cfg__, project_name)
     if args.config_dir:
         if not os.path.exists(args.config_dir):
-            logger.warning('Invalid config location given: %s', project_dir)
+            logger.warning('invalid config location given: %s', project_dir)
             project_dir = os.path.join(__cfg__, project_name)
-            logger.warning('Will try to use %s instead', project_dir)
+            logger.warning('will try to use %s instead', project_dir)
             
     if not os.path.exists(project_dir):
-        logger.error('No valid configuration found for the project %s', project_name)
+        logger.error('no valid configuration found for the project %s', project_name)
         sys.exit(1)
 
     # execute on demand using pbs/local or other system
@@ -155,7 +155,7 @@ def main():
         os.chmod(bash_path, 0o777)
 
         # execute on demand using specific system (local/pbs for now)
-        logger.info('Executing script %s using %s system', bash_path, args.execute)
+        logger.info('executing script %s using %s system', bash_path, args.execute)
         if args.execute == 'local':
             p = subprocess.Popen([bash_path])
 
@@ -213,7 +213,7 @@ def main():
     project_definition._global_args.update(global_args)
 
     project = ProcessProject(project_definition)
-    logger.info('Processing project %s, section %s', project_name, args.step)
+    logger.info('processing project %s, section %s', project_name, args.step)
 
     # -----------------------------------------------------------------
 
