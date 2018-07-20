@@ -2,8 +2,7 @@
 workdir: /home/jan-hybs/projects/ci-hpc/projects/hello-world
 init-shell: |
   # this will be executed everytime before each script
-  echo "make some preparation here"
-  set -x
+  set -e
   
 install:
   - name: compilation-phase
@@ -22,6 +21,7 @@ install:
 
 test:
   - name: testing-phase
+    show-output: true
     repeat: 1
     variables:
       - matrix:

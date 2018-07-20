@@ -2,6 +2,7 @@
 # author: Jan Hybs
 
 import os
+import sys
 import subprocess as sp
 from datetime import datetime
 from time import time
@@ -11,7 +12,8 @@ import utils.strings as strings
 
 from files.temp_file import TempFile
 from proc import merge_dict
-from utils.events import Event, EnterExitEvent
+from utils.events import EnterExitEvent
+from utils.dynamicio import DynamicIO
 from utils.logging import logger
 from utils.config import configure_string
 
@@ -98,7 +100,9 @@ def process_step_shell(project, section, step, vars, shell_processing):
         # ---------------------------------------------------------------------
 
         result = ProcessStepResult()
-        with open(logger.log_file, 'a') as fp:
+        stream = None if step.show_output else logger.log_file
+
+        with DynamicIO(stream) as fp:
             with shell_processing.process(result):
                 if not step.container:
                     logger.info('running vanilla shell script %s', tmp_sh.path)

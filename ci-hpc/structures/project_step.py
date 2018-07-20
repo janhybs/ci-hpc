@@ -20,6 +20,7 @@ class ProjectStep(object):
     :type container:        ProjectStepContainer
     :type repeat:           int
     :type shell:            str
+    :type show_output:      bool
 
     :type variables:        list
     :type measure:          ProjectStepMeasure
@@ -35,6 +36,7 @@ class ProjectStep(object):
         self.container = structures.new(kwargs, 'container', ProjectStepContainer)
         self.repeat = kwargs.get('repeat', 1)
         self.shell = kwargs.get('shell', None)
+        self.show_output = kwargs.get('show-output', False)
 
         # build matrix
         self.variables = kwargs.get('variables', [])
