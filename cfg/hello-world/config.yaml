@@ -22,7 +22,7 @@ install:
 test:
   - name: testing-phase
     show-output: true
-    repeat: 1
+    repeat: 3
     variables:
       - matrix:
         - test:
