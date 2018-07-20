@@ -109,17 +109,17 @@ def system_info():
     )
 
 
-def unwind_report(report, fields):
+def unwind_report(report, unwind_from='timers', unwind_to='timer'):
     """
     Method will convert flatten json report format to a list of reports
     :type report: dict
     """
     items = list()
     report_copy = report.copy()
-    timers = report_copy.pop(fields)
+    timers = report_copy.pop(unwind_from)
     for timer in timers:
         item = report_copy.copy()
-        item['timer'] = timer
+        item[unwind_to] = timer
         items.append(item)
     return items
 
