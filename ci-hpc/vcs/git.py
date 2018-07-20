@@ -35,6 +35,7 @@ class Git(object):
             branch = branch.replace('origin/', '')
 
         logger.info('Processing repo {self.git.repo} {self.dir}'.format(self=self))
+        execute("git config core.pager", "", dir=self.dir) # turn of less pager
         execute('pwd', dir=self.dir).wait()
         execute('git branch -vv', dir=self.dir).wait()
         execute('git fetch', dir=self.dir).wait()
