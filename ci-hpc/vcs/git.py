@@ -34,7 +34,7 @@ class Git(object):
         if branch:
             branch = branch.replace('origin/', '')
 
-        logger.info('Processing repo {self.git.repo} {self.dir}'.format(self=self))
+        logger.debug('Processing repo {self.git.repo} {self.dir}'.format(self=self))
         execute("git config core.pager", "", dir=self.dir) # turn of less pager
         execute('pwd', dir=self.dir).wait()
         execute('git branch -vv', dir=self.dir).wait()
@@ -60,6 +60,6 @@ class Git(object):
                     execute('git checkout -b', branch, dir=self.dir).wait()
 
     def info(self):
-        logger.info('Repository currently at:')
+        logger.debug('Repository currently at:')
         execute('git branch -vv', dir=self.dir).wait()
         execute('git log -n 10 --graph', '--pretty=format:%h %ar %aN%d %s', dir=self.dir).wait()

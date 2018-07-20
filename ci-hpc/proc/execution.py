@@ -18,7 +18,7 @@ def execute(*args, **kwargs):
     command = construct(*args, shell=kwargs.get('shell', False))
     cwd = kwargs.pop('dir', '.')
 
-    logger.info('$> %s', construct(*args, shell=True))
+    logger.logger('$> %s', construct(*args, shell=True))
     sys.stdout.flush()
 
     if os.path.exists(cwd):
