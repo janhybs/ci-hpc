@@ -1,7 +1,7 @@
 #!/bin/bash --login
 #PBS -j oe
 #PBS -q charon
-#PBS -l nodes=1:ncpus=1:mem=2gb
+#PBS -l select=1:ncpus=1:mem=2gb
 #PBS -l walltime=00:10:00
 # # disabled option -l place=excl
 
