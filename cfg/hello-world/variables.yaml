@@ -14,7 +14,7 @@ hello-world-workdir: /home/jan-hybs/projects/ci-hpc/projects/hello-world
 # 
 # non-conditional variables will be overridden if the name is the same as conditional variables
 charon*.nti.tul.cz:
-  hello-world-workdir: /storage/liberec1-tul/home/jan-hybs/projects/ci-hpc/projects/hello-world
+  hello-world-workdir: /storage/praha1/home/jan-hybs/projects/ci-hpc/projects/hello-world
 
 
 
@@ -26,4 +26,4 @@ charon*.nti.tul.cz:
 #     foo: bar
 # usually HPC hostnames contain a . (dot)
 '*.*':
-  hello-world-workdir: /storage/liberec1-tul/home/jan-hybs/projects/ci-hpc/projects/hello-world
+  hello-world-workdir: /storage/praha1/home/jan-hybs/projects/ci-hpc/projects/hello-world
