@@ -71,6 +71,9 @@ class Project(object):
         self.install = ProjectSection('install', kwargs.get('install', []))
         self.test = ProjectSection('test', kwargs.get('test', []))
 
+    def update_global_args(self, o):
+        self._global_args.update(o)
+
     @property
     def global_args(self):
         cp = copy.deepcopy(self._global_args)
