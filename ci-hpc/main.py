@@ -128,11 +128,14 @@ def main():
         else:
             project_execute_script = '\n'.join([
                 '#!/bin/bash --login',
+                'echo "<ci-hpc-install>"',
+                '<ci-hpc-install>',
                 'echo "<ci-hpc-exec>"',
                 '<ci-hpc-exec>',
                 'exit $?',
             ])
 
+        install_args = [os.path.join(__root__, 'share', 'install.sh')]
         name = 'tmp.entrypoint-%d-%s.sh' % (time.time(), rands(6))
         bash_path = os.path.join(__root__, 'tmp', name)
         logger.debug('Generating script %s', bash_path)
@@ -154,6 +157,7 @@ def main():
             fp.write(
                 cfgutil.configure_string(project_execute_script, {
                     'ci-hpc-exec': ' '.join(exec_args),
+                    'ci-hpc-install': ' '.join(install_args),
                     'ci-hpc-exec-no-interpret': ' '.join(exec_args[1:]),
                 }))
         os.chmod(bash_path, 0o777)

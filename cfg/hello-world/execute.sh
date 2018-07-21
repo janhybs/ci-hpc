@@ -6,9 +6,13 @@
 # # disabled option -l place=excl
 # interactive for testing
 # qsub -j oe -q charon -l select=1:ncpus=1:mem=2gb -l walltime=00:59:00 -I
+# qsub -j oe -l select=1:ncpus=1:mem=2gb -l walltime=00:59:00 -I
 
 module load python-3.6.2-gcc
 module load python36-modules-gcc
+
+echo "installing pip packages: <ci-hpc-install>"
+<ci-hpc-install>
 
 NOW=$(date "+%Y-%m-%d_%H-%M-%S")
 
