@@ -24,3 +24,6 @@ charon*.nti.tul.cz:
 #
 #   '*.*':
 #     foo: bar
+# usually HPC hostnames contain a . (dot)
+'*.*':
+  hello-world-workdir: /storage/liberec1-tul/home/jan-hybs/projects/ci-hpc/projects/hello-world
