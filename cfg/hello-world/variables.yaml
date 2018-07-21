@@ -15,3 +15,12 @@ hello-world-workdir: /home/jan-hybs/projects/ci-hpc/projects/hello-world
 # non-conditional variables will be overridden if the name is the same as conditional variables
 charon*.nti.tul.cz:
   hello-world-workdir: /storage/liberec1-tul/home/jan-hybs/projects/ci-hpc/projects/hello-world
+
+
+
+# do not forget YAML is a superset of JSON
+# so to use wildcar at the beginning of the name, use quotes!
+# the following will match any hostname containing . (dot):
+#
+#   '*.*':
+#     foo: bar
