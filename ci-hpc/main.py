@@ -26,14 +26,14 @@ from utils.logging import logger
 
 from proc.project import ProcessProject
 from structures.project import Project
-from utils.strings import generate_random_key as rands
+from utils.strings import generate_random_key as rands, pad_lines
 from colorama import init as colorama_init
 
 
 def main():
     colorama_init()
     # change stream_handler level to info
-    logger.set_level('info', logger.LOGGER_STREAMHANDLER)
+    logger.set_level('INFO', logger.LOGGER_STREAMHANDLER)
     
     __dir__ = os.path.abspath(os.path.dirname(__file__))
     __root__ = os.path.dirname(__dir__)
@@ -85,10 +85,14 @@ def main():
                             Interval, in which the script quiries the HPC for the job status.
                             Specify in seconds.
                             ''')
+    parser.add_argument('-v', '--verbosity', default=0, action='count', help='''R|
+                            Increases verbosity of the application.
+                            ''')
     parser.add_argument('step', type=str, nargs='*', default=['install', 'test'])
 
     # parse given arguments
     args = parser.parse_args()
+    logger.increase_verbosity(args.verbosity)
     logger.debug('app args: %s', str(args), skip_format=True)
 
     # convert list ["key:value", "key2:value2", ...] to dict {key:value, key2:value2}
@@ -195,11 +199,10 @@ def main():
 
     # load config
     project_config = cfgutil.configure_file(config_path, variables)
-    logger.debug('yaml configuration:')
-    logger.debug(cfgutil.yaml_dump(project_config), skip_format=True)
+    logger.debug('yaml configuration: \n%s', pad_lines(cfgutil.yaml_dump(project_config)), skip_format=True)
 
     # specify some useful global arguments which will be available in the config file
-    global_args = {
+    global_args_extra = {
         'project-name': project_name,
         'project-dir': project_dir,
         'arg': dict(
@@ -210,7 +213,7 @@ def main():
 
     # parse config
     project_definition = Project(project_name, **project_config)
-    project_definition._global_args.update(global_args)
+    project_definition.update_global_args(global_args_extra)
 
     project = ProcessProject(project_definition)
     logger.info('processing project %s, section %s', project_name, args.step)

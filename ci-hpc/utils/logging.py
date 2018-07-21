@@ -15,7 +15,7 @@ class ColorLevels(object):
         'INFO':       Style.DIM + Fore.CYAN,
         'WARNING':    Style.NORMAL + Fore.YELLOW,
         'ERROR':      Style.BRIGHT + Back.RED + Fore.WHITE,
-        'ERROR':      Style.BRIGHT + Back.RED + Fore.WHITE,
+        'FATAL':      Style.BRIGHT + Back.RED + Fore.WHITE,
         'CRITICAL':   Style.BRIGHT + Back.RED + Fore.WHITE,
     }
     
@@ -48,7 +48,7 @@ class AdditiveDateFormatter(logging.Formatter):
         )
         return result % record.__dict__
     
-    def formatTime(self, record, datefmt):
+    def formatTime(self, record, datefmt=None):
         result = '%1.9f' % (time.time() - self.start_time)
         self.start_time = time.time()
         return result[:datefmt+1]
@@ -76,7 +76,7 @@ class RelativeDateFormatter(logging.Formatter):
         )
         return result % record.__dict__
     
-    def formatTime(self, record, datefmt):
+    def formatTime(self, record, datefmt=None):
         result = '%1.9f' % (time.time() - self.start_time)
         return result[:datefmt]
 
@@ -115,6 +115,10 @@ class Logger(object):
         for l in loggers:
             self.logger.handlers[l].setLevel(level)
         return self.logger.handlers
+
+    def increase_verbosity(self, amount):
+        if amount:
+            self.set_level('DEBUG', logger.LOGGER_ALL_HANDLERS)
 
     def info(self, msg, *args, skip_format=False, **kwargs):
         indent = '' if self._indent == 0 else self._indent * '--' + ' '
