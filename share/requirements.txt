@@ -1,0 +1,7 @@
+colorama
+pyyaml
+pymongo
+pandas
+numpy
+seaborn
+matplotlib
