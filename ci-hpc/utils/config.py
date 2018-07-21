@@ -13,16 +13,26 @@ from utils.logging import logger
 _configure_object_regex = re.compile('<([a-zA-Z0-9_\.-]+)(\|[a-zA-Z_]+)?>')
 _configure_object_dict = dict(s=str,i=int,f=float,b=bool)
 
+
 class Config(object):
     """
     Class which loads a .config.yaml file which should be located somewhere in a parent directory
     """
     _instance = None
+    _hostname = None
     _cfg = dict()
 
     @classmethod
     def get(cls, *args, **kwargs):
         return cls._instance._get(*args, **kwargs)
+
+    @classmethod
+    def hostname(cls):
+        if not cls._hostname:
+            import platform
+            cls._hostname = platform.node()
+            logger.info('Determined hostname as "%s"', cls._hostname)
+        return cls._hostname
 
     @classmethod
     def init(cls, config_location=None):
@@ -105,8 +115,30 @@ def read_file(path, default=''):
         return default
 
 
-def load_config(path, replace=True):
-    return yaml_load(read_file(path, default='{}'))
+def load_config(path, replace=True, hostname_conditions=True):
+    if not hostname_conditions:
+        return yaml_load(read_file(path, default='{}'))
+    obj = yaml_load(read_file(path, default='{}'))
+
+    # grab hostname
+    hostname = Config.hostname()
+
+    result = dict()
+    simple_ones = {k: v for k,v in obj.items() if not isinstance(v, dict)}
+    complex_ones = {k: v for k,v in obj.items() if isinstance(v, dict)}
+
+    # add simple variables
+    result.update(simple_ones)
+
+    for k, other_dict in complex_ones.items():
+        regex = k.replace('.', '\.').replace('*', '.*')
+
+        # we found our hostname match
+        if re.match(regex, hostname):
+            logger.debug('setting conditional variables (hostname %s matches definition %s)', hostname, k)
+            result.update(other_dict)
+            return result
+    return result
 
 
 def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):

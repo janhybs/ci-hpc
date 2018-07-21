@@ -1,5 +1,4 @@
-# workdir: /storage/liberec1-tul/home/jan-hybs/projects/ci-hpc/projects/hello-world
-workdir: /home/jan-hybs/projects/ci-hpc/projects/hello-world
+workdir: <hello-world-workdir>
 init-shell: |
   # this will be executed everytime before each script
   set -e
