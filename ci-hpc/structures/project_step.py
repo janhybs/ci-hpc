@@ -3,11 +3,11 @@
 
 import structures
 from structures.project_step_measure import ProjectStepMeasure
-from utils.logging import logger
 from structures import pick
 from structures.project_step_git import ProjectStepGit
 from structures.project_step_container import ProjectStepContainer
 from structures.project_step_collect import ProjectStepCollect
+from utils.glob import global_configuration
 
 
 class ProjectStep(object):
@@ -36,7 +36,9 @@ class ProjectStep(object):
         self.container = structures.new(kwargs, 'container', ProjectStepContainer)
         self.repeat = kwargs.get('repeat', 1)
         self.shell = kwargs.get('shell', None)
-        self.show_output = kwargs.get('show-output', False)
+        self.output = kwargs.get('output',
+            'stdout' if global_configuration.tty else 'both'
+        )
 
         # build matrix
         self.variables = kwargs.get('variables', [])

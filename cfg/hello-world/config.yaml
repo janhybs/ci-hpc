@@ -20,7 +20,7 @@ install:
 
 test:
   - name: testing-phase
-    show-output: true
+    output: stdout+log
     repeat: 3
     variables:
       - matrix:

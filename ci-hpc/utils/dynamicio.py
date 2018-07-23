@@ -1,38 +1,98 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
+from utils.glob import global_configuration
+from utils.logging import logger
+import tempfile
+import os
+import subprocess
+
+
+class Opener(object):
+    def __init__(self, location, mode):
+        self.location = location
+        self.mode = mode
+        self.fp = None
+
+    def open(self):
+        return None
+
+    def close(self):
+        return None
+
+
+class OpenerStdout(Opener):
+    pass
+
+
+class OpenerLog(Opener):
+    def open(self):
+        self.fp = open(global_configuration.log_path, self.mode)
+        return self.fp
+
+    def close(self):
+        self.fp.close()
+        return None
+
+
+class OpenerNull(Opener):
+    def open(self):
+        return subprocess.DEVNULL
+
+    def close(self):
+        return subprocess.DEVNULL
+
+
+class OpenerFile(Opener):
+    def open(self):
+        self.fp = open(self.location, self.mode)
+        return self.fp
+
+    def close(self):
+        self.fp.close()
+        return None
+
+
+class OpenerBoth(Opener):
+    def open(self):
+        fd, self.tf = tempfile.mkstemp()
+        self.fp = os.fdopen(fd, 'w')
+        return self.fp
+
+    def close(self):
+        self.fp.close()
+        with open(self.tf, 'r') as fp:
+            content = fp.read()
+            logger.info('content: \n%s', content)
+        os.unlink(self.tf)
+        return None
+
 
 class DynamicIO(object):
     """
     Simple class which returns valid file pointer while opening file
     if no location is passed, returns None
+    :type fp: typing.TextIO
     """
+    TYPES = {
+        'stdout': OpenerStdout,
+        'log': OpenerLog,
+        'log+stdout': OpenerBoth,
+        'stdout+log': OpenerBoth,
+        'null': OpenerNull,
+    }
+
     def __init__(self, location, mode='a'):
-        self.stdout = not isinstance(location, str)
         self.location = location
         self.mode = mode
-        self._fp = None
+        self.opener = self.TYPES.get(self.location, OpenerFile)(self.location, self.mode)
+        self.fp = None
 
     def __enter__(self):
-        if self.stdout:
-            self._fp = None
-            return self._fp
-
-        self._fp = open(self.location, self.mode)
-        return self._fp
+        self.fp = self.opener.open()
+        return self.fp
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.stdout:
-            return False
-
-        self._fp.close()
-        self._fp = None
+        self.opener.close()
         return False
-
-    @property
-    def fp(self):
-        """
-        :rtype: typing.TextIO
-        """
-        return self._fp
 

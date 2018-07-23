@@ -100,9 +100,7 @@ def process_step_shell(project, section, step, vars, shell_processing):
         # ---------------------------------------------------------------------
 
         result = ProcessStepResult()
-        stream = None if step.show_output else logger.log_file
-
-        with DynamicIO(stream) as fp:
+        with DynamicIO(step.output) as fp:
             with shell_processing.process(result):
                 if not step.container:
                     logger.info('running vanilla shell script %s', tmp_sh.path)
