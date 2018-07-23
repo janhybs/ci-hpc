@@ -62,7 +62,6 @@ def main(args=None):
         sys.stdout.flush()
         duration = time.strftime('%H:%M:%S', time.gmtime(int(time.time() - start_time)))
         print('Waiting for %s to finish | runtime: %s' % (jid, duration))
-        print('-' * 80)
 
         for i in range(check_interval):
             time.sleep(1)
