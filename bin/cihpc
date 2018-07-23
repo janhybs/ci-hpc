@@ -1,4 +1,4 @@
-#!/bin/bash --login
+#!/bin/bash
 
 # this script will start CI-HPC for given project
 # This shell script starts the main python script with --execute flag set to local
