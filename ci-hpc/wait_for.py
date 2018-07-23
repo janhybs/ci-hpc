@@ -49,9 +49,9 @@ def main(args=None):
 
     # print log file if set
     reader = None
-    if args.live_log:
+    if parser_args.live_log:
         reader = LiveReader(
-            file_path=args.live_log,
+            file_path=parser_args.live_log,
             callback=CountPrint().print_line,
             update_interval=check_interval,
             wait_for_file=True)
