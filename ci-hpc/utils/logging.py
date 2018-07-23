@@ -2,6 +2,7 @@
 # author: Jan Hybs
 
 
+from utils.glob import global_configuration
 import logging
 import sys
 import time
@@ -170,18 +171,18 @@ class Logger(object):
     warning = warn
 
     @classmethod
-    def init(cls, log_dir=None):
+    def init(cls, log_path=None):
         """
         :rtype: Logger
         """
         from os.path import abspath, join, dirname
 
-        if not log_dir:
-            log_dir = abspath(join(dirname(__file__), '../' * 2))
+        if not log_path:
+            log_path = global_configuration.log_path
 
         logger = logging.getLogger('root')
 
-        file_log = logging.FileHandler(join(log_dir, 'ci-hpc.log'))
+        file_log = logging.FileHandler(log_path)
         stream_log = logging.StreamHandler(sys.stdout)
         file_formatter = logging.Formatter("%(asctime)s %(levelname)+8.8s: %(message)s")
         

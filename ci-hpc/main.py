@@ -9,39 +9,19 @@
 # bin/python
 
 
-
 import argparse
 import os
 import sys
 import time
 import subprocess
 from collections import defaultdict
-
-import utils.config as cfgutil
-import atexit
-import signal
-from utils.parsing import RawFormatter
-from utils.config import Config as cfg
-from utils.logging import logger
-
-from proc.project import ProcessProject
-from structures.project import Project
-from utils.strings import generate_random_key as rands, pad_lines
-from colorama import init as colorama_init
+from utils.glob import global_configuration
 
 
-def main():
-    colorama_init()
-    # change stream_handler level to info
-    logger.set_level('INFO', logger.LOGGER_STREAMHANDLER)
-    
-    __dir__ = os.path.abspath(os.path.dirname(__file__))
-    __root__ = os.path.dirname(__dir__)
-    __cfg__ = os.path.join(__root__, 'cfg')
-    __src__ = os.path.join(__root__, 'ci-hpc')
+def parse_args():
+    from utils.parsing import RawFormatter
 
     # create parser
-    parser = argparse.ArgumentParser()
     parser = argparse.ArgumentParser(formatter_class=RawFormatter)
     parser.add_argument('--project', type=str, required=True, help='''R|
                             Name of the project.
@@ -64,7 +44,7 @@ def main():
                             will be renamed to this value.
                                 This is useful when running commits from the past
                                 (there will be no detached state nor branch HEAD.)
-                                
+
                             Default value is "master" ''')
     parser.add_argument('--config-dir', type=str, default=None, help='''R|
                             Path to the directory, where config.yaml (and optionally
@@ -85,6 +65,9 @@ def main():
                             Interval, in which the script quiries the HPC for the job status.
                             Specify in seconds.
                             ''')
+    parser.add_argument('--log-path', type=str, default=None, help='''R|
+                            If set, will override standard log file location
+                            ''')
     parser.add_argument('-v', '--verbosity', default=0, action='count', help='''R|
                             Increases verbosity of the application.
                             ''')
@@ -92,7 +75,37 @@ def main():
 
     # parse given arguments
     args = parser.parse_args()
+    return args
+
+
+def main():
+    args = parse_args()
+    # override log_path if set before actually creating logger
+    if args.log_path:
+        global_configuration.log_path = args.log_path
+
+    # -------------------------------------------------------
+
+    # now import other packages
+    import utils.config as cfgutil
+    from utils.logging import logger
+    from utils.config import Config as cfg
+    from utils.strings import generate_random_key as rands, pad_lines
+
+    from proc.project import ProcessProject
+    from structures.project import Project
+    import colorama
+
+    colorama.init()
+
+    __root__ = global_configuration.root
+    __cfg__ = global_configuration.cfg
+    __src__ = global_configuration.src
+
+    # change stream_handler level to info
+    logger.set_level('INFO', logger.LOGGER_STREAMHANDLER)
     logger.increase_verbosity(args.verbosity)
+
     logger.debug('app args: %s', str(args), skip_format=True)
 
     # convert list ["key:value", "key2:value2", ...] to dict {key:value, key2:value2}
@@ -176,15 +189,28 @@ def main():
 
         elif args.execute == 'pbs':
             qsub_output = str(subprocess.check_output(['qsub', bash_path]).decode()).strip()
-            subprocess.Popen([
+            cmd = [
                 sys.executable,
                 os.path.join(__src__, 'wait_for.py'),
                 qsub_output,
                 '--timeout=%d' % args.timeout,
                 '--check-interval=%d' % args.check_interval,
-            ]).wait()
+                '--live-log=%s' % args.log_path,
+                '--quiet',
+            ]
+            subprocess.Popen(cmd).wait()
         os.unlink(bash_path)
         sys.exit(0)
+
+    if global_configuration.tty:
+        logger.info('Started ci-hpc in a %s mode',
+                    colorama.Back.BLUE +
+                    colorama.Fore.CYAN +
+                    colorama.Style.BRIGHT +
+                    ' tty '
+                    + colorama.Style.RESET_ALL)
+    else:
+        logger.info('Started ci-hpc *not* in a tty mode')
 
     # this file contains only variables which can be used in config.yaml
     variables_path = os.path.join(project_dir, 'variables.yaml')
