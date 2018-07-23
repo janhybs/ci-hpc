@@ -195,7 +195,7 @@ def main():
                 qsub_output,
                 '--timeout=%d' % args.timeout,
                 '--check-interval=%d' % args.check_interval,
-                '--live-log=%s' % args.log_path,
+                '--live-log=%s' % global_configuration.log_path,
                 '--quiet',
             ]
             subprocess.Popen(cmd).wait()
