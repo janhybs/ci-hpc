@@ -39,7 +39,8 @@ def main(args=None):
     print(' '.join(command))
     print('-' * 80)
     kwargs = dict(stderr=subprocess.STDOUT)
-    if args.quiet:
+
+    if parser_args.quiet:
         kwargs.update(dict(stdout=subprocess.DEVNULL))
 
     start_time = time.time()
