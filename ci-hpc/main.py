@@ -174,6 +174,7 @@ def main():
                     'ci-hpc-exec-no-interpret': ' '.join(exec_args[1:]),
                 }))
         os.chmod(bash_path, 0o777)
+        logger.debug('ci-hpc-exec set to %s', ' '.join(exec_args), skip_format=True)
 
         # execute on demand using specific system (local/pbs for now)
         logger.info('executing script %s using %s system', bash_path, args.execute)
@@ -188,6 +189,8 @@ def main():
             p.wait()
 
         elif args.execute == 'pbs':
+            logger.debug('running qsub cmd: %s', str(['qsub', bash_path]), skip_format=True)
+            
             qsub_output = str(subprocess.check_output(['qsub', bash_path]).decode()).strip()
             cmd = [
                 sys.executable,
@@ -198,9 +201,11 @@ def main():
                 '--live-log=%s' % global_configuration.log_path,
                 '--quiet',
             ]
+            logger.info('waiting for job (%s) to finish', qsub_output)
             subprocess.Popen(cmd).wait()
         os.unlink(bash_path)
         sys.exit(0)
+
 
     if global_configuration.tty:
         logger.info('Started ci-hpc in a %s mode',
