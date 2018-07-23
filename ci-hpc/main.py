@@ -60,7 +60,7 @@ def parse_args():
                             If --execute is pbs (or any value besides local) will wait for the job to finish.
                             By default there is no timeout. Specify in seconds.
                             ''')
-    parser.add_argument('--check-interval', type=int, default=10, help='''R|
+    parser.add_argument('--check-interval', type=int, default=5, help='''R|
                             If --execute is pbs (or any value besides local) will wait for the job to finish.
                             Interval, in which the script quiries the HPC for the job status.
                             Specify in seconds.
