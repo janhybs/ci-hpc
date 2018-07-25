@@ -12,6 +12,7 @@
 
 # Configuring a Jenkins server
   1. Create new Job (type can be `Freestyle project`)
+  
       ![jenkins-new](imgs/jenkins-new.png)
 
   2. Setup git connection to your repository
