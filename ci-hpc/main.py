@@ -189,8 +189,8 @@ def main():
             p.wait()
 
         elif args.execute == 'pbs':
-            logger.debug('running qsub cmd: %s', str(['qsub', bash_path]), skip_format=True)
-            
+            logger.debug('running cmd: %s', str(['qsub', bash_path]), skip_format=True)
+
             qsub_output = str(subprocess.check_output(['qsub', bash_path]).decode()).strip()
             cmd = [
                 sys.executable,
@@ -205,7 +205,6 @@ def main():
             subprocess.Popen(cmd).wait()
         os.unlink(bash_path)
         sys.exit(0)
-
 
     if global_configuration.tty:
         logger.info('Started ci-hpc in a %s mode',

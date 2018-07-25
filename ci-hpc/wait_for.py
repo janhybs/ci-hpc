@@ -86,7 +86,7 @@ class CountPrint(object):
     """
     Simple class which can print formatter lines and keep track of the no of lines
     """
-    def __init__(self, format='[%04d]    %s', counter=1):
+    def __init__(self, format='[%4d]    %s', counter=1):
         self.format = format
         self.counter = counter
 
