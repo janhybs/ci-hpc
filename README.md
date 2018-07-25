@@ -27,4 +27,4 @@ Read full docs [here](doc)
 
 
 ## Result from the framework
-![results](doc/imgs/result.png)
+![results](docs/imgs/result.png)

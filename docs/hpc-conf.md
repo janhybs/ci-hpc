@@ -14,5 +14,5 @@
   ```
   3. Setup `config.yaml` configuration file 
 
-  *Please refer to [config.yaml](doc/config.yaml) section to find out more
+  *Please refer to [config.yaml](docs/config.yaml) section to find out more
   about configuration.*
