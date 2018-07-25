@@ -22,7 +22,7 @@ Before configuring anything, make sure you have:
 
 
 ## Documentation
-Read full docs [here](doc)
+Read full docs [here](docs)
 
 
 
