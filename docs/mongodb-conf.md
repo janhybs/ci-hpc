@@ -12,14 +12,14 @@ It is recommended to add another user, who can write to any database:
 ![mongodb-new](imgs/mongodb-new.png)
 
 
-After the user is created you need to create a `secret.yaml` file inside
-`cfg` direcotory. **Make sure only owner can read this file** as it will contain username, password and server to the MongoDB database.
+After the user is created you need to create a file `secret.yaml` inside
+`cfg` directory. **Make sure only owner can read this file** as it will contain username, password and server to the MongoDB database.
 
 ## `secret.yaml` structure
 
 Main section `pymongo` can contain several options. All of which are passed
 to the construcotr of the python's 
-[pymongo.mongo_client.MongoClient constructor](https://api.mongodb.com/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient)
+[pymongo.mongo_client.MongoClient constructor](https://api.mongodb.com/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient). Please refer to [api.mongodb.com](https://api.mongodb.com/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient) for further information.
 
   1. Example 1 (single host):
       ```yaml
