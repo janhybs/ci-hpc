@@ -4,7 +4,8 @@ Read the section about Jenkins configuration [here](jenkins-conf.md)
 ![jenkins](imgs/jenkins-logo.png)
 
 # HPC configuration
-Read the section about HPC configuration [here](hpc-conf.md)
+Read the section about HPC configuration [here](hpc-conf.md) and 
+the section about `config.yaml` config file [here](config.yaml.md) and 
 
 ![hpc](imgs/hpc-logo.jpg)
 
