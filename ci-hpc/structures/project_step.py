@@ -20,7 +20,7 @@ class ProjectStep(object):
     :type container:        ProjectStepContainer
     :type repeat:           int
     :type shell:            str
-    :type show_output:      bool
+    :type output:           str
 
     :type variables:        list
     :type measure:          ProjectStepMeasure
