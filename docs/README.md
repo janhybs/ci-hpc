@@ -10,7 +10,7 @@ the section about `config.yaml` config file [here](config.yaml.md) and
 ![hpc](imgs/hpc-logo.jpg)
 
 # MongoDB configuration
-**TBD** ~~Read the section about MongoDB storage configuration [here](mongodb-conf.md)~~
+Read the section about MongoDB storage configuration [here](mongodb-conf.md)
 
 ![mongodb](imgs/mongodb-logo.png)
 
