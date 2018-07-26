@@ -5,6 +5,7 @@ init-shell: |
   
 install:
   - name: compilation-phase
+    output: stdout+log
     git:
     - url: git@github.com:janhybs/bench-stat.git
       commit: <arg.commit.hello-world> # checkout to this commit

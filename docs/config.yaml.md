@@ -22,7 +22,7 @@
 # start of a install section
 install:
   
-  # first step in install section
+  # first step in the install section
   - name: repository-checkout
     git: 
       - url: git@github.com:janhybs/bench-stat.git
@@ -32,7 +32,7 @@ install:
       echo "By this point, the repository is already cloned"
       echo "And checkout out to latest commit"
       
-  # seconds step in install section
+  # seconds step in the install section
   - name: compilation-phase
     shell: |
       cd bench-stat
@@ -41,7 +41,7 @@ install:
       
 # start of a test section
 test:
-  # first step in test section
+  # first step in the test section
   - name: testing-phase
     shell: |
       cd bench-stat
@@ -59,8 +59,7 @@ install:                      # value is list of steps
     [enabled]: boolean        # default true, if true step is enabled 
                               # will be processed, otherwised will be skipped
                               
-    [verbose]: boolean        # default false, if true shell is 
-                              # started with set-x
+    [verbose]: boolean        # default false, if true shell is started with set-x
     
     [repeat]: int             # default 1, number of this step repetition
                               # (useful for benchmark testing)
@@ -85,10 +84,13 @@ install:                      # value is list of steps
                               #   container: |
                               #     module load singularity
                               #     singularity exec -B /mnt sin.simg %s
+                              
     [measure]:                # complex type, if set, will measure shell runtime
                               # TODO extend description
+                              
     [collect]:                # complex type, if set, will collect results
                               # TODO extend description
+                              
     [variables]:              # complex type, if set, will create build matrix of variables
                               # TODO extend description
 ```
