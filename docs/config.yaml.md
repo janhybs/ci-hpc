@@ -16,10 +16,8 @@
     
     A shell part can contain `bash` commands (multine line string)
     
-  - 
-    
 
-<!-- ## config.yaml example
+## config.yaml example
 ```yaml
 # start of a install section
 install:
@@ -48,7 +46,7 @@ test:
     shell: |
       cd bench-stat
       build/O3.out
-``` -->
+```
 
 
 ## config.yaml structure
