@@ -17,3 +17,4 @@ class global_configuration(object):
     cfg = __cfg__
     src = __src__
     log_path = os.path.join(__root__, 'ci-hpc.log')
+    cfg_path = os.path.join(__cfg__, 'secret.yaml')
