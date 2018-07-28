@@ -62,10 +62,34 @@ class CIHPCMongo(Mongo):
         """
         super(CIHPCMongo, self).__init__()
 
-        self.db = self.client.get_database(opts.get('dbName'))
+        self.db = self.client.get_database(opts.get('dbname'))
         self.reports = self.db.get_collection(opts.get('reports_col'))
         self.files = self.db.get_collection(opts.get('files_col'))
 
+    def aggregate(self, pipeline):
+        return self.reports.aggregate(pipeline)
 
-c = CIHPCMongo(None)
-print(c.db.get_collection())
+    def agg(self, match=None, unwind=None, project=None, *args):
+        """
+        Parameters
+        ----------
+        match : dict
+            $match aggregation object according to MongoDB specification
+        unwind : dict or str
+            $unwind aggregation object according to MongoDB specification
+        project : dict
+            $project aggregation object according to MongoDB specification
+        """
+        result = list()
+
+        if match:
+            result.append({'$match': match})
+
+        if unwind:
+            result.append({'$unwind': unwind})
+
+        if project:
+            result.append({'$project': project})
+
+        if args:
+            result.extend(args)

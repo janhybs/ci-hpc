@@ -40,4 +40,4 @@ __all__ = [
 ]
 
 
-load_data('foo')
+load_data('hello-world', use_cache=False)

@@ -27,8 +27,8 @@ def ensure_iterable(inst):
 
 def normalise_vector(vector, norm='max'):
     if type(vector) is pd.Series:
-        return normalize(vector.values.reshape(1, -1), norm).reshape(-1,)
-    normalize(vector.reshape(1, -1), norm).reshape(-1,)
+        return normalize(vector.values.reshape(1, -1), norm).reshape(-1, )
+    normalize(vector.reshape(1, -1), norm).reshape(-1, )
 
 
 def normalise_matrix(matrix, norm='max'):
@@ -65,41 +65,26 @@ def load_data(project, use_cache=True, filename='data.csv', generate=0, filters=
                 data = data.append(items, ignore_index=True)
         return data
 
-    m = mongo.Mongo()
-    opts = cfg.get('flow123d.artifactss')
-    db = m.client.get_database(opts['dbname'])
-    files_col = db.get_collection(opts['files_col'])
-    reports_col = db.get_collection(opts['reports_col'])
-    iterable = reports_col.aggregate([
-        {
-            '$match': filters
-        },
-        {
-            "$unwind": "$libs"
-        },
-        {
-            "$project": {
-                "_id": 1,
-                "uuid": "$problem.uuid",
+    opts = cfg.get('%s.artifacts' % project)
+    if not opts:
+        raise Exception(
+            'No valid artifact configuration found'
+            ' for the project %s' % project)
 
-                'git-branch': '$libs.branch',
-                'git-commit': '$libs.commit',
-                'git-timestamp': '$libs.timestamp',
-                'git-datetime': '$libs.datetime',
-                'returncode': '$problem.returncode',
+    aggregate = cfg.get('%s.aggregate' % project)
+    if not opts:
+        raise Exception(
+            'No valid aggregattion configuration found'
+            ' for the project %s' % project)
 
-                "mesh": "$system.mesh",
-                "test-name": "$problem.test-name",
-                "case-name": "$problem.case-name",
-                "cpu": "$problem.cpu",
-                "nodename": "$problem.nodename",
-                "test-size": "$problem.task-size",
-                "machine": "$system.machine",
-                'frame': '$timer.tag',
-                'duration': '$timer.cumul-time-max',
-            }
-        },
-    ])
+    if filters:
+        aggregate = [{'$match': filters}] + aggregate
+    cihpc_mongo = mongo.CIHPCMongo(opts)
+    iterable = cihpc_mongo.aggregate(aggregate)
+
+    for i in iterable:
+        print(i)
+    exit(0)
     items = list(iterable)
     data = pd.DataFrame(items)
     data.to_csv(filename, index=False)
