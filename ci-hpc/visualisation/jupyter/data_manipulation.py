@@ -10,6 +10,7 @@ from sklearn.preprocessing import normalize
 
 from artifacts.db import mongo
 from utils.config import Config as cfg
+import utils.dateutils as dateutils
 
 
 def ensure_iterable(inst):

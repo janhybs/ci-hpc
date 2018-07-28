@@ -44,7 +44,7 @@ class CIHPCMongo(Mongo):
     """
     Attributes
     ----------
-    db : 
+    db : pymongo.database.Database
         Main database containing all the reports and file logs
 
     reports : pymongo.database.Collection
