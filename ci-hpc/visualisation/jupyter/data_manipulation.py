@@ -4,6 +4,9 @@ import collections
 import os
 from datetime import timedelta
 
+from utils import strings
+from utils.logging import logger
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import normalize
@@ -11,6 +14,7 @@ from sklearn.preprocessing import normalize
 from artifacts.db import mongo
 from utils.config import Config as cfg
 import utils.dateutils as dateutils
+from defaults import artifacts_default_configuration, aggregation_default_configuration
 
 
 def ensure_iterable(inst):
@@ -35,7 +39,7 @@ def normalise_matrix(matrix, norm='max'):
     normalize(matrix, norm)
 
 
-def load_data(project, use_cache=True, filename='data.csv', generate=0, filters=dict()):
+def load_data(project, use_cache=False, filename='data.csv', generate=0, filters=dict()):
     """
     :rtype: pandas.core.frame.DataFrame
     """
@@ -65,27 +69,18 @@ def load_data(project, use_cache=True, filename='data.csv', generate=0, filters=
                 data = data.append(items, ignore_index=True)
         return data
 
-    opts = cfg.get('%s.artifacts' % project)
-    if not opts:
-        raise Exception(
-            'No valid artifact configuration found'
-            ' for the project %s' % project)
-
-    aggregate = cfg.get('%s.aggregate' % project)
-    if not opts:
-        raise Exception(
-            'No valid aggregattion configuration found'
-            ' for the project %s' % project)
-
+    cihpc_mongo = mongo.CIHPCMongo(project)
+    aggregate = cihpc_mongo.pipeline
     if filters:
         aggregate = [{'$match': filters}] + aggregate
-    cihpc_mongo = mongo.CIHPCMongo(opts)
-    iterable = cihpc_mongo.aggregate(aggregate)
 
-    for i in iterable:
+    cursor = cihpc_mongo.aggregate(aggregate)
+
+    items = list(cursor)
+    for i in items:
         print(i)
     exit(0)
-    items = list(iterable)
+
     data = pd.DataFrame(items)
     data.to_csv(filename, index=False)
 

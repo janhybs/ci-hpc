@@ -6,7 +6,6 @@ from copy import deepcopy
 
 import yaml
 import re
-import utils.extend_yaml
 
 from utils.logging import logger
 
@@ -97,10 +96,6 @@ class Config(object):
         try:    cfg['pymongo']['password'] = '---HIDDEN---'
         except: pass
         return yaml.dump(cfg, indent=4)
-
-
-def yaml_dump(obj, default_flow_style=False, width=120, **kwargs):
-    return yaml.dump(obj, default_flow_style=default_flow_style, width=width, **kwargs)
 
 
 def yaml_load(s):
@@ -202,6 +197,3 @@ def configure_object(obj, vars):
         else:
             obj_copy[k] = configure_item(v, vars)
     return obj_copy
-
-
-utils.extend_yaml.extend()

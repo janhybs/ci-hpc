@@ -10,7 +10,7 @@ from visualisation.www.plot.highcharts import highcharts_frame_bar
 
 
 def p(o):
-    from visualisation.www import JSONEncoder
+    from utils.strings import JSONEncoder
     print(json.dumps(o, indent=True, cls=JSONEncoder))
     return o
 

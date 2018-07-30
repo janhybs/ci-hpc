@@ -27,7 +27,7 @@ def str2bool(v):
 
 
 def p(o):
-    from visualisation.www import JSONEncoder
+    from utils.strings import JSONEncoder
     print(json.dumps(o, indent=True, cls=JSONEncoder))
     return o
 

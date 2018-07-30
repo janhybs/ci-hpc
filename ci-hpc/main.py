@@ -15,6 +15,8 @@ import sys
 import time
 import subprocess
 from collections import defaultdict
+
+import utils.strings
 from utils.glob import global_configuration
 
 
@@ -233,7 +235,7 @@ def main():
 
     # load config
     project_config = cfgutil.configure_file(config_path, variables)
-    logger.debug('yaml configuration: \n%s', pad_lines(cfgutil.yaml_dump(project_config)), skip_format=True)
+    logger.debug('yaml configuration: \n%s', pad_lines(utils.strings.to_yaml(project_config)), skip_format=True)
 
     # specify some useful global arguments which will be available in the config file
     global_args_extra = {

@@ -13,7 +13,6 @@ from visualisation.www.plot.highcharts_config import HighchartsConfig, Highchart
 from visualisation.www.plot.highcharts_config import HighchartsChart as Chart
 
 
-
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
