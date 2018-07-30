@@ -12,10 +12,11 @@ from utils.logging import logger
 from utils.config import configure_string
 
 
-def process_step_collect(step, format_args=None):
+def process_step_collect(project, step, format_args=None):
     """
     Function will collect artifacts for the given step
     :type step:           structures.project_step.ProjectStep
+    :type project:        structures.project.Project
     """
     logger.debug('collecting artifacts')
     files = glob.glob(step.collect.files, recursive=True)
@@ -35,14 +36,14 @@ def process_step_collect(step, format_args=None):
             CollectModule.add_extra(extra)
 
         # create instance of the CollectModule
-        profiler = CollectModule()
+        instance = CollectModule(project.name)
         results = list()
 
         timers_info = []
         timers_total = 0
         for file in files:
             with logger:
-                collect_result = profiler.process_file(file)
+                collect_result = instance.process_file(file)
                 timers_total += len(collect_result.items)
                 timers_info.append((os.path.basename(file), len(collect_result.items)))
                 results.append(collect_result)
@@ -54,7 +55,7 @@ def process_step_collect(step, format_args=None):
             
         # insert artifacts into db
         if step.collect.save_to_db:
-            CollectModule.save_to_db(results)
+            instance.save_to_db(results)
 
         # move results to they are not processed twice
         if step.collect.move_to:

@@ -119,7 +119,7 @@ class ProcessProject(object):
                                     self.project.global_args,
                                     vars,
                                 )
-                                process_step_collect(step, format_args)
+                                process_step_collect(self.project, step, format_args)
         else:
             logger.info('processing step %s without variables', step.name)
             self.process_step_with_vars(step, section, None)

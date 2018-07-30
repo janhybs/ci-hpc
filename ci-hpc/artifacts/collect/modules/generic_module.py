@@ -7,6 +7,7 @@ from utils.logging import logger
 from datetime import datetime
 from subprocess import check_output
 from artifacts.collect.modules import CollectResult, system_info, unwind_report, parse_output
+from artifacts.db.mongo import CIHPCMongo
 
 
 class CollectModule(object):
@@ -62,9 +63,7 @@ class CollectModule(object):
         if extra:
             cls.system.update(extra)
 
-
-    @classmethod
-    def save_to_db(cls, collect_results):
+    def save_to_db(self, collect_results):
         """
         Method will insert results into db
         it will use either static values for the dbname and collection
@@ -74,44 +73,28 @@ class CollectModule(object):
             - flow123d.artifacts.reports_col:   for a collection containing reports
         :type collect_results: list[CollectResult]
         """
+
         logger.info('saving %d profile.json files to database', len(collect_results))
-
-        from utils.config import Config as cfg
-        from artifacts.db.mongo import Mongo
-
-        mongo = Mongo()
-        opts = cfg.get('generic.artifacts')
-
-        if opts:
-            logger.debug('using generic db details from .config.yaml file')
-            db = mongo.client.get_database(opts['dbname'])
-            files_col = db.get_collection(opts['files_col'])
-            reports_col = db.get_collection(opts['reports_col'])
-            logger.debug('db: (dbname={dbname}, reports_col={reports_col}, files_col={files_col})', **opts)
-        else:
-            logger.debug('using generic db wired within the app')
-            db = mongo.client.get_database('generic')
-            files_col = db.get_collection('fs')
-            reports_col = db.get_collection('reports')
-            logger.debug('db: (dbname=flow123d, reports_col=reports, files_col=fs)', **opts)
+        cihpc_mongo = CIHPCMongo.get(self.project_name)
 
         results = list()
         for item in collect_results:
 
             # save logs first
             if item.logs and item.items:
-                log_ids = files_col.insert_many(item.logs).inserted_ids
+                log_ids = cihpc_mongo.files.insert_many(item.logs).inserted_ids
                 logger.debug('inserted %d files', len(log_ids))
                 item.update(log_ids)
 
             # insert rest to db
             if item.items:
-                results.append(reports_col.insert_many(item.items))
+                results.append(cihpc_mongo.reports.insert_many(item.items))
         logger.debug('inserted %d reports', len(results))
         return results
 
-    def __init__(self):
+    def __init__(self, project_name):
         self.report = None
+        self.project_name = project_name
 
     def process_file(self, path):
         # load profiler
@@ -121,7 +104,7 @@ class CollectModule(object):
         self.report = dict(
             system=CollectModule.system,
             problem=dict(),
-            results=None,
+            result=None,
             timers=None,
             libs=CollectModule.libs,
         )
