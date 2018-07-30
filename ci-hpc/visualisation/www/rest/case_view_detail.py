@@ -19,13 +19,13 @@ def init_case_view_detail(api, app, m):
     class CaseViewDetail(Resource):
         # http://127.0.0.1:5000/case-view-detail/1add859ff7cb4470901cae269a987ef5
 
-        def get(self, uuid):
+        def get(self, _id):
             result = list(
                 m.client['flow123d']['reports'].aggregate(p([
                     {
                         '$match':
                             {
-                                'problem.uuid': {'$in': uuid.split(',')},
+                                'problem.uuid': {'$in': _id.split(',')},
                             }
                     },
                     {

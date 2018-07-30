@@ -105,12 +105,12 @@ def highcharts_frame_in_time(df, estimator=np.mean, title=None, color=None, args
         df, {
             db.DURATION: [estimator, np.std],
             db.GIT_COMMIT: 'first',
-            db.UUID: 'first',
+            db.ID: 'first',
         },
         x=x, rename={'x': x}
     )
 
-    commits, uuids = result[db.GIT_COMMIT]['first'], result[db.UUID]['first']
+    commits, uuids = result[db.GIT_COMMIT]['first'], result[db.ID]['first']
     mean, std = result['duration']['mean'], result['duration']['std']
 
     stds = pd.DataFrame()
@@ -161,8 +161,8 @@ def highcharts_frame_in_time(df, estimator=np.mean, title=None, color=None, args
         data=stds,
         commits=commits,
         uuids=uuids,
-        color='rgba(0, 0, 0, 0.3)',
-        fillColor='rgba(0, 0, 0, 0.1)',
+        color='rgba(0, 0, 0, 0.2)',
+        fillColor='rgba(0, 0, 0, 0.05)',
         dashStyle='Dash',
     )),
     obj.add(HighchartsSeries(
@@ -195,25 +195,29 @@ def _rename (df, **kwargs):
     :rtype: pd.DataFrame
     :type df: pd.DataFrame
     """
+    dels = set()
     for k, v in kwargs.items():
         if v is None:
             del df[k]
         else:
             df[k] = df[v]
             if k != v:
-                del df[v]
+                dels.add(v)
+    for d in dels:
+        del df[d]
     return df
 
 
-def highcharts_frame_bar(df, title=None, color=None):
+def highcharts_frame_bar(df, args):
     """
     :type df: pd.DataFrame
     """
-    df = df.sort_values(by='duration', ascending=False)
-    df = df[df['duration'] > 0.1]
-    df['tag'] = df['tag'].apply(lambda x: '\n'.join(x.split('::')))
+    df = df.sort_values(by=args.rename['y'], ascending=False)
+    df = df[df[args.rename['y']] > 0.1]
+    print(df)
+    df[args.rename['name']] = df[args.rename['name']].apply(lambda x: '\n'.join(x.split('::')))
 
-    df = _rename(df, name='tag', y='duration', path='path')
+    df = _rename(df, **args.rename)
     obj = HighchartsConfig()
     obj.tooltip.pointFormat = 'duration <b>{point.y:.2f}</b> sec'
     obj.xAxis.title.text = 'frame'
@@ -232,10 +236,10 @@ def highcharts_frame_bar(df, title=None, color=None):
 
     # del obj.yAxis
 
-    for g, d in df.groupby([db.GIT_DATETIME, db.TEST_SIZE]):
+    for g, d in df.groupby(args.group_by):
         obj.add(HighchartsSeries(
             type='bar',
-            name='%s (%d)' % g,
+            name='%s' % g,
             data=d.to_dict('records'),
             dataLabels=dotdict(
                 enabled=False,

@@ -17,6 +17,7 @@ class Fields(object):
     TEST_SIZE = 'test-size'
     GIT_TIMESTAMP = 'git-timestamp'
     UUID = 'uuid'
+    ID = '_id'
     GIT_COMMIT = 'git-commit'
     DURATION = 'duration'
 
@@ -157,14 +158,18 @@ class CIHPCMongo(Mongo):
         return self._pipeline.copy()
 
     def aggregate(self, pipeline):
-        logger.debug('Executing aggregate on collection %s (db=%s): \n'
-                     'db.getCollection("%s").aggregate(\n%s\n)',
-                     str(self.reports.name),
-                     str(self.db.name),
+        logger.debug('db.getCollection("%s").aggregate(\n%s\n)',
                      str(self.reports.name),
                      strings.pad_lines(strings.to_json(pipeline))
         )
         return self.reports.aggregate(pipeline)
+
+    def find_one(self, filter, *args, **kwargs):
+        logger.debug('db.getCollection("%s").findOne(\n%s\n)',
+                     str(self.reports.name),
+                     strings.pad_lines(strings.to_json(filter))
+        )
+        return self.reports.find_one(filter, *args, **kwargs)
 
     def agg(self, match=None, unwind=None, project=None, *args):
         """

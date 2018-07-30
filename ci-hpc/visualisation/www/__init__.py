@@ -3,7 +3,6 @@
 
 from flask import Flask
 from flask_restful import Api
-from artifacts.db import mongo
 from flask_cors import CORS
 
 from utils.strings import JSONEncoder
@@ -17,5 +16,4 @@ def init_flask_server():
     )
     CORS(app)
     api = Api(app)
-    m = mongo.CIHPCMongo('hello-world')
-    return api, app, m
+    return api, app
