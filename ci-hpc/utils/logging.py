@@ -25,9 +25,41 @@ class ColorLevels(object):
         if cls.isatty:
             return cls.color_map.get(levelname, '') + levelname + Style.RESET_ALL
         return levelname
-        
 
-class AdditiveDateFormatter(logging.Formatter):
+
+class ExtendedFormatter(logging.Formatter):
+    simple_fmt = "%(asctime)s %(levelname)+8.8s: %(message)s"
+
+    def __init__(self, padding_left=34, max_width=80, fmt=None, dateFmt=None, style='%'):
+        self.left_padding = padding_left
+        self.max_width = max_width
+
+        super(ExtendedFormatter, self).__init__(fmt, dateFmt, style)
+
+    def _pad_newlines(self, string):
+        lines = string.splitlines()
+        result = [lines[0]]
+
+        # prefix = string[:self.left_padding]
+        # text = string[self.left_padding:]
+        for line in lines[1:]:
+            result.append(' ' * self.left_padding + line)
+            # len_line = len(line)
+            # if len_line > (self.max_width - self.left_padding):
+            #     i1 = line.rfind(' ', 0, self.max_width)
+            #     i2 = line.find(' ', self.max_width, len_line)
+            #     print(line)
+            #     print('_' * i1 + '^')
+            #     print('_' * i2 + '^')
+            #     print('')
+            # print(len(result))
+        return '\n'.join(result)
+
+    def format(self, record):
+        return self._pad_newlines(super(ExtendedFormatter, self).format(record))
+
+
+class AdditiveDateFormatter(ExtendedFormatter):
     """
     Simple Formatter which returns time relative to the last command
     output example
@@ -39,7 +71,7 @@ class AdditiveDateFormatter(logging.Formatter):
     start_time = time.time()
     
     def __init__(self, fmt, datefmt=5):
-        super(AdditiveDateFormatter, self).__init__(fmt, datefmt)
+        super(AdditiveDateFormatter, self).__init__(20, 80, fmt, datefmt)
     
     def format(self, record):
         result = self._fmt
@@ -47,7 +79,7 @@ class AdditiveDateFormatter(logging.Formatter):
             time=self.formatTime(record, self.datefmt),
             levelname=ColorLevels.get(record.levelname),
         )
-        return result % record.__dict__
+        return self._pad_newlines(result % record.__dict__)
     
     def formatTime(self, record, datefmt=None):
         result = '%1.9f' % (time.time() - self.start_time)
@@ -55,7 +87,7 @@ class AdditiveDateFormatter(logging.Formatter):
         return result[:datefmt+1]
 
 
-class RelativeDateFormatter(logging.Formatter):
+class RelativeDateFormatter(ExtendedFormatter):
     """
     Simple Formatter which returns time relative since the start of the logger
     output example
@@ -67,7 +99,7 @@ class RelativeDateFormatter(logging.Formatter):
     start_time = time.time()
     
     def __init__(self, fmt, datefmt=6):
-        super(RelativeDateFormatter, self).__init__(fmt, datefmt)
+        super(RelativeDateFormatter, self).__init__(20, 80, fmt, datefmt)
     
     def format(self, record):
         result = self._fmt
@@ -75,7 +107,7 @@ class RelativeDateFormatter(logging.Formatter):
             time=self.formatTime(record, self.datefmt),
             levelname=ColorLevels.get(record.levelname),
         )
-        return result % record.__dict__
+        return self._pad_newlines(result % record.__dict__)
     
     def formatTime(self, record, datefmt=None):
         result = '%1.9f' % (time.time() - self.start_time)
@@ -171,7 +203,7 @@ class Logger(object):
     warning = warn
 
     @classmethod
-    def init(cls, log_path=None):
+    def init(cls, log_path=None, use_tty=None):
         """
         :rtype: Logger
         """
@@ -184,9 +216,9 @@ class Logger(object):
 
         file_log = logging.FileHandler(log_path)
         stream_log = logging.StreamHandler(sys.stdout)
-        file_formatter = logging.Formatter("%(asctime)s %(levelname)+8.8s: %(message)s")
+        file_formatter = ExtendedFormatter(fmt=ExtendedFormatter.simple_fmt)
         
-        if sys.stdout.isatty():
+        if sys.stdout.isatty() or use_tty:
             stream_formatter = RelativeDateFormatter(''.join([
                     Fore.BLUE + Style.BRIGHT + '>>> ' + Style.RESET_ALL,
                     Style.DIM + '{time} ' + Style.RESET_ALL,
@@ -195,7 +227,7 @@ class Logger(object):
                 ])
             )
         else:
-            stream_formatter = logging.Formatter("%(asctime)s %(levelname)+8.8s: %(message)s")
+            stream_formatter = ExtendedFormatter(fmt=ExtendedFormatter.simple_fmt)
 
         logger.setLevel(logging.DEBUG)
         file_log.setLevel(logging.DEBUG)
