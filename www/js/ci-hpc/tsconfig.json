@@ -1,0 +1,17 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "removeComments": true,
+    },
+    "include": [
+        "**/*",
+    ],
+    "files": [
+        "main.ts",
+        "tests.ts",
+    ],
+    "lib": [
+        "es6",
+        "dom"
+    ],
+}

@@ -1,0 +1,16 @@
+<div class="tooltip-tooltip">
+  <dl class="tooltip-header">
+    <dt>
+      {{ name }}
+    </dt>
+    <dd>
+      {{ path }}
+    </dd>
+  </dl>
+  <dl class="tooltip-body">
+    {% for point in points %}
+    <dt><span style="color: {{ point.color }}">●</span> {{ point.point["git-datetime"] }}</dt>
+    <dd>{{ point.y | toFixed }} sec</dd>
+    {% endfor %}
+  </dl>
+</div>

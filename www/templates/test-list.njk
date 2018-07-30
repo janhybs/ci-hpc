@@ -1,0 +1,11 @@
+<span class="mdl-layout-title mdl-color--green-600 mdl-color-text--white">Flow123d benchmarks</span>
+{% for test in tests %}
+  <span class="mdl-layout-title">{{ test.name }}</span>
+  <nav class="mdl-navigation">
+    {% for case in test.cases %}
+      <a class="mdl-navigation__link testItem"
+         href='#{{ test.name }}/{{ case }}'
+         onclick="showChart('{{ test.name }}', '{{ case }}', this)">{{ case }}</a>
+    {% endfor %}
+  </nav>
+{% endfor %}
