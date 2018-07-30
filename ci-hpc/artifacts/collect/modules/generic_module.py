@@ -109,5 +109,5 @@ class CollectModule(object):
             libs=CollectModule.libs,
         )
         self.report.update(obj)
-        items = unwind_report(self.report)
-        return CollectResult(items, list())
+        # items = unwind_report(self.report)
+        return CollectResult([self.report], list())

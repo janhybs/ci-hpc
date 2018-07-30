@@ -5,6 +5,8 @@
 import enum
 import os
 
+from utils import datautils
+
 
 class ICollectTool(object):
     """
@@ -112,7 +114,7 @@ def system_info():
     )
 
 
-def unwind_report(report, unwind_from='timers', unwind_to='timer'):
+def unwind_report(report, unwind_from='timers', unwind_to='timer', flatten=False):
     """
     Method will convert flatten json report format to a list of reports
 
@@ -124,6 +126,8 @@ def unwind_report(report, unwind_from='timers', unwind_to='timer'):
         key name which contains list of values
     unwind_to : str
         under what name to store list values
+    flatten : bool
+        whether to flatten keys
     """
     items = list()
     report_copy = report.copy()
@@ -131,7 +135,29 @@ def unwind_report(report, unwind_from='timers', unwind_to='timer'):
     for timer in timers:
         item = report_copy.copy()
         item[unwind_to] = timer
-        items.append(item)
+        if flatten:
+            items.append(datautils.flatten(item))
+        else:
+            items.append(item)
+    return items
+
+
+def unwind_reports(reports, unwind_from='timers', unwind_to='timer', flatten=False):
+    """
+    Method will convert flatten json reports format to a list of reports
+
+    Parameters
+    ----------
+    reports : list[dict]
+        objects which will be unwinded
+    unwind_from : str
+        key name which contains list of values
+    unwind_to : str
+        under what name to store list values
+    """
+    items = list()
+    for report in reports:
+        items.extend(unwind_report(report, unwind_from, unwind_to, flatten))
     return items
 
 

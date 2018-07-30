@@ -17,5 +17,5 @@ def init_flask_server():
     )
     CORS(app)
     api = Api(app)
-    m = mongo.Mongo()
+    m = mongo.CIHPCMongo('hello-world')
     return api, app, m

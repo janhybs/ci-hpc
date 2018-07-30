@@ -69,7 +69,7 @@ def load_data(project, use_cache=False, filename='data.csv', generate=0, filters
                 data = data.append(items, ignore_index=True)
         return data
 
-    cihpc_mongo = mongo.CIHPCMongo(project)
+    cihpc_mongo = mongo.CIHPCMongo.get(project)
     aggregate = cihpc_mongo.pipeline
     if filters:
         aggregate = [{'$match': filters}] + aggregate
@@ -77,10 +77,6 @@ def load_data(project, use_cache=False, filename='data.csv', generate=0, filters
     cursor = cihpc_mongo.aggregate(aggregate)
 
     items = list(cursor)
-    for i in items:
-        print(i)
-    exit(0)
-
     data = pd.DataFrame(items)
     data.to_csv(filename, index=False)
 

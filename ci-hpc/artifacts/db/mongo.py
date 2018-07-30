@@ -157,7 +157,13 @@ class CIHPCMongo(Mongo):
         return self._pipeline.copy()
 
     def aggregate(self, pipeline):
-        logger.debug('Executing aggregate on collection %s (db=%s): \n%s', str(self.reports.name), str(self.db.name), strings.to_json(pipeline))
+        logger.debug('Executing aggregate on collection %s (db=%s): \n'
+                     'db.getCollection("%s").aggregate(\n%s\n)',
+                     str(self.reports.name),
+                     str(self.db.name),
+                     str(self.reports.name),
+                     strings.pad_lines(strings.to_json(pipeline))
+        )
         return self.reports.aggregate(pipeline)
 
     def agg(self, match=None, unwind=None, project=None, *args):

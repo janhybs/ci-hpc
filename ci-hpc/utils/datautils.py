@@ -3,6 +3,7 @@
 
 
 import numpy as np
+import collections
 
 olist = lambda x: sorted(list(set(x)))
 set_if_none = lambda x,y: y if x is None else x
@@ -19,6 +20,17 @@ def filter_rows(data, **rules):
             else:
                 subdata = subdata[subdata[k] == v]
     return subdata
+
+
+def flatten(d, parent_key='', sep='-'):
+    items = []
+    for k, v in d.items():
+        new_key = parent_key + sep + k if parent_key else k
+        if isinstance(v, collections.MutableMapping):
+            items.extend(flatten(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
 
 
 def gmean(a):

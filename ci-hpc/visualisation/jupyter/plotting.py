@@ -57,9 +57,10 @@ def plot_data(
         g.map(plot_mean_with_area, x, y)
         g.map(tsplot, x, y, chart_scale=None, reduce=np.median)
 
-        ok_args = dict(alpha=0.3, marker='x', plot_func=plt.scatter)
-        error_kwargs = dict(marker='D', color='r', alpha=1)
-        g.map(dual_plot, 'returncode', x, y, **ok_args, error_kwargs=error_kwargs)
+        g.map(plt.scatter, x, y, alpha=0.3, marker='x')
+        # ok_args = dict(alpha=0.3, marker='x', plot_func=plt.scatter)
+        # error_kwargs = dict(marker='D', color='r', alpha=1)
+        # g.map(dual_plot, 'returncode', x, y, **ok_args, error_kwargs=error_kwargs)
 
     elif type == 'hist':
         opts.update(dict(aspect=4, size=1.5), hue='case-name' if hue is None else hue)
