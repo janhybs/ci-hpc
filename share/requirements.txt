@@ -5,3 +5,12 @@ pandas
 numpy
 seaborn
 matplotlib
+sklearn
+scipy
+maya
+flask
+Flask-Admin
+Flask-Cors
+Flask-Gravatar
+Flask-Login
+Flask-RESTful
