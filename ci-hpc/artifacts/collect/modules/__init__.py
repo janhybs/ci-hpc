@@ -90,6 +90,9 @@ class CollectResult(object):
 
 
 def system_info():
+    """
+    Function will return system info and as a dict
+    """
     import subprocess
 
     def run(cmd, line=None):
@@ -112,7 +115,15 @@ def system_info():
 def unwind_report(report, unwind_from='timers', unwind_to='timer'):
     """
     Method will convert flatten json report format to a list of reports
-    :type report: dict
+
+    Parameters
+    ----------
+    report : dict
+        object which will be unwinded
+    unwind_from : str
+        key name which contains list of values
+    unwind_to : str
+        under what name to store list values
     """
     items = list()
     report_copy = report.copy()
@@ -125,6 +136,15 @@ def unwind_report(report, unwind_from='timers', unwind_to='timer'):
 
 
 def parse_output(out, line=None):
+    """
+    Function will parse given output and if some line starts with 'line', if will be removed
+    Parameters
+    ----------
+    out : bytes
+        output from subprocess.check_output
+    line : str
+        prefix which will be removed
+    """
     lines = out.decode().strip().splitlines()
     if line:
         for l in lines:
