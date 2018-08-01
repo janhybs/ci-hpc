@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from artifacts.db.mongo import CIHPCMongo
 
 
-class Report(Resource):
+class ReportView(Resource):
     # 127.0.0.1:5000/hello-world/report/_id=5b5edb03fa7f604fd1d1721a
 
     def get(self, project, report_id):

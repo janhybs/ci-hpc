@@ -13,6 +13,11 @@ from visualisation.www.plot.highcharts_config import HighchartsConfig, Highchart
 from visualisation.www.plot.highcharts_config import HighchartsChart as Chart
 
 
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
@@ -69,9 +74,15 @@ def _group_data(df, agg, x=db.GIT_DATETIME, y=db.DURATION, rename=None):
     if rename is None:
         rename = dict(x=x, y=y)
 
+    dels = set()
     for k, v in rename.items():
-        result[k] = result[v]
-        del result[v]
+        print(k, v)
+        result[v] = result[k]
+        dels.add(k)
+
+    for k in dels:
+        print('dropping', k)
+        del result[k]
     return result
 
 
@@ -91,26 +102,35 @@ def _ci_area(df, ci=(+0.05, -0.05), shift=1):
     return result
 
 
-def highcharts_frame_in_time(df, estimator=np.mean, title=None, color=None, args=None):
+def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=None, args=None):
     """
+    :type config: visualisation.www.plot.cfg.project_config.ProjectConfig
     :type args: argparse.Namespace
     :type df: pd.DataFrame
     """
 
-    x = db.GIT_DATETIME if args.uniform else db.GIT_TIMESTAMP
-    linetype = Chart.TYPE_SPLINE if args.smooth else Chart.TYPE_LINE
-    areatype = Chart.TYPE_AREA_SPLINE_RANGE if args.smooth else Chart.TYPE_AREA_RANGE
+    x = config.test_view.x_prop
+    linetype = Chart.TYPE_SPLINE if config.test_view.smooth else Chart.TYPE_LINE
+    areatype = Chart.TYPE_AREA_SPLINE_RANGE if config.test_view.smooth else Chart.TYPE_AREA_RANGE
 
+    agg, renames = config.get_test_view_groupby()
+    agg.update({
+        config.test_view.y_prop: [estimator, np.std],
+    })
+    renames.update({
+        x: 'x'
+    })
+
+    print(agg)
+    print(renames)
     result = _group_data(
-        df, {
-            db.DURATION: [estimator, np.std],
-            db.GIT_COMMIT: 'first',
-            db.ID: 'first',
-        },
-        x=x, rename={'x': x}
+        df, agg, x=x, rename=renames
     )
+    print(result.reset_index(drop=True).columns)
+    print(result.columns)
 
-    commits, uuids = result[db.GIT_COMMIT]['first'], result[db.ID]['first']
+
+    commits, uuids = result['commit'], result['id']
     mean, std = result['duration']['mean'], result['duration']['std']
 
     stds = pd.DataFrame()
@@ -137,8 +157,8 @@ def highcharts_frame_in_time(df, estimator=np.mean, title=None, color=None, args
     obj = HighchartsConfig()
     obj.title.text = title
 
-    if args.uniform:
-        obj.xAxis.categories = result['x'].apply(dateutils.human_format2)
+    if config.test_view.uniform:
+        obj.xAxis.categories = result['x']#.apply(dateutils.human_format2)
         obj.xAxis.type = Chart.AXIS_TYPE_LINEAR
     else:
         obj.xAxis.type = Chart.AXIS_TYPE_DATETIME
@@ -215,7 +235,7 @@ def highcharts_frame_bar(df, args):
     df = df.sort_values(by=args.rename['y'], ascending=False)
     df = df[df[args.rename['y']] > 0.1]
     print(df)
-    df[args.rename['name']] = df[args.rename['name']].apply(lambda x: '\n'.join(x.split('::')))
+    # df[args.rename['name']] = df[args.rename['name']].apply(lambda x: '\n'.join(x.split('::')))
 
     df = _rename(df, **args.rename)
     obj = HighchartsConfig()
