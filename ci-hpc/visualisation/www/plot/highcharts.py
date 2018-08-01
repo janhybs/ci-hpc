@@ -76,12 +76,10 @@ def _group_data(df, agg, x=db.GIT_DATETIME, y=db.DURATION, rename=None):
 
     dels = set()
     for k, v in rename.items():
-        print(k, v)
         result[v] = result[k]
         dels.add(k)
 
     for k in dels:
-        print('dropping', k)
         del result[k]
     return result
 
@@ -121,14 +119,9 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
         x: 'x'
     })
 
-    print(agg)
-    print(renames)
     result = _group_data(
         df, agg, x=x, rename=renames
     )
-    print(result.reset_index(drop=True).columns)
-    print(result.columns)
-
 
     commits, uuids = result['commit'], result['id']
     mean, std = result['duration']['mean'], result['duration']['std']
@@ -234,7 +227,6 @@ def highcharts_frame_bar(df, args):
     """
     df = df.sort_values(by=args.rename['y'], ascending=False)
     df = df[df[args.rename['y']] > 0.1]
-    print(df)
     # df[args.rename['name']] = df[args.rename['name']].apply(lambda x: '\n'.join(x.split('::')))
 
     df = _rename(df, **args.rename)

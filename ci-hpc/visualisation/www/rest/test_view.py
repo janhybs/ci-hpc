@@ -91,12 +91,12 @@ class TestView(Resource):
             groups = data_frame.groupby(groupby)
 
         charts = list()
-        colors = iter(config.color_palette)
+        colors = config.color_palette.copy()
 
         for group_name, group_data in groups:
             title_dict = dict(zip(ensure_iterable(groupby), ensure_iterable(group_name)))
             title = ', '.join('%s=<b>%s</b>' % (str(k), str(v)) for k,v in title_dict.items())
-            color = next(colors)(1.0)
+            color = strings.pick_random_item(colors, group_name)(1.0)
             size = None if config.case_size_prop is None else group_name[:-1]
             charts.append(dict(
                 size=size,

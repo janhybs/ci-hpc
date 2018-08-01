@@ -60,3 +60,9 @@ class JSONEncoder(json.JSONEncoder):
 
 def to_yaml(obj, default_flow_style=False, width=120, **kwargs):
     return yaml.dump(obj, default_flow_style=default_flow_style, width=width, **kwargs)
+
+
+def pick_random_item(items, input):
+    return items[
+        hash(str(input)) % len(items)
+    ]
