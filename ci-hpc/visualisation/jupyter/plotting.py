@@ -6,7 +6,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 from utils import datautils as datautils
-from visualisation.jupyter import ensure_iterable
+from utils.datautils import ensure_iterable
 from visualisation.plotting import tsplot
 
 

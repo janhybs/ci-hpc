@@ -35,3 +35,15 @@ def flatten(d, parent_key='', sep='-'):
 
 def gmean(a):
     return np.array(a).prod()**(1.0/len(a))
+
+
+def ensure_iterable(inst):
+    """
+    Wraps scalars or string types as a list, or returns the iterable instance.
+    """
+    if isinstance(inst, str):
+        return [inst]
+    elif not isinstance(inst, collections.Iterable):
+        return [inst]
+    else:
+        return inst

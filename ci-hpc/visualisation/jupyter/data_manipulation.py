@@ -1,32 +1,14 @@
 #!/bin/python3
 # author: Jan Hybs
-import collections
 import os
 from datetime import timedelta
-
-from utils import strings
-from utils.logging import logger
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import normalize
 
 from artifacts.db import mongo
-from utils.config import Config as cfg
 import utils.dateutils as dateutils
-from defaults import artifacts_default_configuration, aggregation_default_configuration
-
-
-def ensure_iterable(inst):
-    """
-    Wraps scalars or string types as a list, or returns the iterable instance.
-    """
-    if isinstance(inst, str):
-        return [inst]
-    elif not isinstance(inst, collections.Iterable):
-        return [inst]
-    else:
-        return inst
 
 
 def normalise_vector(vector, norm='max'):

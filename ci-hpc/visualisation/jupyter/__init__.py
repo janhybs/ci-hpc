@@ -29,14 +29,15 @@ from matplotlib import pyplot as plt
 from artifacts.db import mongo
 from artifacts.collect.modules import unwind_report, unwind_reports
 
-from visualisation.jupyter.data_manipulation import ensure_iterable, normalise_vector, load_data, add_metrics, normalise_matrix
+from visualisation.jupyter.data_manipulation import normalise_vector, load_data, add_metrics, normalise_matrix
+from utils.datautils import ensure_iterable
 from visualisation.jupyter.plotting import dual_plot, facetgrid_opts, plot_data, plot_mean, plot_mean_with_area, tsplot
 
 
 __all__ = [
     'np', 'pd', 'sns', 'plt', 'sc', 'widgets', 'logger', 'mongo', 'normalise_vector', 'normalise_matrix',
     'plot_mean', 'plot_mean_with_area', 'dual_plot', 'plot_data',
-    'dateutils', 'datautils', 'ensure_iterable', 'unwind_report', 'unwind_reports',
+    'dateutils', 'datautils', 'unwind_report', 'unwind_reports',
     'load_data', 'add_metrics', 'facetgrid_opts',
 ]
 
