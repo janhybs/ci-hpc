@@ -1,11 +1,37 @@
-<span class="mdl-layout-title mdl-color--green-600 mdl-color-text--white">Flow123d benchmarks</span>
-{% for test in tests %}
-  <span class="mdl-layout-title">{{ test.name }}</span>
-  <nav class="mdl-navigation">
-    {% for case in test.cases %}
-      <a class="mdl-navigation__link testItem"
-         href='#{{ test.name }}/{{ case }}'
-         onclick="showChart('{{ test.name }}', '{{ case }}', this)">{{ case }}</a>
+<span class="mdl-layout-title mdl-color--blue-600 mdl-color-text--white" id="menu-title">{{ title }}</span>
+
+<nav class="mdl-navigation">
+  <a class="testItem mdl-button  mdl-button--colored mdl-color-text--white"
+     href='#/*/*' onclick="showChart('*', '*', this)">
+     <strong>&lt;ALL&gt;</strong>
+     <p>
+       <small>all the tests</small>
+     </p>
+  </a>
+  
+  {# look through the tests #}
+  {% for test in tests %}
+      <a class="testItem mdl-button mdl-button--colored"
+         href='#/{{ test.name }}/*'
+         onclick="showChart('{{ test.name }}', '*', this)">
+         <strong>{{ test.name }}</strong>
+         <p>
+           <small>{{ test.desc }}</small>
+         </p>
+      </a>
+        
+      {# look the cases #}
+      {% for case in test.tests %}
+        <a class="testItem caseItem mdl-button mdl-button--colored"
+           href='#/{{ test.name }}/{{ case.name }}'
+           onclick="showChart('{{ test.name }}', '{{ case.name }}', this)">
+           <tiny>{{ test.name }} / </tiny>
+           <strong>{{ case.name }}</strong>
+           <p>
+             <small>{{ case.desc }}</small>
+           </p>
+        </a>
     {% endfor %}
-  </nav>
-{% endfor %}
+    <span class="mdl-menu__item--full-bleed-divider"></span>
+  {% endfor %}
+</nav>

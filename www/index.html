@@ -3,10 +3,11 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>CI-HPC project Flow123d</title>
+	<title>CI-HPC</title>
 	<link rel="stylesheet" href="css/material.min.css">
-	<link rel="stylesheet" href="css/highcharts.css">
+	<link rel="stylesheet" href="css/highcharts.min.css">
   <link rel="stylesheet" href="css/main.css">
+	
 	<script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>
 	<script language="javascript" type="text/javascript" src="js/nunjucks.min.js"></script>
 	<script language="javascript" type="text/javascript" src="js/material.min.js"></script>
@@ -24,16 +25,16 @@
   <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
     
     <header class="mdl-layout__header">
-      <div class="mdl-layout__header-row mdl-color--orange-600">
+      <div class="mdl-layout__header-row mdl-color--blue-600  mdl-color-text--white">
         <span class="mdl-layout-title" id="chartTitle">loading...</span>
       </div>
     </header>
     
-    <div class="mdl-layout__drawer" id="testsRendered">
+    <div class="mdl-layout__drawer mdl-color--grey-800" id="testsRendered">
     </div>
     
     <main class="mdl-layout__content mdl-color--grey-100">
-      <div class="page-content">
+      <div class="page-content" id="page-content">
         <div class="mdl-grid">
           <div class="mdl-cell mdl-cell--12-col">
             <div id="chartsHolder">
@@ -41,12 +42,16 @@
           </div>
         </div>
       </div>
+      <div id="warning-msg" class="fs-outer-container hidden">
+          <div class="fs-inner-container">
+            
+          </div>
+      </div>
     </main>
   </div>
-  <dialog class="mdl-dialog">
-     <h4 class="mdl-dialog__title">Allow data collection?</h4>
+  <dialog class="mdl-dialog" id="dialog">
+     <h4 class="mdl-dialog__title"></h4>
      <div class="mdl-dialog__content">
-         Allowing us to collect data will let us get you the information you want faster.
      </div>
      <div class="mdl-dialog__actions">
        <button type="button" class="mdl-button close">Ok</button>
