@@ -1,0 +1,80 @@
+name:                 HPC-CI Example
+desc:                 A simple benchmark visualisation demonstrating HPC-CI framework.
+date-format:          long                                    # long or short or null
+git-url:              https://github.com/janhybs/bench-stat   # url of the git repo
+
+# Configuration related to database
+test-name-property:   problem.test-name     # mongodb selector which points
+                                            # to a problem test name
+case-name-property:   problem.case-name     # mongodb selector which points
+                                            # to a problem case name (if set)
+case-size-property:   null                  # mongodb selector which points
+                                            # to a problem case name (if set)
+
+# main view showing duration in time
+test-view:
+  x-property:             git-datetime      # what will be on x-axis
+  y-property:             duration          # what will be on y-axis
+  commit-property:        git-commit        # what is the field name of the commit
+  
+  groupby:                # how can the results be separated
+    - test-name
+    - case-name
+  
+  smooth:     false       # should the line be smoothed
+  extra:
+    - from:   _id         # extra values which are present
+      to:     id
+        
+
+# secondary view showing frame break down
+frame-view:
+  unwind:
+    from:             timers          # will take fields 'timers' (which must be a array)
+    to:               timer           # and will put individual items to seperate document
+  
+  y-property:         timer-duration  # after unwinding, properties which were in array, will
+  x-property:         timer-name      # be accesible via names joined by dash
+                                      # before:
+                                      #   {
+                                      #     duration: 1.0
+                                      #     timers: [
+                                      #       {
+                                      #         name: foo
+                                      #         duration: 0.8
+                                      #       }
+                                      #       {
+                                      #         name: bar
+                                      #         duration: 0.2
+                                      #       }
+                                      #     ]
+                                      #   }
+                                      # 
+                                      # after unwind:
+                                      #   {
+                                      #     duration: 1.0
+                                      #     timer-name: foo
+                                      #     timer-duration: 0.8
+                                      #   }
+                                      # and second document:
+                                      #   {
+                                      #     duration: 1.0
+                                      #     timer-name: bar
+                                      #     timer-duration: 0.2
+                                      #   }
+
+# test structure which will be displayed
+# name is mandatory
+tests:
+    - name:           memory
+      desc:           A set of memory related benchmarks
+      tests:
+        - name:       cache
+          desc:       A test which deals with a level 1, level 2 and level 3 cache size.
+        - name:       io
+          desc:       A test which deals with various input file sizes
+    - name:           cpu
+      desc:           A set of CPU related benchmarks
+      tests:
+        - name:       frequency
+          desc:       A test evaluates a CPU frequency
