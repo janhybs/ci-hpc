@@ -180,7 +180,7 @@ $(document).ready(function () {
             }));
             window.showChart = showChart;
             window.showChartDetail = showChartDetail;
-            showChart(config.tests[0].name, config.tests[0].tests[0].name, $('.testItem')[0]);
+            showChart('*', '*', $('.testItem')[0]);
         }
     });
 });

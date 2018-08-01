@@ -26,7 +26,6 @@ class Templates {
 
     static loadTemplates() {
         var compileNow: boolean = true;
-        
         this.testList = Globals.env.getTemplate("templates/test-list.njk", compileNow);
         this.lineTooltip = Globals.env.getTemplate("templates/line-tooltip.njk", compileNow);
         this.barTooltip = Globals.env.getTemplate("templates/bar-tooltip.njk", compileNow);
@@ -232,7 +231,7 @@ $(document).ready(() => {
             window.showChart = showChart;
             window.showChartDetail = showChartDetail;
 
-            showChart(config.tests[0].name, config.tests[0].tests[0].name, $('.testItem')[0]);
+            showChart('*', '*', $('.testItem')[0]);
         }
     });
 }); 
