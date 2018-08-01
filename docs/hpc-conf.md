@@ -5,7 +5,7 @@
   cd $WORKSPACE # directory where you keep your projects
   git clone https://github.com/janhybs/ci-hpc.git
   ```
-  2. Create configuration `config.yaml` file teh project
+  2. Create configuration file `config.yaml` for the project
   ```shell
   export PROJECT_NAME=hello-world
 
@@ -14,5 +14,5 @@
   ```
   3. Setup `config.yaml` configuration file 
 
-  *Please refer to [config.yaml](docs/config.yaml) section to find out more
+  *Please refer to [config.yaml](config.yaml.md) section to find out more
   about configuration.*

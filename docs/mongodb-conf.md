@@ -17,9 +17,13 @@ After the user is created you need to create a file `secret.yaml` inside
 
 ## `secret.yaml` structure
 
-Main section `pymongo` can contain several options. All of which are passed
+The file can contain configuration for multiple project, the main section is same as
+the name of your project (e.g. `hello-world`). To setup connection to a db server
+create section `database`This section can contain several options but all of them are passed
 to the construcotr of the python's 
 [pymongo.mongo_client.MongoClient constructor](https://api.mongodb.com/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient). Please refer to [api.mongodb.com](https://api.mongodb.com/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient) for further information.
+
+Take a look at the example of the `secret.yaml` file [here](../cfg/secret.template.yaml).
 
 If your MongoDB server is not hosted, you must setup MongoDB authorization (for example via `/etc/mongodb.conf`):
 
@@ -36,7 +40,8 @@ security:
 ### `secret.yaml` examples
   1. Example 1 (single host):
       ```yaml
-      pymongo:
+      hello-world:
+        database:
           host:           [mongodb.server.example.com:27017]
           connect:        true
           authSource:     admin
@@ -46,7 +51,8 @@ security:
 
   2. Example 2 (mongodb configuration with 3 hosts):
       ```yaml
-      pymongo:
+      hello-world:
+        database:
           host:
             - cluster0-shard-00-00-foobar.mongodb.net:27017
             - cluster0-shard-00-01-foobar.mongodb.net:27017
@@ -70,14 +76,16 @@ to the `secret.yaml`:
 ```yaml
 hello-world:
   artifacts:
-    dbname:         customDbName      # name of the database to save date to
+    db_name:          customDbName      # name of the database to save date to
     
-    reports_col:    customRepColName  # name of the collection which will contain
-                                      # benchmark data (reports, frames)
+    col_timers_name:  customRepColName  # name of the collection which will contain
+                                        # benchmark data (reports, frames)
     
-    files_col:      customFSColName   # name of the collection which will contain
-                                      # files and logs when error during run occured
+    col_files_name:   customFSColName   # name of the collection which will contain
+                                        # files and logs when error during run occured
 ```
 
 *Note:* Assuming we are trying to override artifacts location fot the 
 project `hello-world`
+
+**TBD** ~~a section about an aggregation pipeline here~~

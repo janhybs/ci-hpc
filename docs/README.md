@@ -32,7 +32,7 @@ several servers.
     customization but requires also more time for setup.
 
     2. The seconds option offers more interactivity and better visualisation.
-    Thanks to `highcharts` js framework, you have better plenty of options for 
+    Thanks to `highcharts` js framework, you have plenty of options for 
     your charts.
   
 5. But the data need to get to the web page somehow, and that is why there
