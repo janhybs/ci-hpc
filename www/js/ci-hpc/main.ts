@@ -34,9 +34,15 @@ class Templates {
     }
 }
 
+interface CIHPC {
+    projectName: string;
+    flaskApiUrl: string;
+}
+
 interface Window {
     showChart(testName: string, caseName: string, sender: HTMLElement);
     showChartDetail(uuids: string[], chartID: string);
+    cihpc: CIHPC;
 }
 
 
@@ -54,7 +60,7 @@ $(document).ready(() => {
     });
     
 
-    var url_base = 'http://hybs.nti.tul.cz:5000/hello-world';
+    var url_base = window.cihpc.flaskApiUrl + '/' + window.cihpc.projectName;
     $.ajax({
         url: url_base + '/config',
         success: function(config) {
