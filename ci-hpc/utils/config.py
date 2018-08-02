@@ -23,6 +23,10 @@ class Config(object):
 
     @classmethod
     def get(cls, *args, **kwargs):
+        if not cls._instance:
+            from utils.glob import global_configuration
+            cls.init(global_configuration.cfg_secret_path)
+
         return cls._instance._get(*args, **kwargs)
 
     @classmethod
@@ -43,9 +47,9 @@ class Config(object):
             max_limit = 10
             root = os.path.dirname(__file__)
 
-            config_file = os.path.join(root, '.config.yaml')
+            config_file = os.path.join(root, 'secret.yaml')
             while current < max_limit:
-                config_file = os.path.join(root, '.config.yaml')
+                config_file = os.path.join(root, 'secret.yaml')
                 current += 1
                 if os.path.exists(config_file):
                     break
