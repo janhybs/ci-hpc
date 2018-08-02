@@ -1,6 +1,6 @@
 # CI-HPC Documentation & Installation
 
-Installation process is not that simple, you won't find here something like:
+Installation process is not that simple, so sadly **you won't find here something like this**:
 ```bash
 ./configure && make && make install
 ```
