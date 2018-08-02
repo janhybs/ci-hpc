@@ -1,4 +1,4 @@
-## Configuring project on Flask server
+## Configuring Flask server
 
 *Note:* assuming you have an [Apache](https://www.linux.com/learn/apache-ubuntu-linux-beginners)
 working and running.

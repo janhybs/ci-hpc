@@ -4,7 +4,7 @@ Installation process is not that simple, so sadly **you won't find here somethin
 ```bash
 ./configure && make && make install
 ```
-Perhaps in the future installation will be easier... but 
+Perhaps in the future version, installation will be easier... but 
 if you know, what you are doing, you can setup your project within 15 minutes.
 
 
@@ -91,7 +91,7 @@ Read the section about MongoDB storage configuration [here](mongodb-conf.md)
 ## 4. Flask configuration
 <img src="imgs/flask-logo.png" width="128" /> 
 
-**TBD** ~~Read the section about Flask visualisation [here](flask-conf.md)~~
+Read the section about Flask visualisation [here](flask-conf.md)
 
 ## Jupyter configuration
 <img src="imgs/jupyter-logo.png" width="128" /> 
