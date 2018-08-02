@@ -216,6 +216,8 @@ class ProjectConfigViewExtraVariable(object):
 
         if map_via == 'first':
             self.map_via = map_via
+        elif map_via == 'push':
+            self.map_via = lambda x: list(x)
         else:
             import numpy as np
             self.map_via = getattr(np, map_via)
@@ -229,7 +231,9 @@ class ProjectConfigView(object):
         config : dict
             a piece of configuration for the view
         """
-        self.groupby = config.get('groupby')
+        self.groupby = config.get('groupby', [])
+        self.colorby = config.get('colorby', [])
+
         self.x_prop = config.get('x-property', None)
         self.y_prop = config.get('y-property', None)
         self.name_prop = config.get('name-property', None)

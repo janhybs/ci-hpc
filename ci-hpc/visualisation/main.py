@@ -4,9 +4,6 @@
 import os, sys
 
 from utils.logging import logger
-from utils.glob import global_configuration
-from utils.config import Config as cfg
-cfg.init(global_configuration.cfg_path)
 
 from visualisation.www import init_flask_server
 from visualisation.www.rest.report_view import ReportView
@@ -45,4 +42,5 @@ args = sys.argv[1:]
 debug = True if args and args[0].lower() == 'debug' else False
 
 if __name__ == '__main__':
+    logger.debug('running server')
     app.run(debug=debug, host='0.0.0.0')

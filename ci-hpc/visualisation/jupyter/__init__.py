@@ -6,7 +6,7 @@ from utils.logging import logger
 from utils.glob import global_configuration
 from utils.config import Config as cfg
 
-cfg.init(global_configuration.cfg_path)
+cfg.init(global_configuration.cfg_secret_path)
 
 import warnings
 warnings.filterwarnings("ignore", message="numpy.dtype size changed")

@@ -66,7 +66,7 @@ def _group_data(df, agg, x=db.GIT_DATETIME, y=db.DURATION, rename=None):
     """
     :type rename: dict
     """
-    result = df.groupby(x).agg(agg).reset_index()
+    result = df.groupby(x).aggregate(agg).reset_index()
 
     if rename is False:
         return result
@@ -100,7 +100,7 @@ def _ci_area(df, ci=(+0.05, -0.05), shift=1):
     return result
 
 
-def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=None, args=None):
+def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=None, args=None, add_std=True, add_errorbar=True, metric_name=None):
     """
     :type config: visualisation.www.plot.cfg.project_config.ProjectConfig
     :type args: argparse.Namespace
@@ -158,7 +158,7 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
 
     obj.add(HighchartsSeries(
         type=linetype,
-        name='mean',
+        name='mean' if not metric_name else metric_name,
         data=means,
         commits=commits,
         marker=dotdict(enabled=True),
@@ -168,38 +168,42 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
         allowPointSelect=True,
         zIndex=1,
     ))
-    obj.add(HighchartsSeries(
-        type=areatype,
-        name='std',
-        data=stds,
-        commits=commits,
-        uuids=uuids,
-        color='rgba(0, 0, 0, 0.2)',
-        fillColor='rgba(0, 0, 0, 0.05)',
-        dashStyle='Dash',
-    )),
-    obj.add(HighchartsSeries(
-        type='errorbar',
-        name='e5',
-        data=e5,
-        commits=commits,
-        uuids=uuids,
-        color='rgba(0, 0, 0, 0.3)',
-        # stemColor='#FF0000',
-        # whiskerColor='#FF0000',
-        lineWidth=0.5,
-    ))
-    obj.add(HighchartsSeries(
-        type='errorbar',
-        name='e10',
-        data=e10,
-        commits=commits,
-        uuids=uuids,
-        color='rgba(0, 0, 0, 0.3)',
-        # stemColor='#FF0000',
-        # whiskerColor='#FF0000',
-        lineWidth=0.5,
-    ))
+
+    if add_std:
+        obj.add(HighchartsSeries(
+            type=areatype,
+            name='std',
+            data=stds,
+            commits=commits,
+            uuids=uuids,
+            color='rgba(0, 0, 0, 0.2)',
+            fillColor='rgba(0, 0, 0, 0.05)',
+            dashStyle='Dash',
+        )),
+
+    if add_errorbar:
+        obj.add(HighchartsSeries(
+            type='errorbar',
+            name='e5',
+            data=e5,
+            commits=commits,
+            uuids=uuids,
+            color='rgba(0, 0, 0, 0.3)',
+            # stemColor='#FF0000',
+            # whiskerColor='#FF0000',
+            lineWidth=0.5,
+        ))
+        obj.add(HighchartsSeries(
+            type='errorbar',
+            name='e10',
+            data=e10,
+            commits=commits,
+            uuids=uuids,
+            color='rgba(0, 0, 0, 0.3)',
+            # stemColor='#FF0000',
+            # whiskerColor='#FF0000',
+            lineWidth=0.5,
+        ))
     return obj
 
 

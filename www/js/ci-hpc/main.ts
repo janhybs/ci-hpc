@@ -23,6 +23,7 @@ class Templates {
     static barTooltip: nunjucks.Template;
     static chart: nunjucks.Template;
     static emptyResults: nunjucks.Template;
+    static toggleOption: nunjucks.Template;
 
     static loadTemplates() {
         var compileNow: boolean = true;
@@ -31,6 +32,7 @@ class Templates {
         this.barTooltip = Globals.env.getTemplate("templates/bar-tooltip.njk", compileNow);
         this.chart = Globals.env.getTemplate("templates/chart.njk", compileNow);
         this.emptyResults = Globals.env.getTemplate("templates/empty-results.njk", compileNow);
+        this.toggleOption = Globals.env.getTemplate("templates/toggle-option.njk", compileNow);
     }
 }
 
@@ -49,7 +51,7 @@ interface Window {
 $(document).ready(() => {
     Globals.initEnv();
     Templates.loadTemplates();
-    
+
     var cntrlIsPressed: boolean = false;
     $(document).keydown((event: JQuery.Event) => {
         if (event.which == 17)
@@ -59,14 +61,39 @@ $(document).ready(() => {
         cntrlIsPressed = false;
     });
     
+    var grapOptions = function () {
+        var options: string[] = [];
+        var inputs = $('#options .cihpc-option');
+        inputs.each(function (index, elem) {
+            var $elem = $(elem);
+            var optionValue: Number = $elem.attr('checked') == 'checked' ? 1 : 0;
+            var optionName = $(elem).attr('cihpc-option-name');
+            options.push(optionName + '=' + optionValue)
+        });
+        return options.join(',');
+    };
+
 
     var url_base = window.cihpc.flaskApiUrl + '/' + window.cihpc.projectName;
     $.ajax({
         url: url_base + '/config',
+
         success: function(config) {
             document.title = config.name;
-            
-            
+
+            if (config['test-view'].colorby) {
+                $('#options').html(
+                  Templates.toggleOption.render({
+                    name: 'separate',
+                    text: 'Show separately',
+                  })
+                );
+                (<any> window).componentHandler.upgradeDom('MaterialCheckbox');
+                $('#checkbox-separate').change(function (event) {
+                    // TODO update chart
+                })
+            }
+
 
             var lineTooltip = function(event) {
                 if (cntrlIsPressed)
@@ -161,13 +188,13 @@ $(document).ready(() => {
                 }
                 $('#chartsHolder').empty();
                 $.ajax({
-                    url: url_base + '/case-view/' + testName + '/' + caseName + '/uniform=1,failed=0,smooth=0,separate=1,groupby=foo',
+                    url: url_base + '/case-view/' + testName + '/' + caseName + '/' + grapOptions(),
 
                     success: function(opts) {
                         $('#chartTitle').html(testName + ' / ' + caseName);
                         if (!Array.isArray(opts)) {
                             $('#warning-msg .fs-inner-container').html(
-                              Templates.emptyResults.render(opts)
+                                Templates.emptyResults.render(opts)
                             );
                             $('#warning-msg').removeClass('hidden');
                             $('#page-content').addClass('hidden');
@@ -175,7 +202,7 @@ $(document).ready(() => {
                         }
                         $('#warning-msg').addClass('hidden');
                         $('#page-content').removeClass('hidden');
-                        
+
                         for (var i in opts) {
                             var size = opts[i].size;
                             var opt = opts[i].data;
@@ -237,7 +264,7 @@ $(document).ready(() => {
             window.showChart = showChart;
             window.showChartDetail = showChartDetail;
 
-            showChart('*', '*', $('.testItem')[0]);
+            // showChart('*', '*', $('.testItem')[0]);
         }
     });
 }); 

@@ -20,11 +20,14 @@ test-view:
   groupby:                # how can the results be separated
     - test-name
     - case-name
+    
+  colorby:
+    - cpus
   
   smooth:     false       # should the line be smoothed
   extra:
-    - from:   _id         # extra values which are present
-      to:     id
+    - from:   _id         # extra values which should be extracted
+      to:     id          # they will be available under this name
         
 
 # secondary view showing frame break down
