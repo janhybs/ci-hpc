@@ -16,5 +16,9 @@ class global_configuration(object):
     root = __root__
     cfg = __cfg__
     src = __src__
+
+    # default location for the log file
     log_path = os.path.join(__root__, 'ci-hpc.log')
-    cfg_path = os.path.join(__cfg__, 'secret.yaml')
+
+    # this file should be PROTECTED, as it may contain passwords and database connection details
+    cfg_secret_path = os.path.join(__cfg__, 'secret.yaml')

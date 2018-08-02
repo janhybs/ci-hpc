@@ -223,12 +223,6 @@ def main():
     # this file contains all the sections and steps for installation and testing
     config_path = os.path.join(project_dir, 'config.yaml')
     
-    # this file should be PROTECTED, as it may contain passwords and database connection details
-    secret_path = os.path.join(__cfg__, 'secret.yaml')
-
-    # load configuration
-    cfg.init(secret_path)
-
     # update cpu count
     variables = cfgutil.load_config(variables_path)
     # variables['cpu-count'] = args.cpu_count
