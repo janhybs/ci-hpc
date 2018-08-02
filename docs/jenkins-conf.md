@@ -1,6 +1,8 @@
 # Installing a Jenkins server
   1. Install Jenkins server on your server [manually](https://wiki.jenkins.io/display/JENKINS/Installing+Jenkins+on+Ubuntu) or use docker solution like [this](https://github.com/jenkinsci/docker) or [this](https://jenkins.io/doc/book/installing/#downloading-and-running-jenkins-in-docker)
   
+      Hopefully you should see something like this in your browser:
+      
       ![jenkins-loading](imgs/jenkins-loading.png)
 
   2. Configure Jenkins installation. No need to install all the plugins, but make sure you have the following plugins installed:

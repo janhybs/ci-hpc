@@ -1,11 +1,18 @@
 # CI-HPC Documentation & Installation
 
+Installation process is not that simple, you won't find here something like:
+```bash
+./configure && make && make install
+```
+Perhaps in the future installation will be easier... but 
+if you know, what you are doing, you can setup your project within 15 minutes.
+
+
 In order to install CI-HPC framework, please understand its structure first:
 
 ![jenkins](imgs/cihpc-structure.png)
 
-From the illustration above, you can see there is are appearing 
-several servers.
+From the illustration above, you can see there are several servers.
 
 1. With <span style="color: darkblue">BLUE</span> color is a Jenkins server.
     This server is in charge of git repository checking. If Jenkins detects
@@ -19,27 +26,30 @@ several servers.
     prepare a PBS job, that will install your project and after that 
     run your benchmark for your project.
 
-    2. The *compute* nodes will take care of the installation and testing and
+    2. The *compute* nodes, that will take care of the installation and testing and
     when they are done, they will store the results to a database.
 
 3. The database server (in a <span style="color: darkgreen">GREEN</span> color) 
      has a MongoDB database running and stores and loads benchmark results.
 
-4. You have 2 options when it comes to visualising your results (both options are marked with <span style="color: darkorange">YELLOW</span> color):
+4. You have 2 options when it comes to visualising your results
+   (both options are marked with <span style="color: darkorange">YELLOW</span> color):
    
     1. The first option (slightly easier but not by much) is (*probably 
     soon to be deprecated* Jupyter Notebook server. This solution offers great 
-    customization but requires also more time for setup.
+    customization but requires knowledge about Python and some python's scientific packages.
 
-    2. The seconds option offers more interactivity and better visualisation.
+    2. The seconds option, interactive website, offers more interactivity and better visualisation.
     Thanks to `highcharts` js framework, you have plenty of options for 
-    your charts.
+    your charts. You can zoom in thre results, filter the series or simply
+    (by clicking) go to the commit, which you are interested in.
   
-5. But the data need to get to the web page somehow, and that is why there
+5. Along interactive website, you need to have additional server running 
+    (the data need to get to the web page somehow), and this is why there
     is this last server (in <span style="color: purple">PURPLE</span> color).
     It has a `python flask` server running, which is serving the data
     from the database back to the website.
-   
+
    
 ## Prerequisites
 Before configuring anything, make sure you have:
@@ -62,28 +72,28 @@ Before configuring anything, make sure you have:
 
 
 
-# Jenkins configuration
-<img src="imgs/jenkins-logo.png" width="128" /> 
+## 1. Jenkins configuration
+<!-- <img src="imgs/jenkins-logo.png" width="128" />  -->
 
-Read the section about Jenkins configuration [here](jenkins-conf.md)
+Read the section about Jenkins configuration [here](jenkins-conf.md).
 
 
-# HPC configuration
+## 2. HPC configuration
 Read the section about HPC configuration [here](hpc-conf.md) and 
 the section about `config.yaml` config file [here](config.yaml.md) and 
 
 
-# MongoDB configuration
+## 3. MongoDB configuration
 <img src="imgs/mongodb-logo.png" width="128" /> 
 
 Read the section about MongoDB storage configuration [here](mongodb-conf.md)
 
-# Jupyter configuration
-<img src="imgs/jupyter-logo.png" width="128" /> 
-
-**TBD** ~~Read the section about Jupzter notebook visualisation [here](jupyter-conf.md)~~
-
-# Flask configuration
+## 4. Flask configuration
 <img src="imgs/flask-logo.png" width="128" /> 
 
 **TBD** ~~Read the section about Flask visualisation [here](flask-conf.md)~~
+
+## Jupyter configuration
+<img src="imgs/jupyter-logo.png" width="128" /> 
+
+**TBD** ~~Read the section about Jupzter notebook visualisation [here](jupyter-conf.md)~~
