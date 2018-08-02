@@ -37,7 +37,7 @@ working and running.
    
    This configuration is reasonably straightforward. You fill out the info about your project and 
    then just say what variables will be used for what cause. Take a look at
-   [example](../www/hello-world.yaml) file which explains what variable is for cause.
+   [example](../www/cfg/hello-world.yaml) file which explains what variable is for cause.
    
 4. Create a symlink to Apache www folder:
    *Note:* assuming you are located at the repository root
