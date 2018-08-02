@@ -37,6 +37,10 @@ api.add_resource(
     '/<string:project>/config',
 )
 
+@app.route('/')
+def hello_world():
+    return 'Your server is running!'
+
 
 args = sys.argv[1:]
 debug = True if args and args[0].lower() == 'debug' else False
