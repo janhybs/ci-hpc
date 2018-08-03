@@ -253,7 +253,7 @@ $(document).ready(() => {
             window.showChart = showChart;
             window.showChartDetail = showChartDetail;
 
-            // showChart('*', '*', $('.testItem')[0]);
+            showChart('*', '*', $('.testItem')[0]);
         }
     });
 }); 
