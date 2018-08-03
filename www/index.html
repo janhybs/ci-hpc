@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
@@ -43,15 +42,26 @@
       <div class="page-content" id="page-content">
         <div class="mdl-grid">
           <div class="mdl-cell mdl-cell--12-col">
-            <div id="chartsHolder">
-            </div>
+            <div id="chartsHolder"></div>
           </div>
         </div>
       </div>
+      
       <div id="warning-msg" class="fs-outer-container hidden">
-          <div class="fs-inner-container">
-          </div>
+        <div class="fs-inner-container">
+          <div class="fs-centered-content"></div>
+        </div>
       </div>
+      
+      <div id="loading" class="fs-outer-container">
+        <div class="fs-inner-container">
+          <div class="fs-centered-content">
+            <p>Fetching data</p>
+            <div class="mdl-spinner mdl-js-spinner is-active"></div>
+          </div>
+        </div>
+      </div>
+      
     </main>
   </div>
   <dialog class="mdl-dialog" id="dialog">

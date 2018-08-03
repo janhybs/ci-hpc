@@ -102,11 +102,10 @@ $(document).ready(() => {
                 var commit = null,
                     date = null;
                 for (var context of this.points) {
-                    if (!commit) {
-                        var index = context.point.index;
-                        commit = context.series.options.commits[index];
-                        date = context.point.name;
-                    }
+                      var index = context.point.index;
+                      var commit = context.series.options.commits[index];
+                      var date = context.point.name;
+                      break;
                 }
 
                 // return html to be rendered
@@ -130,12 +129,14 @@ $(document).ready(() => {
                     var name = context.series.options.data[index].name;
                     break;
                 }
-
+                
+                
                 // return html to be rendered
                 return Templates.barTooltip.render({
                     path: path.split('/').join('<br />'),
                     name: name,
-                    points: this.points
+                    points: this.points,
+                    props: config['frame-view'].groupby,
                 });
             }
 
@@ -150,26 +151,8 @@ $(document).ready(() => {
                                 return this.value.substring(0, 24)
                             }
                         }
-                        opt.tooltip.formatter = function(event) {
-                            if (cntrlIsPressed)
-                                return false;
-
-                            var ys = [];
-                            var result = '';
-                            for (var context of this.points) {
-                                var index = context.point.index;
-                                var path = context.series.options.data[index].path;
-                                var name = context.series.options.data[index].name;
-                                break;
-                            }
-
-                            // return html to be rendered
-                            return Templates.barTooltip.render({
-                                path: path.split('/').join('<br />'),
-                                name: name,
-                                points: this.points
-                            });
-                        }
+                        opt.tooltip.formatter = barTooltip;
+                        
                         $('#' + chartID).parent().removeClass('full-width');
                         $('#' + chartID + '-detail').parent().removeClass('hidden');
                         $('#' + chartID).highcharts().setSize(undefined, undefined);
@@ -187,10 +170,16 @@ $(document).ready(() => {
                     $(sender).addClass(clss);
                 }
                 $('#chartsHolder').empty();
+                $('#loading').removeClass('hidden');
+                // componentHandler.upgradeAllRegistered();
+                
+                
+                var options = 'ff=test-name=' + testName + ',ff=case-name=' + caseName + ',' + grapOptions();
                 $.ajax({
-                    url: url_base + '/case-view/' + testName + '/' + caseName + '/' + grapOptions(),
+                    url: url_base + '/case-view/' + options,
 
                     success: function(opts) {
+                      $('#loading').addClass('hidden');
                         $('#chartTitle').html(testName + ' / ' + caseName);
                         if (!Array.isArray(opts)) {
                             $('#warning-msg .fs-inner-container').html(

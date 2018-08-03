@@ -8,7 +8,7 @@
   </dl>
   <dl class="tooltip-body">
     {% for point in points %}
-      {% if point.series.name == "mean" %}
+      {% if point.series.name.indexOf("mean") != -1 %}
         <dt><span style="color: {{ point.color }}">●</span> {{ point.series.name }}</dt>
         <dd>{{ point.point.y | toFixed }} sec</dd>
       {% elif point.series.name == "std" %}
