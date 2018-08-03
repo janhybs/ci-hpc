@@ -2,6 +2,8 @@
 # author: Jan Hybs
 
 import os
+
+import itertools
 import yaml
 
 from utils import dateutils
@@ -120,12 +122,8 @@ class ProjectConfig(object):
         self.name = config.get('name')
         self.desc = config.get('desc', None)
 
-        self.test_name_prop = config.get('test-name-property')
-        self.case_name_prop = config.get('case-name-property', None)
-        self.case_size_prop = config.get('case-size-property', None)
-
-        self.test_view = ProjectConfigView(config.get('test-view', {}))
-        self.frame_view = ProjectConfigView(config.get('frame-view', {}))
+        self.test_view = ProjectConfigTestView(config.get('test-view', {}))
+        self.frame_view = ProjectConfigFrameView(config.get('frame-view', {}))
         self.tests = [ProjectConfigTest(x) for x in config.get('tests', [])]
 
         self.date_format = None
@@ -136,17 +134,6 @@ class ProjectConfig(object):
             self.date_format = dateutils.long_format
         elif date_format == 'short':
             self.date_format = dateutils.short_format
-
-    def get_match_section(self, test_name=None, case_name=None):
-        result = dict()
-
-        if self.test_name_prop and test_name and test_name != '*':
-            result[self.test_name_prop] = test_name
-
-        if self.case_name_prop and case_name and case_name != '*':
-            result[self.case_name_prop] = case_name
-
-        return {'$match': result}
 
     def get_test_view_groupby(self):
         """
@@ -160,11 +147,13 @@ class ProjectConfig(object):
         """
         agg = dict()
         agg.update(({
-            self.test_view.git_hash_prop: 'first'
+            self.test_view.git_hash_prop: 'first',
+            self.test_view.id_prop: 'first',
         }))
         renames = dict()
         renames.update(({
-            self.test_view.git_hash_prop: 'commit'
+            self.test_view.git_hash_prop: 'commit',
+            self.test_view.id_prop: 'id',
         }))
 
         for extra in self.test_view.extra.vars:
@@ -173,6 +162,138 @@ class ProjectConfig(object):
                 renames[extra.map_from] = extra.map_to
 
         return agg, renames
+
+
+class ProjectConfigView(object):
+    MATCH_ALL = '*'
+
+    def get_projection(self):
+        get_projection_list = getattr(self, 'get_projection_list', None)
+        if get_projection_list:
+            return dict(zip(get_projection_list(), itertools.repeat(1)))
+        else:
+            return dict()
+
+
+class ProjectConfigTestView(ProjectConfigView):
+    def __init__(self, config):
+        """
+        Parameters
+        ----------
+        config : dict
+            a piece of configuration for the view
+        """
+        self.groupby = config.get('groupby', {
+            'test-name': 'problem.test-name',
+            'case-name': 'problem.case-name',
+        })
+
+        self.colorby = config.get('colorby', {
+            'case-cpus': 'problem.cpus',
+            'case-size': 'problem.case-size',
+        })
+
+        self.unwind = config.get('unwind', {
+            'from': 'timers',
+            'to':   'timer',
+        })
+
+        self.x_prop = config.get('x-property', 'git.datetime')
+        self.y_prop = config.get('y-property', 'result.duration')
+
+        self.git_hash_prop = config.get('commit-property', 'git.commit')
+        self.id_prop = config.get('id-property', '_id')
+
+        self.extra = ProjectConfigViewExtra(config.get('extra', []))
+        self.smooth = config.get('smooth', False)
+        self.uniform = config.get('uniform', True)
+
+    def get_filters(self, values):
+        """
+        Parameters
+        ----------
+        values : dict
+            a key value dictionary where key is name of the filter
+            and value is value of the filter, * means everything
+            and thus will not create any filter
+        """
+        result = dict()
+
+        for group_name, group_field in self.groupby.items():
+            if group_field is None:
+                continue
+
+            if group_name in values:
+                value = values[group_name]
+                if value not in (None, self.MATCH_ALL):
+                    result[group_field] = values[group_name]
+
+        return result
+
+    def get_projection_list(self):
+        result = list()
+        result.extend([
+            '_id',
+            self.x_prop,
+            self.y_prop,
+            self.id_prop,
+            self.git_hash_prop,
+        ])
+        result.extend(self.groupby.values())
+        result.extend(self.colorby.values())
+        result.extend([x.map_from for x in self.extra.vars])
+        return result
+
+
+class ProjectConfigFrameView(ProjectConfigView):
+    def __init__(self, config):
+        """
+        Parameters
+        ----------
+        config : dict
+            a piece of configuration for the view
+        """
+        self.groupby = config.get('groupby', {
+            'git-datetime': 'git.datetime',
+            'case-cpus': 'problem.cpus',
+        })
+
+        self.unwind = config.get('unwind', {
+            'from': 'timers',
+            'to':   'timer',
+        })
+
+        self.x_prop = config.get('x-property', 'timer.name')
+        self.y_prop = config.get('y-property', 'timer.duration')
+
+        self.id_prop = config.get('id-property', '_id')
+
+    def get_projection_list(self):
+        result = list()
+        result.extend([
+            '_id',
+            self.unwind['from'],
+            self.x_prop,
+            self.y_prop,
+            self.id_prop,
+        ])
+        result.extend(self.groupby.values())
+        return result
+
+
+class ProjectConfigTest(object):
+    def __init__(self, config):
+        """
+        Parameters
+        ----------
+        config : dict
+            a test configuration piece
+        """
+        self.name = config.get('name')
+        self.desc = config.get('desc', None)
+        self.tests = [ProjectConfigTest(x) for x in config.get('tests', [])]
+
+
 
 
 class ProjectConfigViewExtra(object):
@@ -223,34 +344,3 @@ class ProjectConfigViewExtraVariable(object):
             self.map_via = getattr(np, map_via)
 
 
-class ProjectConfigView(object):
-    def __init__(self, config):
-        """
-        Parameters
-        ----------
-        config : dict
-            a piece of configuration for the view
-        """
-        self.groupby = config.get('groupby', [])
-        self.colorby = config.get('colorby', [])
-
-        self.x_prop = config.get('x-property', None)
-        self.y_prop = config.get('y-property', None)
-        self.name_prop = config.get('name-property', None)
-        self.git_hash_prop = config.get('commit-property', 'git-commit')
-        self.extra = ProjectConfigViewExtra(config.get('extra', []))
-        self.smooth = config.get('smooth', False)
-        self.uniform = config.get('uniform', True)
-
-
-class ProjectConfigTest(object):
-    def __init__(self, config):
-        """
-        Parameters
-        ----------
-        config : dict
-            a test configuration piece
-        """
-        self.name = config.get('name')
-        self.desc = config.get('desc', None)
-        self.tests = [ProjectConfigTest(x) for x in config.get('tests', [])]

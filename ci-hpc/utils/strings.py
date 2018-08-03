@@ -3,11 +3,8 @@
 import datetime
 import random
 import json
-
-import numpy as np
-import pandas as pd
 import yaml
-from bson import ObjectId
+
 
 from utils import dateutils as dateutils
 import utils.extend_yaml
@@ -41,20 +38,30 @@ def to_json(obj, **kwargs):
 
 
 class JSONEncoder(json.JSONEncoder):
+
     def default(self, o):
+        from bson import ObjectId
+        import numpy as np
+        import pandas as pd
+
+        if isinstance(o, datetime.datetime):
+            return dateutils.long_format(o)
+
         if isinstance(o, ObjectId):
             return str(o)
+
         if isinstance(o, np.ndarray):
             return list(o)
+
         if isinstance(o, pd.Series):
             return list(o)
         if isinstance(o, pd.DataFrame):
             return o.values
-        if isinstance(o, datetime.datetime):
-            return dateutils.long_format(o)
+            # return o.isoformat()
+
         if hasattr(o, 'to_json'):
             return o.to_json()
-            # return o.isoformat()
+
         return json.JSONEncoder.default(self, o)
 
 

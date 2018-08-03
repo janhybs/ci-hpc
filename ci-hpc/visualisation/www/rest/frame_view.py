@@ -1,55 +1,49 @@
 #!/bin/python3
 # author: Jan Hybs
 
-import argparse
 from flask_restful import Resource
 from artifacts.db.mongo import CIHPCMongo
 
 import pandas as pd
 from bson.objectid import ObjectId
-from artifacts.db.mongo import Fields as db
 
-from utils import dateutils, strings
-from visualisation.www.plot.highcharts import highcharts_frame_in_time, highcharts_frame_bar
+from utils import  strings
+from utils.logging import logger
+from utils.timer import Timer
+from visualisation.www.plot.cfg.project_config import ProjectConfig
+from visualisation.www.plot.highcharts import highcharts_frame_bar
 from artifacts.collect.modules import unwind_reports
-
-def str2bool(v):
-    if v.lower() in ('yes', 'true', '1'):
-        return True
-    elif v.lower() in ('no', 'false', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--failed', type=str2bool, default=False)
-parser.add_argument('--uniform', type=str2bool, default=True)
-parser.add_argument('--smooth', type=str2bool, default=True)
-parser.add_argument('--separate', type=str2bool, default=True)
-parser.add_argument('--group-by', type=str, default=None)
 
 
 class FrameView(Resource):
-    def get(self, project, ids,):
+
+    @Timer.decorate('TestView: get', logger.info)
+    def get(self, project, ids):
         mongo = CIHPCMongo.get(project)
+        config = ProjectConfig.get(project)
 
-        pipeline = mongo.pipeline
-        match = {
-            '_id': {'$in': [ObjectId(x) for x in ids.split(',')]},
-        }
+        if config.frame_view.id_prop == '_id':
+            filters = {
+                config.frame_view.id_prop: {
+                    '$in': [ObjectId(x) for x in ids.split(',')]
+                },
+            }
+        else:
+            filters = {
+                config.frame_view.id_prop: {
+                    '$in': ids.split(',')
+                },
+            }
 
-        args = parser.parse_args([])
-        args.group_by = [db.GIT_DATETIME]
-        args.rename = {
-            'name': 'timer-name',
-            'y': 'timer-duration',
-            'path': 'timer-name',
-        }
-
-        pipeline = [{'$match': match}] + pipeline
-
-        items = unwind_reports(list(mongo.aggregate(pipeline)), flatten=True)
+        items = unwind_reports(
+            mongo.find_all(
+                filters,
+                config.frame_view.get_projection(),
+            ),
+            flatten='.',
+            unwind_from=config.frame_view.unwind['from'],
+            unwind_to=config.frame_view.unwind['to'],
+        )
         df = pd.DataFrame(items)
 
         if df.empty:
@@ -58,8 +52,8 @@ class FrameView(Resource):
                 description='This usually means filters provided filtered out everything.'
         )
 
-        df['git-datetime'] = df['git-datetime'].apply(dateutils.long_format)
-        result = highcharts_frame_bar(df, args)
+        # df['git-datetime'] = df['git-datetime'].apply(dateutils.long_format)
+        result = highcharts_frame_bar(df, config)
         strings.to_json(result)
         return result
 

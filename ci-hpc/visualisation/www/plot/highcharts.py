@@ -9,6 +9,9 @@ import pandas as pd
 import numpy as np
 import utils.dateutils as dateutils
 from artifacts.db.mongo import Fields as db
+from utils.datautils import ensure_iterable
+from utils.logging import logger
+from utils.timer import Timer
 from visualisation.www.plot.highcharts_config import HighchartsConfig, HighchartsSeries
 from visualisation.www.plot.highcharts_config import HighchartsChart as Chart
 
@@ -66,7 +69,8 @@ def _group_data(df, agg, x=db.GIT_DATETIME, y=db.DURATION, rename=None):
     """
     :type rename: dict
     """
-    result = df.groupby(x).aggregate(agg).reset_index()
+    with Timer('highcharts: data group: agg', log=logger.debug):
+        result = df.groupby(x).aggregate(agg).reset_index()
 
     if rename is False:
         return result
@@ -108,23 +112,26 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
     """
 
     x = config.test_view.x_prop
+    y = config.test_view.y_prop
     linetype = Chart.TYPE_SPLINE if config.test_view.smooth else Chart.TYPE_LINE
     areatype = Chart.TYPE_AREA_SPLINE_RANGE if config.test_view.smooth else Chart.TYPE_AREA_RANGE
 
     agg, renames = config.get_test_view_groupby()
+
     agg.update({
-        config.test_view.y_prop: [estimator, np.std],
+        y: [estimator, np.std],
     })
     renames.update({
         x: 'x'
     })
 
-    result = _group_data(
-        df, agg, x=x, rename=renames
-    )
+    with Timer('highcharts: data group', log=logger.debug):
+        result = _group_data(
+            df, agg, x=x, rename=renames
+        )
 
     commits, uuids = result['commit'], result['id']
-    mean, std = result['duration']['mean'], result['duration']['std']
+    mean, std = result[y]['mean'], result[y]['std']
 
     stds = pd.DataFrame()
     stds['x'] = result['x']
@@ -151,7 +158,7 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
     obj.title.text = title
 
     if config.test_view.uniform:
-        obj.xAxis.categories = result['x']#.apply(dateutils.human_format2)
+        obj.xAxis.categories = result['x'] #.apply(dateutils.human_format2)
         obj.xAxis.type = Chart.AXIS_TYPE_LINEAR
     else:
         obj.xAxis.type = Chart.AXIS_TYPE_DATETIME
@@ -225,15 +232,25 @@ def _rename (df, **kwargs):
     return df
 
 
-def highcharts_frame_bar(df, args):
+def highcharts_frame_bar(df, config):
     """
     :type df: pd.DataFrame
+    :type config: visualisation.www.plot.cfg.project_config.ProjectConfig
     """
-    df = df.sort_values(by=args.rename['y'], ascending=False)
-    df = df[df[args.rename['y']] > 0.1]
-    # df[args.rename['name']] = df[args.rename['name']].apply(lambda x: '\n'.join(x.split('::')))
+    x = config.frame_view.x_prop
+    y = config.frame_view.y_prop
 
-    df = _rename(df, **args.rename)
+    df = df.sort_values(by=y, ascending=False)
+    df = df[df[y] > 0.1]
+    # df[args.rename['name']] = df[args.rename['name']].apply(lambda x: '\n'.join(x.split('::')))
+    rename = {
+        'y': y,
+        'name': x,
+        'path': x,
+    }
+    rename.update(config.frame_view.groupby)
+
+    df = _rename(df, **rename)
     obj = HighchartsConfig()
     obj.tooltip.pointFormat = 'duration <b>{point.y:.2f}</b> sec'
     obj.xAxis.title.text = 'frame'
@@ -252,11 +269,15 @@ def highcharts_frame_bar(df, args):
 
     # del obj.yAxis
 
-    for g, d in df.groupby(args.group_by):
+    names = list(config.frame_view.groupby.keys())
+
+    for groupby_name, groupby_data in df.groupby(names):
+        title_dict = dict(zip(names, ensure_iterable(groupby_name)))
+
         obj.add(HighchartsSeries(
             type='bar',
-            name='%s' % g,
-            data=d.to_dict('records'),
+            name=', '.join('%s=<b>%s</b>' % (str(k), str(v)) for k, v in title_dict.items()),
+            data=groupby_data.to_dict('records'),
             dataLabels=dotdict(
                 enabled=False,
                 format='{y:.2f} sec'

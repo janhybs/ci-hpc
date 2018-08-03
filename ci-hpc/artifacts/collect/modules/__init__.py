@@ -5,7 +5,8 @@
 import enum
 import os
 
-from utils import datautils
+from utils import datautils, strings
+from utils.datautils import dotdict
 
 
 class ICollectTool(object):
@@ -126,8 +127,8 @@ def unwind_report(report, unwind_from='timers', unwind_to='timer', flatten=False
         key name which contains list of values
     unwind_to : str
         under what name to store list values
-    flatten : bool
-        whether to flatten keys
+    flatten : str
+        if set, will flatten the documents using this value as separator
     """
     items = list()
     report_copy = report.copy()
@@ -136,7 +137,7 @@ def unwind_report(report, unwind_from='timers', unwind_to='timer', flatten=False
         item = report_copy.copy()
         item[unwind_to] = timer
         if flatten:
-            items.append(datautils.flatten(item))
+            items.append(datautils.flatten(item, sep=flatten))
         else:
             items.append(item)
     return items
@@ -154,6 +155,9 @@ def unwind_reports(reports, unwind_from='timers', unwind_to='timer', flatten=Fal
         key name which contains list of values
     unwind_to : str
         under what name to store list values
+    flatten : str
+        if set, will flatten the documents using this value as separator
+
     """
     items = list()
     for report in reports:
@@ -177,3 +181,193 @@ def parse_output(out, line=None):
             if l.startswith(line):
                 return l[len(line):].replace('"', '')
     return lines[0].replace('"', '')
+
+
+class CIHPCReport(dotdict):
+    def __init__(self):
+        super(CIHPCReport, self).__init__()
+        self.update(
+            dict(
+                system=dotdict(),
+                problem=dotdict(),
+                result=dotdict(),
+
+                timers=list(),
+                libs=list(),
+
+                git=CIHPCReportGit(),
+            )
+        )
+
+    def merge(self, report):
+        """
+
+        Parameters
+        ----------
+        report : dict
+            a new report which contains more information
+        """
+
+        report_copy = report.copy()
+
+        merge_dict = dict(
+            system='update',
+            problem='update',
+            result='update',
+            git='update',
+
+            timers='extend',
+            libs='extend',
+        )
+        for key, action in merge_dict.items():
+            if key in report:
+                getattr(self[key], action)(report.pop(key))
+        self.update(report_copy)
+        return self
+
+    @property
+    def system(self):
+        """
+        Returns
+        -------
+        dict
+            a system information dictionary
+        """
+        return self['system']
+
+    @property
+    def problem(self):
+        """
+        Returns
+        -------
+        dict
+            a problem information dictionary
+        """
+        return self['problem']
+
+    @property
+    def result(self):
+        """
+        Returns
+        -------
+        dict
+            a result information dictionary
+        """
+        return self['result']
+
+    @property
+    def timers(self):
+        """
+        Returns
+        -------
+        list[dict]
+            a list of timers
+        """
+        return self['timers']
+
+    @property
+    def libs(self):
+        """
+        Returns
+        -------
+        list[dict]
+            a list of libraries used
+        """
+        return self['libs']
+
+    @property
+    def git(self):
+        """
+        Returns
+        -------
+        artifacts.collect.modules.CIHPCReportGit
+            a system information dictionary
+        """
+        return self['git']
+
+    def __repr__(self):
+        return strings.to_json(self)
+
+
+class CIHPCReportGit(dict):
+    def __init__(self):
+        super(CIHPCReportGit, self).__init__()
+        self.update(
+            dict(
+                name=None,
+                branch=None,
+                commit=None,
+                timestamp=None,
+                datetime=None,
+            )
+        )
+
+    @property
+    def name(self):
+        """
+        Returns
+        -------
+        str
+            a name of the repository
+        """
+        return self['name']
+
+    @name.setter
+    def name(self, value):
+        self['name'] = value
+
+    @property
+    def branch(self):
+        """
+        Returns
+        -------
+        str
+            a current branch (of the HEAD)
+        """
+        return self['branch']
+
+    @branch.setter
+    def branch(self, value):
+        self['branch'] = value
+
+    @property
+    def commit(self):
+        """
+        Returns
+        -------
+        str
+            a current commit (of the HEAD)
+        """
+        return self['commit']
+
+    @commit.setter
+    def commit(self, value):
+        self['commit'] = value
+
+    @property
+    def timestamp(self):
+        """
+        Returns
+        -------
+        str
+            a timestamp of the current commit
+        """
+        return self['timestamp']
+
+    @timestamp.setter
+    def timestamp(self, value):
+        self['timestamp'] = value
+
+    @property
+    def datetime(self):
+        """
+        Returns
+        -------
+        str
+            a datetime of the current commit
+        """
+        return self['datetime']
+
+    @datetime.setter
+    def datetime(self, value):
+        self['datetime'] = value

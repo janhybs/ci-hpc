@@ -22,10 +22,8 @@ api.add_resource(
 
 api.add_resource(
     TestView,
-    '/<string:project>/case-view/<string:test_name>/<string:case_name>/<string:options>',
-    '/<string:project>/case-view/<string:test_name>/<string:case_name>',
-    '/<string:project>/case-view/<string:test_name>/',
-    '/<string:project>/case-view/',
+    '/<string:project>/case-view/<string:options>',
+    '/<string:project>/case-view',
 )
 
 api.add_resource(
@@ -37,6 +35,7 @@ api.add_resource(
     '/<string:project>/config',
 )
 
+
 @app.route('/')
 def hello_world():
     return 'Your server is running!'
@@ -44,6 +43,9 @@ def hello_world():
 
 args = sys.argv[1:]
 debug = True if args and args[0].lower() == 'debug' else False
+
+if not debug:
+    logger.set_level('info')
 
 if __name__ == '__main__':
     logger.debug('running server')

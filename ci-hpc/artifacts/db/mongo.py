@@ -3,12 +3,14 @@
 # author: Jan Hybs
 
 
-from utils import strings
+from utils import strings, datautils
 from utils.config import Config as cfg
 from utils.logging import logger
 from defaults import artifacts_default_configuration, aggregation_default_configuration
 from collections import defaultdict
 from pymongo import MongoClient
+
+from utils.timer import Timer
 
 
 class Fields(object):
@@ -89,7 +91,6 @@ class CIHPCMongo(Mongo):
     _instances = dict()
 
     SECTION_ARTIFACTS = 'artifacts'
-    SECTION_VISUALISATION = 'visualisation'
 
     def __init__(self, project_name):
         """
@@ -105,8 +106,6 @@ class CIHPCMongo(Mongo):
         self.db = self.client.get_database(opts.get('db_name'))
         self.reports = self.db.get_collection(opts.get('col_timers_name'))
         self.files = self.db.get_collection(opts.get('col_files_name'))
-
-        self._pipeline = self._get_visualisation()
 
     def _get_artifacts(self, opts=None):
         if opts:
@@ -129,45 +128,47 @@ class CIHPCMongo(Mongo):
             opts = artifacts_default_configuration(self.project_name)
         return opts
 
-    def _get_visualisation(self, opts=None):
-        if opts:
-            return opts
-
-        opts = cfg.get('%s.visualisation' % self.project_name)
-        if not opts:
-            if self._warn_first_time(self.SECTION_VISUALISATION):
-                logger.warning(
-                    'No valid aggregation configuration found for the project %s. \n'
-                    'Using default aggregation configuration \n'
-                    'which may not suite this project... \n'
-                    'It is recommended to specify this configuration in secret.yaml, \n'
-                    'it can be as simple as this: \n'
-                    '\n%s\n ',
-                    self.project_name,
-                    strings.to_yaml(
-                        {self.project_name: {'visualisation': aggregation_default_configuration(self.project_name)}}
-                    ), skip_format=True
-                )
-
-            opts = aggregation_default_configuration(self.project_name)
-        return opts
-
-    @property
-    def pipeline(self):
-        return self._pipeline.copy()
-
     def aggregate(self, pipeline):
         logger.debug('db.getCollection("%s").aggregate(\n%s\n)',
                      str(self.reports.name),
                      strings.pad_lines(strings.to_json(pipeline))
-        )
+                     )
         return self.reports.aggregate(pipeline)
 
-    def find_one(self, filter, *args, **kwargs):
+    def find_all(self, filter=None, projection=None, *args, flatten=True, **kwargs):
+        if not filter:
+            filter = dict()
+
+        logger.debug('db.getCollection("%s").find(\n'
+                     '%s\n'
+                     ',\n%s\n)',
+                     str(self.reports.name),
+                     strings.pad_lines(strings.to_json(filter)),
+                     strings.pad_lines(strings.to_json(projection)),
+                     )
+
+        with Timer('db find: db-stuff', log=logger.debug):
+
+            with Timer('db find: db-stuff: find', log=logger.debug):
+                # TODO this may take a while depending on the size of the collection
+                cursor = self.reports.find(filter, projection, *args, **kwargs)
+
+            with Timer('db find: db-stuff: fetch and flatten', log=logger.debug):
+                if flatten:
+                    items = [datautils.flatten(x, sep='.') for x in list(cursor)]
+                else:
+                    items = list(cursor)
+
+        return items
+
+    def find_one(self, filter=None, *args, **kwargs):
+        if not filter:
+            filter = dict()
+
         logger.debug('db.getCollection("%s").findOne(\n%s\n)',
                      str(self.reports.name),
                      strings.pad_lines(strings.to_json(filter))
-        )
+                     )
         return self.reports.find_one(filter, *args, **kwargs)
 
     def agg(self, match=None, unwind=None, project=None, *args):
@@ -217,4 +218,3 @@ class CIHPCMongo(Mongo):
             cls._instances[project_name] = CIHPCMongo(project_name)
 
         return cls._instances[project_name]
-

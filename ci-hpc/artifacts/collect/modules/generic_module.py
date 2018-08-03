@@ -6,13 +6,14 @@ import json
 from utils.logging import logger
 from datetime import datetime
 from subprocess import check_output
-from artifacts.collect.modules import CollectResult, system_info, unwind_report, parse_output
+from artifacts.collect.modules import CollectResult, system_info, unwind_report, parse_output, CIHPCReportGit, \
+    CIHPCReport
 from artifacts.db.mongo import CIHPCMongo
 
 
 class CollectModule(object):
     system = None   # type: dict
-    libs = None     # type: list[dict]
+    git = None      # type: dict
     inited = False  # type: bool
 
     @classmethod
@@ -44,13 +45,16 @@ class CollectModule(object):
         logger.info('current git index at (branch=%s, commit=%s)', branch, commit)
 
         cls.system = system_info()
-        cls.libs = [dict(
-            name=repo_name,
-            branch=branch,
-            commit=commit,
-            timestamp=timestamp,
-            datetime=datetime.fromtimestamp(float(timestamp)),
-        )]
+        cls.git = CIHPCReportGit()
+        cls.git.update(
+            dict(
+                name=repo_name,
+                branch=branch,
+                commit=commit,
+                timestamp=timestamp,
+                datetime=datetime.fromtimestamp(float(timestamp)),
+            )
+        )
         cls.inited = True
 
     @classmethod
@@ -101,12 +105,12 @@ class CollectModule(object):
         with open(path, 'r') as fp:
             obj = json.load(fp)
 
-        self.report = dict(
-            system=CollectModule.system,
-            problem=dict(),
-            result=None,
-            timers=None,
-            libs=CollectModule.libs,
+        self.report = CIHPCReport()
+        self.report.update(
+            dict(
+                system=CollectModule.system,
+                git=CollectModule.git,
+            )
         )
         self.report.update(obj)
         # items = unwind_report(self.report)
