@@ -33,3 +33,5 @@ nano     cfg/$PROJECT_NAME/config.yaml
 
 *Please refer to [config.yaml](config.yaml.md) section to find out more
 about configuration.*
+
+[« back to docs](README.md)

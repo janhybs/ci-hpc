@@ -240,3 +240,5 @@ collect:
   [save-to-db]: boolean       # if true, will save the processed results to the DB
   
 ```
+
+[« back to docs](README.md)

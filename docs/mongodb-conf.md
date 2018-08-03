@@ -88,4 +88,4 @@ hello-world:
 *Note:* Assuming we are trying to override artifacts location fot the 
 project `hello-world`
 
-**TBD** ~~a section about an aggregation pipeline here~~
+[« back to docs](README.md)

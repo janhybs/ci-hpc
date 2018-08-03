@@ -84,16 +84,16 @@ the section about `config.yaml` config file [here](config.yaml.md) and
 
 
 ## 3. MongoDB configuration
-<img src="imgs/mongodb-logo.png" width="128" /> 
+<!-- <img src="imgs/mongodb-logo.png" width="128" />  -->
 
 Read the section about MongoDB storage configuration [here](mongodb-conf.md)
 
 ## 4. Flask configuration
-<img src="imgs/flask-logo.png" width="128" /> 
+<!-- <img src="imgs/flask-logo.png" width="128" />  -->
 
 Read the section about Flask visualisation [here](flask-conf.md)
 
 ## Jupyter configuration
-<img src="imgs/jupyter-logo.png" width="128" /> 
+<!-- <img src="imgs/jupyter-logo.png" width="128" />  -->
 
 **TBD** ~~Read the section about Jupzter notebook visualisation [here](jupyter-conf.md)~~
