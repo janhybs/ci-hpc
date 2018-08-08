@@ -54,6 +54,11 @@ class OpenerFile(Opener):
 
 
 class OpenerBoth(Opener):
+    def __init__(self, location, mode):
+        super(OpenerBoth, self).__init__(location, mode)
+        self.tf = None
+        self.output = None
+
     def open(self):
         fd, self.tf = tempfile.mkstemp()
         self.fp = os.fdopen(fd, 'w')
@@ -62,8 +67,8 @@ class OpenerBoth(Opener):
     def close(self):
         self.fp.close()
         with open(self.tf, 'r') as fp:
-            content = fp.read()
-            logger.info('content: \n%s', content)
+            self.output = fp.read()
+            logger.info('content: \n%s', self.output)
         os.unlink(self.tf)
         return None
 

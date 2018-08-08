@@ -71,7 +71,7 @@ class ProcessProject(object):
             if step.measure:
                 process_step_measure(step, step.measure, shell_processing)
 
-            process_step_shell(self.project, section, step, vars, shell_processing)
+            return process_step_shell(self.project, section, step, vars, shell_processing)
 
     def process_step(self, step, section):
         """
@@ -111,7 +111,7 @@ class ProcessProject(object):
                     for vars, current, total in iter_over(product):
                         with logger:
                             vars = merge_dict(vars, dict(__total__=total, __current__=current+1))
-                            self.process_step_with_vars(step, section, vars)
+                            process_result = self.process_step_with_vars(step, section, vars)
 
                             # artifact collection
                             if step.collect:
@@ -119,7 +119,7 @@ class ProcessProject(object):
                                     self.project.global_args,
                                     vars,
                                 )
-                                process_step_collect(self.project, step, format_args)
+                                process_step_collect(self.project, step, process_result, format_args)
         else:
             logger.info('processing step %s without variables', step.name)
             self.process_step_with_vars(step, section, None)

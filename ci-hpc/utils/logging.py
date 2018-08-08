@@ -23,7 +23,7 @@ class ColorLevels(object):
     @classmethod
     def get(cls, levelname):
         if cls.isatty:
-            return cls.color_map.get(levelname, '') + levelname + Style.RESET_ALL
+            return cls.color_map.get(levelname, '') + ('%5s' % levelname[:5]) + Style.RESET_ALL
         return levelname
 
 
@@ -39,11 +39,12 @@ class ExtendedFormatter(logging.Formatter):
     def _pad_newlines(self, string):
         lines = string.splitlines()
         result = [lines[0]]
+        padding = self.left_padding + len(logger.indent)
 
         # prefix = string[:self.left_padding]
         # text = string[self.left_padding:]
         for line in lines[1:]:
-            result.append(' ' * self.left_padding + line)
+            result.append(' ' * padding + line)
             # len_line = len(line)
             # if len_line > (self.max_width - self.left_padding):
             #     i1 = line.rfind(' ', 0, self.max_width)
@@ -99,7 +100,7 @@ class RelativeDateFormatter(ExtendedFormatter):
     start_time = time.time()
     
     def __init__(self, fmt, datefmt=6):
-        super(RelativeDateFormatter, self).__init__(20, 80, fmt, datefmt)
+        super(RelativeDateFormatter, self).__init__(18, 80, fmt, datefmt)
     
     def format(self, record):
         result = self._fmt
@@ -153,33 +154,33 @@ class Logger(object):
         if amount:
             self.set_level('DEBUG', logger.LOGGER_ALL_HANDLERS)
 
+    @property
+    def indent(self):
+        return '' if self._indent == 0 else self._indent * '--' + ' '
+
     def info(self, msg, *args, skip_format=False, **kwargs):
-        indent = '' if self._indent == 0 else self._indent * '--' + ' '
         if skip_format:
-            self.logger.info(indent + msg, *args)
+            self.logger.info(self.indent + msg, *args)
         else:
-            self.logger.info(indent + msg.format(**kwargs), *args)
+            self.logger.info(self.indent + msg.format(**kwargs), *args)
 
     def debug(self, msg, *args,skip_format=False,  **kwargs):
-        indent = '' if self._indent == 0 else self._indent * '--' + ' '
         if skip_format:
-            self.logger.debug(indent + msg, *args)
+            self.logger.debug(self.indent + msg, *args)
         else:
-            self.logger.debug(indent + msg.format(**kwargs), *args)
+            self.logger.debug(self.indent + msg.format(**kwargs), *args)
 
     def warn(self, msg, *args, skip_format=False, **kwargs):
-        indent = '' if self._indent == 0 else self._indent * '--' + ' '
         if skip_format:
-            self.logger.warning(indent + msg, *args)
+            self.logger.warning(self.indent + msg, *args)
         else:
-            self.logger.warning(indent + msg.format(**kwargs), *args)
+            self.logger.warning(self.indent + msg.format(**kwargs), *args)
 
     def error(self, msg, *args, skip_format=False, **kwargs):
-        indent = '' if self._indent == 0 else self._indent * '--' + ' '
         if skip_format:
-            self.logger.error(indent + msg, *args)
+            self.logger.error(self.indent + msg, *args)
         else:
-            self.logger.error(indent + msg.format(**kwargs), *args)
+            self.logger.error(self.indent + msg.format(**kwargs), *args)
 
     def _exception(self, method='warn'):
         def exc(msg, *args, **kwargs):

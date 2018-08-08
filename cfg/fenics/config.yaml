@@ -1,0 +1,127 @@
+workdir: /home/jan-hybs/projects/ci-hpc/projects/fenics
+init-shell: |
+    export FENICS_SRC_DIR=/home/jan-hybs/projects/ci-hpc/projects/fenics/build
+    export FENICS_PERFORMANCE_TESTS=/home/jan-hybs/projects/ci-hpc/projects/fenics/tests
+    export FENICS_COMPONENTS="fiat dijitso ufl ffc dolfin"
+    export FENICS_PREFIX=/home/jan-hybs/projects/ci-hpc/projects/fenics/install
+    
+    export FENICS_PYTHON=python3
+    export FENICS_BUILD_TYPE=Release
+    
+    export PYTHON_VERSION=$($FENICS_PYTHON -c 'import sys; print(".".join(map(str, sys.version_info[:2])))')
+    export PYTHONPATH=$FENICS_PREFIX/lib/python$PYTHON_VERSION/site-packages:$PYTHONPATH
+    
+install:
+  - name: git-checkout
+    output: stdout
+    git:
+        - url: https://bitbucket.org/fenics-project/performance-tests.git
+          branch: hybs/json-timings
+        - url: https://bitbucket.org/fenics-project/fiat.git
+        - url: https://bitbucket.org/fenics-project/dijitso.git
+        - url: https://bitbucket.org/fenics-project/instant.git
+        - url: https://bitbucket.org/fenics-project/ufl.git
+        - url: https://bitbucket.org/fenics-project/ffc.git
+        - url: https://bitbucket.org/fenics-project/dolfin.git
+        
+    # container: quay.io/igorbaratta/dolfinx-complex:latest
+  - name: compile-components
+    enabled: false
+    output: stdout
+    shell: |
+      # rm -rf $FENICS_PREFIX
+      mkdir -p $FENICS_PREFIX
+      FENICS_SRC_DIR=$(pwd)
+      FENICS_COMPONENTS=""
+      
+      for project in $FENICS_COMPONENTS; do
+          echo "-----------------------------"
+          echo "--------------- $project ----"
+          echo "-----------------------------"
+          path="$FENICS_SRC_DIR/$project"
+          
+          if [ -e $path/CMakeLists.txt ]; then
+              build="$FENICS_SRC_DIR/$project/build-$FENICS_PYTHON"
+              rm -rf $build
+              mkdir -p $build
+              cd "$build"
+
+              cmake ../ \
+                  -DCMAKE_INSTALL_PREFIX=$FENICS_PREFIX \
+                  -DCMAKE_BUILD_TYPE=$FENICS_BUILD_TYPE \
+                  -Wno-dev $CMAKE_EXTRA_ARGS
+              make -j4
+              make -j4 install
+          else
+              cd $FENICS_SRC_DIR/$project
+              pip3 install --prefix=$FENICS_PREFIX --no-deps --upgrade --system .
+          fi
+      done
+
+  - name: compile-tests
+    output: stdout
+    shell: |
+      FENICS_SRC_DIR=$(pwd)
+      source $FENICS_SRC_DIR/install/share/dolfin/dolfin.conf
+      cd $FENICS_SRC_DIR/performance-tests/src
+            
+      echo "dolfin version: $(dolfin-version)"
+      ffc -l dolfin *.ufl
+            
+      rm -rf build && mkdir -p build
+      cd build
+      cmake .. && make
+      ldd ./dolfin-scaling-test
+      ./dolfin-scaling-test
+test:
+  - name: test
+    output: log+stdout
+    variables:
+      - matrix:
+          - cpu_count: [1, 2]
+          - problem:
+              - type: poisson
+                scale: weak
+                ndofs: 10000     #   100 000 per core
+
+              - type: elasticity
+                scale: weak
+                ndofs: 5000      #    50 000 per core
+
+              - type: poisson
+                scale: strong
+                ndofs: 100000    # 1 000 000 in total
+
+              - type: elasticity
+                scale: strong
+                ndofs: 50000     #   500 000 in total
+    
+    collect:
+      type: json
+      repo: /home/jan-hybs/projects/ci-hpc/projects/fenics/dolfin
+      module: artifacts.collect.modules.fenics_module
+      parse:
+        start: '-----------------------------------------------------------------------------'
+        stop: '-----------------------------------------------------------------------------'
+      
+    shell: |
+      FENICS_SRC_DIR=$(pwd)
+      source $FENICS_SRC_DIR/install/share/dolfin/dolfin.conf
+      cd $FENICS_SRC_DIR/performance-tests/src/build
+      
+      
+      echo "<cpu_count>x-scale-<problem.type>-<problem.scale>-<problem.ndofs>"
+
+      mpirun -np <cpu_count> \
+        ./dolfin-scaling-test \
+          --problem_type <problem.type> \
+          --scaling_type <problem.scale> \
+          --ndofs <problem.ndofs> \
+          --petsc.ksp_type cg \
+          --petsc.ksp_rtol 1.0e-8 \
+          --petsc.pc_type hypre \
+          --petsc.pc_hypre_type boomeramg \
+          --petsc.pc_hypre_boomeramg_strong_threshold 0.5 \
+          --petsc.options_left
+          # --petsc.log_view \
+          # --petsc.ksp_view \

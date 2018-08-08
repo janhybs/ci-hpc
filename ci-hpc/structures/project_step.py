@@ -36,7 +36,8 @@ class ProjectStep(object):
         self.container = structures.new(kwargs, 'container', ProjectStepContainer)
         self.repeat = kwargs.get('repeat', 1)
         self.shell = kwargs.get('shell', None)
-        self.output = kwargs.get('output',
+        self.output = kwargs.get(
+            'output',
             'stdout' if global_configuration.tty else 'log+stdout'
         )
 

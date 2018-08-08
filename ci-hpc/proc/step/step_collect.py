@@ -5,54 +5,105 @@
 import glob
 import os
 import importlib
-from datetime import datetime
+import json
+import yaml
 
+from artifacts.collect.modules import CIHPCReport, AbstractCollectModule
+from proc.step.step_collect_parse import process_step_collect_parse
 from utils.config import configure_object
 from utils.logging import logger
 from utils.config import configure_string
 
 
-def process_step_collect(project, step, format_args=None):
+def convert_method(type):
+    return dict(json=json.loads, yaml=yaml.load).get(type, lambda y: y)
+
+
+def iter_reports(reports, conversion, is_file):
+    index = 0
+    for report in reports:
+        if is_file:
+            with open(report, 'r') as fp:
+                yield conversion(fp.read()), report
+        else:
+            index += 1
+            yield conversion(report), 'parse-result-%02d' % index
+
+
+def process_step_collect(project, step, process_result, format_args=None):
     """
     Function will collect artifacts for the given step
     :type step:           structures.project_step.ProjectStep
     :type project:        structures.project.Project
+    :type process_result: proc.step.step_shell.ProcessStepResult
     """
+
     logger.debug('collecting artifacts')
-    files = glob.glob(step.collect.files, recursive=True)
-    logger.debug('found %d files to collect', len(files))
 
     module = importlib.import_module(step.collect.module)
     CollectModule = module.CollectModule
 
-    if files:
-        # get git information
-        if step.collect.repo:
-            CollectModule.init_collection(step.collect.repo)
+    # obtain git information
+    CIHPCReport.init(step.collect.repo)
 
-        # enrich system section
-        if step.collect.extra:
-            extra = configure_object(step.collect.extra, format_args)
-            CollectModule.add_extra(extra)
+    # enrich result section
+    if step.collect.extra:
+        extra = configure_object(step.collect.extra, format_args)
+        CIHPCReport.global_result.update(extra)
 
-        # create instance of the CollectModule
-        instance = CollectModule(project.name)
-        results = list()
+    # create instance of the CollectModule
+    instance = CollectModule(project.name)  # type: AbstractCollectModule
 
-        timers_info = []
-        timers_total = 0
-        for file in files:
+    conversion = convert_method(step.collect.type)
+
+    # --------------------------------------------------
+
+    results = list()
+    timers_info = []
+    timers_total = 0
+
+    if step.collect.parse:
+        reports = process_step_collect_parse(project, step, process_result, format_args)
+        logger.debug('found %d reports to process', len(reports))
+
+        for report, file in iter_reports(reports, conversion, is_file=False):
             with logger:
-                collect_result = instance.process_file(file)
+                collect_result = instance.process(report)
                 timers_total += len(collect_result.items)
                 timers_info.append((os.path.basename(file), len(collect_result.items)))
                 results.append(collect_result)
-        
+
+        with logger:
+            for file, timers in timers_info:
+                logger.debug('%20s: %5d timers found', file, timers)
+            logger.info('artifacts: found %d timer(s) in %d file(s)', timers_total, len(reports))
+
+        # insert artifacts into db
+        if step.collect.save_to_db:
+            instance.save_to_db(results)
+
+    # --------------------------------------------------
+
+    results = list()
+    timers_info = []
+    timers_total = 0
+
+    if step.collect.files:
+        files = glob.glob(step.collect.files, recursive=True)
+        logger.debug('found %d files to process', len(files))
+
+        for report, file in iter_reports(files, conversion, is_file=True):
+            with logger:
+                collect_result = instance.process(report)
+                timers_total += len(collect_result.items)
+                timers_info.append((os.path.basename(file), len(collect_result.items)))
+                results.append(collect_result)
+
         with logger:
             for file, timers in timers_info:
                 logger.debug('%20s: %5d timers found', file, timers)
             logger.info('artifacts: found %d timer(s) in %d file(s)', timers_total, len(files))
-            
+
         # insert artifacts into db
         if step.collect.save_to_db:
             instance.save_to_db(results)

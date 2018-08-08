@@ -28,6 +28,7 @@ class ShellProcessing(object):
 class ProcessStepResult(object):
     """
     :type process: subprocess.Popen
+    :type output:  str
     """
     def __init__(self):
         self.process = None
@@ -36,6 +37,9 @@ class ProcessStepResult(object):
         self.returncode = None
         self.start_time = None
         self.end_time = None
+
+        self.output = None
+        self.error = None
 
     def __enter__(self):
         self.start_time = time()
@@ -100,7 +104,8 @@ def process_step_shell(project, section, step, vars, shell_processing):
         # ---------------------------------------------------------------------
 
         result = ProcessStepResult()
-        with DynamicIO(step.output) as fp:
+        io = DynamicIO(step.output)
+        with io as fp:
             with shell_processing.process(result):
                 if not step.container:
                     logger.info('running vanilla shell script %s', tmp_sh.path)
@@ -118,5 +123,8 @@ def process_step_shell(project, section, step, vars, shell_processing):
                 result.process = process
                 with result:
                     result.returncode = process.wait()
+
+        # try to grab output
+        result.output = getattr(io.opener, 'output', None)
 
         return result

@@ -2,11 +2,15 @@
 # author:   Jan Hybs
 
 
+import datetime
 import enum
 import os
+from subprocess import check_output
 
+from artifacts.db.mongo import CIHPCMongo
 from utils import datautils, strings
 from utils.datautils import dotdict
+from utils.logging import logger
 
 
 class ICollectTool(object):
@@ -36,7 +40,7 @@ class CollectResult(object):
     :type logs_updated    : list[dict]
     """
 
-    def __init__(self, items, logs, log_policy=LogPolicy.ON_ERROR, log_folder=None):
+    def __init__(self, items, logs=list(), log_policy=LogPolicy.ON_ERROR, log_folder=None):
         """
 
         :type logs:         list[str]
@@ -183,112 +187,6 @@ def parse_output(out, line=None):
     return lines[0].replace('"', '')
 
 
-class CIHPCReport(dotdict):
-    def __init__(self):
-        super(CIHPCReport, self).__init__()
-        self.update(
-            dict(
-                system=dotdict(),
-                problem=dotdict(),
-                result=dotdict(),
-
-                timers=list(),
-                libs=list(),
-
-                git=CIHPCReportGit(),
-            )
-        )
-
-    def merge(self, report):
-        """
-
-        Parameters
-        ----------
-        report : dict
-            a new report which contains more information
-        """
-
-        report_copy = report.copy()
-
-        merge_dict = dict(
-            system='update',
-            problem='update',
-            result='update',
-            git='update',
-
-            timers='extend',
-            libs='extend',
-        )
-        for key, action in merge_dict.items():
-            if key in report:
-                getattr(self[key], action)(report.pop(key))
-        self.update(report_copy)
-        return self
-
-    @property
-    def system(self):
-        """
-        Returns
-        -------
-        dict
-            a system information dictionary
-        """
-        return self['system']
-
-    @property
-    def problem(self):
-        """
-        Returns
-        -------
-        dict
-            a problem information dictionary
-        """
-        return self['problem']
-
-    @property
-    def result(self):
-        """
-        Returns
-        -------
-        dict
-            a result information dictionary
-        """
-        return self['result']
-
-    @property
-    def timers(self):
-        """
-        Returns
-        -------
-        list[dict]
-            a list of timers
-        """
-        return self['timers']
-
-    @property
-    def libs(self):
-        """
-        Returns
-        -------
-        list[dict]
-            a list of libraries used
-        """
-        return self['libs']
-
-    @property
-    def git(self):
-        """
-        Returns
-        -------
-        artifacts.collect.modules.CIHPCReportGit
-            a system information dictionary
-        """
-        return self['git']
-
-    def __repr__(self):
-        return strings.to_json(self)
-
-
 class CIHPCReportGit(dict):
     def __init__(self):
         super(CIHPCReportGit, self).__init__()
@@ -371,3 +269,265 @@ class CIHPCReportGit(dict):
     @datetime.setter
     def datetime(self, value):
         self['datetime'] = value
+
+
+class CIHPCReport(dotdict):
+    global_system = dotdict()
+    global_git = CIHPCReportGit()
+    global_result = dotdict()
+    global_problem = dotdict()
+
+    inited = False
+
+    @classmethod
+    def init(cls, path_to_repo=None):
+        if cls.inited:
+            return
+
+        if path_to_repo:
+            cls.global_git = git_info(path_to_repo)
+        cls.global_system = system_info()
+
+        cls.inited = True
+
+    def __init__(self):
+        super(CIHPCReport, self).__init__()
+        self.update(
+            dict(
+                system=self.global_system.copy(),
+                git=self.global_git.copy(),
+                result=self.global_result.copy(),
+                problem=self.global_problem.copy(),
+
+                timers=list(),
+                libs=list(),
+            )
+        )
+
+    def merge(self, report):
+        """
+
+        Parameters
+        ----------
+        report : dict
+            a new report which contains more information
+        """
+
+        report_copy = report.copy()
+
+        merge_dict = dict(
+            system='update',
+            problem='update',
+            result='update',
+            git='update',
+
+            timers='extend',
+            libs='extend',
+        )
+        for key, action in merge_dict.items():
+            if key in report_copy:
+                getattr(self[key], action)(report_copy.pop(key))
+        self.update(report_copy)
+        return self
+
+    @property
+    def system(self):
+        """
+        Returns
+        -------
+        dict
+            a system information dictionary
+        """
+        return self['system']
+
+    @property
+    def problem(self):
+        """
+        Returns
+        -------
+        dict
+            a problem information dictionary
+        """
+        return self['problem']
+
+    @property
+    def result(self):
+        """
+        Returns
+        -------
+        dict
+            a result information dictionary
+        """
+        return self['result']
+
+    @property
+    def timers(self):
+        """
+        Returns
+        -------
+        list[dict]
+            a list of timers
+        """
+        return self['timers']
+
+    @property
+    def libs(self):
+        """
+        Returns
+        -------
+        list[dict]
+            a list of libraries used
+        """
+        return self['libs']
+
+    @property
+    def git(self):
+        """
+        Returns
+        -------
+        artifacts.collect.modules.CIHPCReportGit
+            a system information dictionary
+        """
+        return self['git']
+
+    def __repr__(self):
+        return strings.to_json(self)
+
+
+def git_info(repo):
+    """
+    will try to determine branch/commit
+
+    Parameters
+    ----------
+    repo : str
+        a path to a dir or file located within git repository
+    Returns
+    -------
+    CIHPCReportGit
+    """
+
+    logger.debug('getting git information')
+    root = repo
+    if os.path.isfile(repo):
+        root = os.path.dirname(repo)
+
+    repo_name = parse_output(
+        check_output('basename `git rev-parse --show-toplevel`', shell=True, cwd=root)
+    )
+    branch = parse_output(
+        check_output('git symbolic-ref --short -q HEAD', shell=True, cwd=root)
+    )
+    commit = parse_output(
+        check_output('git rev-parse HEAD', shell=True, cwd=root)
+    )
+    timestamp = int(parse_output(
+        check_output('git show -s --format=%%ct %s' % commit, shell=True, cwd=root)
+    ))
+    logger.info('current git index at (branch=%s, commit=%s)', branch, commit)
+
+    git = CIHPCReportGit()
+    git.update(
+        dict(
+            name=repo_name,
+            branch=branch,
+            commit=commit,
+            timestamp=timestamp,
+            datetime=datetime.datetime.fromtimestamp(float(timestamp)),
+        )
+    )
+    return git
+
+
+class AbstractCollectModule(object):
+    """
+    This module excepts a dictionary as a first and only argument to the
+    method process
+
+    It simply merges system wide information and given object together
+    Assuming the structure of the output report:
+    {
+        system:     { ... }
+        problem:    { ... }
+        result:     { ... }
+        git:        { ... }
+        timers:     [ { ... }, { ... }, ... ]
+        libs:       [ { ... }, { ... }, ... ]
+    }
+
+    fields 'problem', 'result' and 'timers' should be included in a report file
+    fields 'system' and 'git' are automatically obtained
+    field  'libs' is optional
+    """
+
+    def __init__(self, project_name):
+        self.project_name = project_name
+
+    def save_to_db(self, collect_results):
+        """
+        Method will insert results into db
+        :type collect_results: list[CollectResult]
+        """
+
+        logger.info('saving %d profile.json files to database', len(collect_results))
+        cihpc_mongo = CIHPCMongo.get(self.project_name)
+
+        results = list()
+        for item in collect_results:
+
+            # save logs first
+            if item.logs and item.items:
+                log_ids = cihpc_mongo.files.insert_many(item.logs).inserted_ids
+                logger.debug('inserted %d files', len(log_ids))
+                item.update(log_ids)
+
+            # insert rest to db
+            if item.items:
+                results.append(cihpc_mongo.reports.insert_many(item.items))
+        logger.debug('inserted %d reports', len(results))
+        return results
+
+    def process(self, object):
+        """
+        method will process given object and returns a CollectResult.
+
+        Based on a configuration, object can be either dict or str.
+
+        Parameters
+        ----------
+        object : dict or str
+            a report containing timing information
+        """
+        raise NotImplementedError()
+
+    def convert_fields(self, obj, fields, method, recursive=False):
+        """
+        Recursively will convert given field props to a given type
+        Parameters
+        ----------
+        obj : dict
+            object containing key pair values
+        fields: list of Regex
+            a list if compiled regular expressions, which designated
+            field names which are to be converted
+        method : callable
+            a method using which is value converted
+        recursive : bool
+            if True will apply conversion method on recursively
+        """
+        for key in obj:
+            for f in fields:
+                if f.match(key):
+                    obj[key] = method(obj[key])
+
+        if recursive:
+            for k, v in obj.items():
+                if isinstance(v, dict):
+                    obj[k] = self.convert_fields(v, fields, method, recursive)
+                if isinstance(v, list):
+                    for i in range(len(v)):
+                        if isinstance(v[i], dict):
+                            v[i] = self.convert_fields(v[i], fields, method, recursive)
+        return obj
+
+

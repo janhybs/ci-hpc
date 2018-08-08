@@ -6,9 +6,9 @@ def new(o, key, cls):
     """
     Method will construct given class if key exists in a object
     or return None
-    :param o:
-    :param key:
-    :param cls:
+    :param o: object from which key is extracted
+    :param key: name of the filed which is tested and extracted later on
+    :param cls: cls which is constructed
     :return:
     """
     if key in o:
