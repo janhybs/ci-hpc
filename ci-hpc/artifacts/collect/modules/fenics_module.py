@@ -53,7 +53,5 @@ class CollectModule(AbstractCollectModule):
 
         report = CIHPCReport()
         report.merge(object)
-
+        
         return CollectResult([report])
-
-

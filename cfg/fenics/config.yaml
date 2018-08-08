@@ -26,7 +26,6 @@ install:
         
     # container: quay.io/igorbaratta/dolfinx-complex:latest
   - name: compile-components
-    enabled: false
     output: stdout
     shell: |
       # rm -rf $FENICS_PREFIX
@@ -75,26 +74,27 @@ install:
       ./dolfin-scaling-test
 test:
   - name: test
+    repeat: 5
     output: log+stdout
     variables:
       - matrix:
-          - cpu_count: [1, 2]
+          - cpu_count: [1, 2, 3]
           - problem:
               - type: poisson
                 scale: weak
-                ndofs: 10000     #   100 000 per core
+                ndofs: 100000     #   100 000 per core
 
               - type: elasticity
                 scale: weak
-                ndofs: 5000      #    50 000 per core
+                ndofs: 50000      #    50 000 per core
 
               - type: poisson
                 scale: strong
-                ndofs: 100000    # 1 000 000 in total
+                ndofs: 1000000    # 1 000 000 in total
 
               - type: elasticity
                 scale: strong
-                ndofs: 50000     #   500 000 in total
+                ndofs: 500000     #   500 000 in total
     
     collect:
       type: json
@@ -103,12 +103,15 @@ test:
       parse:
         start: '-----------------------------------------------------------------------------'
         stop: '-----------------------------------------------------------------------------'
+      extra:
+        type:  <problem.type|s>
+        scale: <problem.scale|s>
+        ndofs: <problem.ndofs|i>
       
     shell: |
       FENICS_SRC_DIR=$(pwd)
       source $FENICS_SRC_DIR/install/share/dolfin/dolfin.conf
       cd $FENICS_SRC_DIR/performance-tests/src/build
-      
       
       echo "<cpu_count>x-scale-<problem.type>-<problem.scale>-<problem.ndofs>"
 
