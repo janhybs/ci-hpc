@@ -52,10 +52,8 @@ class CollectModule(AbstractCollectModule):
     """
     def process(self, object):
         report = CIHPCReport()
-        report.update(object)
+        report.merge(object)
 
         print(report)
 
         return CollectResult([report])
-
-

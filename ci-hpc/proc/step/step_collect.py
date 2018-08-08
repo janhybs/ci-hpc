@@ -22,12 +22,21 @@ def convert_method(type):
 def iter_reports(reports, conversion, is_file):
     index = 0
     for report in reports:
+        index += 1
+        
         if is_file:
             with open(report, 'r') as fp:
-                yield conversion(fp.read()), report
+                try:
+                    yield conversion(fp.read()), report
+                except Exception as e:
+                    continue
+                
         else:
-            index += 1
-            yield conversion(report), 'parse-result-%02d' % index
+            try:
+                yield conversion(report), 'parse-result-%02d' % index
+            except Exception as e:
+                continue
+            
 
 
 def process_step_collect(project, step, process_result, format_args=None):
@@ -49,7 +58,7 @@ def process_step_collect(project, step, process_result, format_args=None):
     # enrich result section
     if step.collect.extra:
         extra = configure_object(step.collect.extra, format_args)
-        CIHPCReport.global_result.update(extra)
+        CIHPCReport.global_problem.update(extra)
 
     # create instance of the CollectModule
     instance = CollectModule(project.name)  # type: AbstractCollectModule
