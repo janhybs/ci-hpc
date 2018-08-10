@@ -1,0 +1,71 @@
+name:                 Project FEniCS
+desc:                 A platform for solving partial differential equations.
+date-format:          long                                          # long or short or null
+git-url:              https://bitbucket.org/fenics-project/dolfin   # url of the git repo
+
+# main view showing duration in time
+test-view:
+  y-property:             result.wall_avg   # what will be on y-axis
+  x-property:             git.datetime      # what will be on x-axis
+  commit-property:        git.commit        # what is the field name of the commit
+  id-property:            _id               # what is a unique identificator for this document
+  cpu-property:           system.num_cpus   # what property points to a number of cpu used
+  
+  groupby:                                  # how can the results be separated
+    test-name:            problem.type      # for now only groups test-name and case-name are supported
+    case-name:            problem.scale     # they can be set to null if they are not present in the project DB
+    
+  smooth:     false         # should the line be smoothed
+  
+
+# secondary view showing frame break down
+frame-view:
+  unwind:
+    from:             timers          # will take fields 'timers' (which must be a array)
+    to:               timer           # and will put individual items to seperate document
+  
+  groupby:                            # how can the benchmark frames be separated
+    date:             git.datetime
+    cpus:             system.num_cpus 
+  
+  id-property:        _id
+  y-property:         timer.wall_avg
+  x-property:         timer.name
+  
+
+
+# test structure which will be displayed
+# name is mandatory
+tests:
+    - name: poisson
+      desc: A poisson test
+      tests:
+        - name: weak
+          tooltip: |
+              Ideal weak scaling should be constant relative to runtime on a single CPU.
+              <img width=240 src="http://journals.plos.org/plosone/article/figure/image?size=inline&id=10.1371/journal.pone.0095390.g001" />
+          desc: |
+            How the solution time varies with the number of processors for a <strong>fixed problem size per processor</strong>
+            
+        - name: strong
+          tooltip: |
+              Ideal strong scaling should be linear. The runtime should be T<sub>1</sub>/n, where T<sub>1</sub> is runtime for a single CPU
+              <img width=240 src="http://journals.plos.org/plosone/article/figure/image?size=inline&id=10.1371/journal.pone.0095390.g001" />
+          desc: |
+            How the solution time varies with the number of processors for a <strong>fixed total problem size</strong>
+  
+    - name: elasticity
+      desc: An elasticity test
+      tests:
+        - name: weak
+          tooltip: |
+              Ideal weak scaling should be constant relative to runtime on a single CPU.
+              <img width=240 src="http://journals.plos.org/plosone/article/figure/image?size=inline&id=10.1371/journal.pone.0095390.g001" />
+          desc: |
+            How the solution time varies with the number of processors for a <strong>fixed problem size per processor</strong>
+        - name: strong
+          tooltip: |
+              Ideal strong scaling should be linear. The runtime should be T<sub>1</sub>/n, where T<sub>1</sub> is runtime for a single CPU
+              <img width=240 src="http://journals.plos.org/plosone/article/figure/image?size=inline&id=10.1371/journal.pone.0095390.g001" />
+          desc: |
+            How the solution time varies with the number of processors for a <strong>fixed total problem size</strong>

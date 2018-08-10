@@ -23,7 +23,7 @@ class Templates {
     static barTooltip: nunjucks.Template;
     static chart: nunjucks.Template;
     static emptyResults: nunjucks.Template;
-    static toggleOption: nunjucks.Template;
+    static toggleOptions: nunjucks.Template;
 
     static loadTemplates() {
         var compileNow: boolean = true;
@@ -32,7 +32,7 @@ class Templates {
         this.barTooltip = Globals.env.getTemplate("templates/bar-tooltip.njk", compileNow);
         this.chart = Globals.env.getTemplate("templates/chart.njk", compileNow);
         this.emptyResults = Globals.env.getTemplate("templates/empty-results.njk", compileNow);
-        this.toggleOption = Globals.env.getTemplate("templates/toggle-option.njk", compileNow);
+        this.toggleOptions = Globals.env.getTemplate("templates/toggle-options.njk", compileNow);
     }
 }
 
@@ -45,12 +45,14 @@ interface Window {
     showChart(testName: string, caseName: string, sender: HTMLElement);
     showChartDetail(uuids: string[], chartID: string);
     cihpc: CIHPC;
+    lastQuery: any;
 }
 
 
 $(document).ready(() => {
     Globals.initEnv();
     Templates.loadTemplates();
+    window.lastQuery = {};
 
     var cntrlIsPressed: boolean = false;
     $(document).keydown((event: JQuery.Event) => {
@@ -75,22 +77,41 @@ $(document).ready(() => {
 
 
     var url_base = window.cihpc.flaskApiUrl + '/' + window.cihpc.projectName;
+    var commit_url = null;
+    
     $.ajax({
         url: url_base + '/config',
 
         success: function(config) {
             document.title = config.name;
+            var commit_url = config['git-url'] +
+                        (!!config['git-url'].indexOf('https://bitbucket.org') ?'/commit/' : '/commits/');
 
-            if (config['test-view'].colorby) {
-                $('#options').html(
-                  Templates.toggleOption.render({
-                    name: 'separate',
-                    text: 'Show separately',
-                  })
+            if (config['test-view']['cpu-property']) {
+              $('#options').empty();
+              
+                $('#options').append(
+                  Templates.toggleOptions.render({options: [
+                    {
+                      name: 'show-scale',
+                      text: 'Show scaling',
+                      checked: false,
+                    },
+                    {
+                      name: 'separate',
+                      text: 'Show separately',
+                      checked: true,
+                    }
+                  ]})
                 );
+                
                 (<any> window).componentHandler.upgradeDom('MaterialCheckbox');
-                $('#checkbox-separate').change(function (event) {
-                    // TODO update chart
+                $('.cihpc-option').change(function (event) {
+                    showChart(
+                      window.lastQuery.testName,
+                      window.lastQuery.caseName,
+                      window.lastQuery.sender,
+                    );
                 })
             }
 
@@ -164,6 +185,10 @@ $(document).ready(() => {
 
 
             var showChart = function(testName: string, caseName: string, sender: HTMLElement) {
+                window.lastQuery.testName = testName;
+                window.lastQuery.caseName = caseName;
+                window.lastQuery.sender = sender;
+                
                 if (sender) {
                     var clss = 'mdl-button--raised';
                     $('.testItem').removeClass(clss);
@@ -204,7 +229,7 @@ $(document).ready(() => {
                                 useHTML: true,
                                 formatter: function() {
                                     var commit = this.axis.series[0].options.commits[this.pos];
-                                    var link = config['git-url'] + '/commit/' + commit;
+                                    var link = commit_url + commit;
                                     return '<a href="' + link + '" target="_blank">' + this.value + '</a>';
                                 },
                                 events: {
@@ -248,6 +273,8 @@ $(document).ready(() => {
                     tests: config.tests,
                 })
             );
+            (<any> window).componentHandler.upgradeDom();
+            
 
 
             window.showChart = showChart;

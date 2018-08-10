@@ -1,0 +1,14 @@
+{% for option in options %}
+  <div class="cihpc-option-holder">
+    <label class="mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect" for="checkbox-{{ option.name }}">
+      <input type="checkbox" id="checkbox-{{ option.name }}"
+             class="mdl-checkbox__input cihpc-option"
+             cihpc-option-name="{{ option.name }}"
+             {{ "checked" if option.checked else "" }}>
+      <span class="mdl-checkbox__label">{{ option.text }}</span>
+    </label>
+  </div>
+  {% if loop.last === false %}
+      |
+  {% endif %}
+{% endfor %}

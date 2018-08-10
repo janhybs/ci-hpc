@@ -3,10 +3,12 @@
 <nav class="mdl-navigation">
   <a class="testItem mdl-button  mdl-button--colored mdl-color-text--white"
      href='#/*/*' onclick="showChart('*', '*', this)">
-     <strong>&lt;ALL&gt;</strong>
-     <p>
+     <div class="title">
+       <span><strong>&laquo;ALL&raquo;</strong></span>
+     </div>
+     <div class="desc">
        <small>all the tests</small>
-     </p>
+     </div>
   </a>
   
   {# look through the tests #}
@@ -14,23 +16,35 @@
       <a class="testItem mdl-button mdl-button--colored"
          href='#/{{ test.name }}/*'
          onclick="showChart('{{ test.name }}', '*', this)">
-         <strong>{{ test.name }}</strong>
-         <p>
-           <small>{{ test.desc }}</small>
-         </p>
+         <div class="title">
+           <span><strong>{{ test.name }}</strong></span>
+         </div>
+         <div class="desc">
+           <small>{{ test.desc | safe }}</small>
+         </div>
       </a>
         
       {# look the cases #}
       {% for case in test.tests %}
         <a class="testItem caseItem mdl-button mdl-button--colored"
            href='#/{{ test.name }}/{{ case.name }}'
+           id="tt-{{ test.name }}-{{ case.name }}"
            onclick="showChart('{{ test.name }}', '{{ case.name }}', this)">
-           <tiny>{{ test.name }} / </tiny>
-           <strong>{{ case.name }}</strong>
-           <p>
-             <small>{{ case.desc }}</small>
-           </p>
+           <div class="title">
+             <span><small>{{ test.name }} </small> / </span>
+             <span><strong>{{ case.name }}</strong></span>
+           </div>
+           <div class="desc">
+             {{ case.desc | safe }}
+           </div>
         </a>
+        {% if case.tooltip %}
+        <div class="mdl-tooltip tooltip-delayed" for=tt-{{ test.name }}-{{ case.name }}>
+          {{ case.tooltip | safe }}
+        </div>
+          
+        {% endif %}
+                     
     {% endfor %}
     <span class="mdl-menu__item--full-bleed-divider"></span>
   {% endfor %}

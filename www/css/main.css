@@ -122,10 +122,31 @@ tiny {
   letter-spacing: 0;
 }
 
-.testItem p {
+.testItem div.desc {
+  margin: 5px 0 0 0;
+  padding: 0;
+  line-height: 12px;
+  font-size: 0.8em;
+  color: #CCC;
+}
+
+.testItem div.desc p {
   margin: 0;
   padding: 0;
-  line-height: 14px;
+  line-height: 12px;
+  font-size: inherit;
+}
+
+.testItem:hover div.desc {
+  color: #FFF;
+}
+
+.testItem.mdl-button--raised div.desc {
+  color: #666;
+}
+
+.testItem.mdl-button--raised:hover div.desc {
+  color: #333;
 }
 
 .caseItem {
@@ -184,6 +205,14 @@ html, body {
   background: #a71116;
 }
 
+.mdl-tooltip.tooltip-delayed {
+  max-width: 640px;
+}
+
+.mdl-tooltip.is-active.tooltip-delayed {
+  animation-delay: 200ms;
+}
+
 #warning-msg code {
   color: #a71116;
 }
@@ -207,7 +236,6 @@ html, body {
   }
 }
 
-
 #loading .fs-centered-content {
   width: 150px;
 }
@@ -222,4 +250,9 @@ html, body {
   width: 32px;
   height: 32px;
   float: left;
+}
+
+
+.cihpc-option-holder {
+  display: inline-block;
 }
