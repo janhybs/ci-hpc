@@ -38,7 +38,6 @@ def iter_reports(reports, conversion, is_file):
                 continue
             
 
-
 def process_step_collect(project, step, process_result, format_args=None):
     """
     Function will collect artifacts for the given step

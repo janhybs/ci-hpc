@@ -415,9 +415,13 @@ def git_info(repo):
     repo_name = parse_output(
         check_output('basename `git rev-parse --show-toplevel`', shell=True, cwd=root)
     )
-    branch = parse_output(
-        check_output('git symbolic-ref --short -q HEAD', shell=True, cwd=root)
-    )
+    try:
+        branch = parse_output(
+            check_output('git symbolic-ref --short -q HEAD', shell=True, cwd=root)
+        )
+    except Exception as e:
+        branch = 'HEAD'
+    
     commit = parse_output(
         check_output('git rev-parse HEAD', shell=True, cwd=root)
     )
@@ -529,5 +533,3 @@ class AbstractCollectModule(object):
                         if isinstance(v[i], dict):
                             v[i] = self.convert_fields(v[i], fields, method, recursive)
         return obj
-
-

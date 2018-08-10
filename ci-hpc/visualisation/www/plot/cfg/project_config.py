@@ -183,15 +183,7 @@ class ProjectConfigTestView(ProjectConfigView):
         config : dict
             a piece of configuration for the view
         """
-        self.groupby = config.get('groupby', {
-            'test-name': 'problem.test-name',
-            'case-name': 'problem.case-name',
-        })
-
-        self.colorby = config.get('colorby', {
-            'case-cpus': 'problem.cpus',
-            'case-size': 'problem.case-size',
-        })
+        self.groupby = config.get('groupby', dict())
 
         self.unwind = config.get('unwind', {
             'from': 'timers',
@@ -200,6 +192,7 @@ class ProjectConfigTestView(ProjectConfigView):
 
         self.x_prop = config.get('x-property', 'git.datetime')
         self.y_prop = config.get('y-property', 'result.duration')
+        self.c_prop = config.get('cpu-property', 'problem.cpus')
 
         self.git_hash_prop = config.get('commit-property', 'git.commit')
         self.id_prop = config.get('id-property', '_id')
@@ -236,13 +229,13 @@ class ProjectConfigTestView(ProjectConfigView):
             '_id',
             self.x_prop,
             self.y_prop,
+            self.c_prop,
             self.id_prop,
             self.git_hash_prop,
         ])
         result.extend(self.groupby.values())
-        result.extend(self.colorby.values())
         result.extend([x.map_from for x in self.extra.vars])
-        return result
+        return [x for x in result if x is not None]
 
 
 class ProjectConfigFrameView(ProjectConfigView):
@@ -292,8 +285,6 @@ class ProjectConfigTest(object):
         self.name = config.get('name')
         self.desc = config.get('desc', None)
         self.tests = [ProjectConfigTest(x) for x in config.get('tests', [])]
-
-
 
 
 class ProjectConfigViewExtra(object):

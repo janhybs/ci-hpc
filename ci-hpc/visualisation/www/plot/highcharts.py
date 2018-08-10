@@ -156,12 +156,10 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
     # obj.showInNavigator = True
     obj = HighchartsConfig()
     obj.title.text = title
+    obj.xAxis.title.text = config.test_view.x_prop
+    obj.yAxis.title.text = config.test_view.y_prop
 
-    if config.test_view.uniform:
-        obj.xAxis.categories = result['x'] #.apply(dateutils.human_format2)
-        obj.xAxis.type = Chart.AXIS_TYPE_LINEAR
-    else:
-        obj.xAxis.type = Chart.AXIS_TYPE_DATETIME
+    obj.xAxis.type = 'category'
 
     obj.add(HighchartsSeries(
         type=linetype,

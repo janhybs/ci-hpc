@@ -35,6 +35,7 @@ parser.add_argument('--uniform', type=str2bool, default=True)
 parser.add_argument('--smooth', type=str2bool, default=True)
 parser.add_argument('--separate', type=str2bool, default=True)
 parser.add_argument('--groupby', type=str, default=None)
+parser.add_argument('--show-scale', type=str2bool, default=False)
 parser.add_argument('-f', '--ff', action='append', default=[], dest='filters')
 
 
@@ -59,6 +60,14 @@ class TestView(Resource):
             config = ProjectConfig.get(project)
             filters = config.test_view.get_filters(filters)
             projection = config.test_view.get_projection()
+
+        if args.show_scale:
+            x_prop = config.test_view.x_prop
+            y_prop = config.test_view.y_prop
+            c_prop = config.test_view.c_prop
+
+            config.test_view.x_prop = c_prop
+            config.test_view.c_prop = x_prop
 
         with Timer('db find:', log=logger.debug):
             data_frame = pd.DataFrame(
@@ -86,11 +95,10 @@ class TestView(Resource):
                     data_frame[col] = data_frame[col].apply(config.date_format)
 
         groupby = list(config.test_view.groupby.values())
-        colorby = list(config.test_view.colorby.values())
 
-        if colorby and args.separate:
-            groupby.extend(colorby)
-            colorby = []
+        # if we now cpu property and are plotting charts separately
+        if config.test_view.c_prop and args.separate:
+            groupby.append(config.test_view.c_prop)
 
         if not groupby:
             groups = [('all', data_frame)]
@@ -106,10 +114,12 @@ class TestView(Resource):
                 # basic title
                 title_dict = dict(zip(groupby, ensure_iterable(groupby_name)))
 
-                if not args.separate and config.test_view.colorby:
+                if not args.separate and config.test_view.c_prop:
                     colors_iter = iter(colors)
                     series = list()
 
+                    # scaling charts
+                    colorby = [config.test_view.c_prop]
                     for colorby_name, colorby_data in groupby_data.groupby(colorby):
                         extra_title = dict(zip(colorby, ensure_iterable(colorby_name)))
                         title = ', '.join('%s=<b>%s</b>' % (str(k), str(v)) for k, v in title_dict.items())
@@ -122,11 +132,11 @@ class TestView(Resource):
                             color=color,
                             add_errorbar=False,
                             add_std=False,
-                            metric_name='mean %s' % (', '.join('%s=%s' % (str(k), str(v)) for k, v in extra_title.items()))
+                            metric_name='mean (%s)' % (', '.join('%s=%s' % (str(k), str(v)) for k, v in extra_title.items()))
                         )
                         series.extend(chart.series)
 
-                    chart.series = series # TODO check empty charts
+                    chart.series = series  # TODO check empty charts
                     charts.append(dict(
                         size=None,
                         data=chart
@@ -145,5 +155,4 @@ class TestView(Resource):
                             color=color
                         )
                     ))
-        
         return charts
