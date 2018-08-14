@@ -50,7 +50,7 @@ class CollectModule(AbstractCollectModule):
         }
 
     """
-    def process(self, object):
+    def process(self, object, from_file=None):
         report = CIHPCReport()
         report.merge(object)
 

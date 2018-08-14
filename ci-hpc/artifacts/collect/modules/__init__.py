@@ -491,7 +491,7 @@ class AbstractCollectModule(object):
         logger.debug('inserted %d reports', len(results))
         return results
 
-    def process(self, object):
+    def process(self, object, from_file=None):
         """
         method will process given object and returns a CollectResult.
 

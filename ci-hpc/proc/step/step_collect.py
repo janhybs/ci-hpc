@@ -76,7 +76,7 @@ def process_step_collect(project, step, process_result, format_args=None):
 
         for report, file in iter_reports(reports, conversion, is_file=False):
             with logger:
-                collect_result = instance.process(report)
+                collect_result = instance.process(report, file)
                 timers_total += len(collect_result.items)
                 timers_info.append((os.path.basename(file), len(collect_result.items)))
                 results.append(collect_result)
@@ -102,7 +102,7 @@ def process_step_collect(project, step, process_result, format_args=None):
 
         for report, file in iter_reports(files, conversion, is_file=True):
             with logger:
-                collect_result = instance.process(report)
+                collect_result = instance.process(report, file)
                 timers_total += len(collect_result.items)
                 timers_info.append((os.path.basename(file), len(collect_result.items)))
                 results.append(collect_result)
