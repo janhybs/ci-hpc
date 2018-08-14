@@ -73,11 +73,7 @@ class ProcessProject(object):
 
             return process_step_shell(self.project, section, step, vars, shell_processing)
 
-    def process_step(self, step, section):
-        """
-        :type step:     ProjectStep
-        :type section:  ProjectSection
-        """
+    def expand_variables(self, section):
 
         def extract_first(iterator):
             return next(iter(iterator))
@@ -86,6 +82,38 @@ class ProcessProject(object):
             if isinstance(o, list):
                 return o
             return [o]
+
+        section_name = extract_first(section.keys())
+        variables = extract_first(section.values())
+        names = [extract_first(y.keys()) for y in variables]
+
+        if section_name == 'values':
+            total = max([len(ensure_list(extract_first(y.values()))) for y in variables])
+            values = list()
+            for y in variables:
+                value = extract_first(y.values())
+                if isinstance(value, list):
+                    values.append(value)
+                else:
+                    values.append(list(itertools.repeat(value, total)))
+
+            product = [{names[v_j]: values[v_j][v_i] for v_j in range(len(names))} for v_i in range(total)]
+            logger.debug('created value matrix with %d configurations', len(product))
+        elif section_name == 'matrix':
+
+            values = [ensure_list(extract_first(y.values())) for y in variables]
+            product = list(dict(zip(names, x)) for x in itertools.product(*values))
+            logger.debug('created build matrix with %d configurations', len(product))
+        else:
+            raise Exception('Invalid variable type %s' % section_name)
+
+        return product
+
+    def process_step(self, step, section):
+        """
+        :type step:     ProjectStep
+        :type section:  ProjectSection
+        """
 
         if not step.enabled:
             logger.debug('step %s is disabled', step.name)
@@ -101,14 +129,10 @@ class ProcessProject(object):
             logger.debug('found %d build matrices', len(step.variables))
             logger.debug('processing step %s with build matrix', step.name)
             with logger:
-                for matrix in step.variables:
-                    variables = extract_first(matrix.values())
-                    values = [ensure_list(extract_first(y.values())) for y in variables]
-                    names = [extract_first(y.keys()) for y in variables]
-                    product = list(dict(zip(names, x)) for x in itertools.product(*values))
-                    logger.debug('created build matrix with %d configurations', len(product))
+                for matrix_section in step.variables:
+                    variables = self.expand_variables(matrix_section)
 
-                    for vars, current, total in iter_over(product):
+                    for vars, current, total in iter_over(variables):
                         with logger:
                             vars = merge_dict(vars, dict(__total__=total, __current__=current+1))
                             process_result = self.process_step_with_vars(step, section, vars)
