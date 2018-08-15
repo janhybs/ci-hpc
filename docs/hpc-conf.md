@@ -11,14 +11,15 @@ cd `ci-hpc`
 2. Install necessary pip packages:
   
    Execute `install.sh` script located in the `bin` folder.
-   By default it will install the packages for the current user (no root required). 
+   It is basically shortcut for a `pip3 install -r requirements.txt`. You
+   can also pass any arguments to the pip.
    **It is expected to have `python3` and `pip3` in the path.**
    ```bash
-   bin/install.sh
+   bin/install.sh --user --upgrade
    ```
-   To install packages system wide, add flag `--system`:
+   To install packages system wide, do not add the `--user ` flag:
    ```bash
-   bin/install.sh --system
+   bin/install.sh --upgrade
    ```
   
 3. Create configuration file `config.yaml` for the project
