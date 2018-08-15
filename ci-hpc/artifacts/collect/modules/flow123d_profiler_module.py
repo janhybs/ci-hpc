@@ -5,6 +5,7 @@
 import json
 import os
 import re
+from utils import strings
 
 from artifacts.collect.modules import CollectResult, AbstractCollectModule, CIHPCReport
 
@@ -56,7 +57,7 @@ class CollectModule(AbstractCollectModule):
                 result=result,
                 timers=timers,
             ))
-
+        
         return CollectResult([report])
 
     @classmethod

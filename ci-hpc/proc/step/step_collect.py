@@ -76,10 +76,18 @@ def process_step_collect(project, step, process_result, format_args=None):
 
         for report, file in iter_reports(reports, conversion, is_file=False):
             with logger:
-                collect_result = instance.process(report, file)
-                timers_total += len(collect_result.items)
-                timers_info.append((os.path.basename(file), len(collect_result.items)))
-                results.append(collect_result)
+                try:
+                    collect_result = instance.process(report, file)
+                    timers_total += len(collect_result.items)
+                    timers_info.append((os.path.basename(file), len(collect_result.items)))
+                    results.append(collect_result)
+                except Exception as e:
+                    logger.warning(
+                    'artifact processing failed (parse method) \n'
+                    'module: %s\n'
+                    'report: %s\n'
+                    'file: %s\n', str(CollectModule), str(report), str(file))
+                
 
         with logger:
             for file, timers in timers_info:
@@ -102,10 +110,17 @@ def process_step_collect(project, step, process_result, format_args=None):
 
         for report, file in iter_reports(files, conversion, is_file=True):
             with logger:
-                collect_result = instance.process(report, file)
-                timers_total += len(collect_result.items)
-                timers_info.append((os.path.basename(file), len(collect_result.items)))
-                results.append(collect_result)
+                try:
+                    collect_result = instance.process(report, file)
+                    timers_total += len(collect_result.items)
+                    timers_info.append((os.path.basename(file), len(collect_result.items)))
+                    results.append(collect_result)
+                except Exception as e:
+                    logger.warning(
+                    'artifact processing failed (files method) \n'
+                    'module: %s\n'
+                    'report: %s\n'
+                    'file: %s\n', str(CollectModule), str(report), str(file))
 
         with logger:
             for file, timers in timers_info:
