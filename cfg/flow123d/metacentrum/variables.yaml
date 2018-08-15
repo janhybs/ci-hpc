@@ -1,0 +1,7 @@
+
+flow123d-workdir: /storage/praha1/home/jan-hybs/projects/ci-hpc/projects/flow123d
+flow123d-home:    /storage/praha1/home/jan-hybs/projects/ci-hpc/projects/flow123d/flow123d
+
+hybs:
+  flow123d-workdir: /home/jan-hybs/projects/ci-hpc/projects/flow123d
+  flow123d-home:    /home/jan-hybs/projects/ci-hpc/projects/flow123d/flow123d
