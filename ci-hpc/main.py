@@ -138,6 +138,7 @@ def main():
     if args.execute:
         project_execute_path = os.path.join(project_dir, 'execute.sh')
         if os.path.exists(project_execute_path):
+            logger.info('Using file %s as execute.sh script', project_execute_path)
             with open(project_execute_path, 'r') as fp:
                 project_execute_script = fp.read()
         else:
@@ -154,30 +155,35 @@ def main():
         name = 'tmp.entrypoint-%d-%s.sh' % (time.time(), rands(6))
         bash_path = os.path.join(__root__, 'tmp', name)
         logger.debug('Generating script %s', bash_path)
-
+        
+        exec_args = [
+            sys.executable,
+            os.path.join(__src__, 'main.py'),
+            ' '.join(args.step),
+        ]
+        for arg in ['project', 'git_url', 'config_dir']:
+            value = getattr(args, arg)
+            if value:
+                exec_args.append('--%s=%s' % (arg.replace('_', '-'), str(value)))
+        for arg in ['git_branch', 'git_commit']:
+            value = getattr(args, arg)
+            for k, v in value.items():
+                exec_args.append('--%s=%s:%s' % (arg.replace('_', '-'), k, v))
+        
+        # generate script content
+        script_content = cfgutil.configure_string(project_execute_script, {
+            'ci-hpc-exec': ' '.join(exec_args),
+            'ci-hpc-install': ' '.join(install_args),
+            'ci-hpc-exec-no-interpret': ' '.join(exec_args[1:]),
+        })
+        
+        logger.debug('script_content: \n%s', script_content, skip_format=True)
+        
         with open(bash_path, 'w') as fp:
-            exec_args = [
-                sys.executable,
-                os.path.join(__src__, 'main.py'),
-                ' '.join(args.step),
-            ]
-            for arg in ['project', 'git_url', 'config_dir']:
-                value = getattr(args, arg)
-                if value:
-                    exec_args.append('--%s=%s' % (arg.replace('_', '-'), str(value)))
-            for arg in ['git_branch', 'git_commit']:
-                value = getattr(args, arg)
-                for k, v in value.items():
-                    exec_args.append('--%s=%s:%s' % (arg.replace('_', '-'), k, v))
-            fp.write(
-                cfgutil.configure_string(project_execute_script, {
-                    'ci-hpc-exec': ' '.join(exec_args),
-                    'ci-hpc-install': ' '.join(install_args),
-                    'ci-hpc-exec-no-interpret': ' '.join(exec_args[1:]),
-                }))
+            fp.write(script_content)
+        
         os.chmod(bash_path, 0o777)
         logger.debug('ci-hpc-exec set to %s', ' '.join(exec_args), skip_format=True)
-
         # execute on demand using specific system (local/pbs for now)
         logger.info('executing script %s using %s system', bash_path, args.execute)
         if args.execute == 'local':
@@ -192,7 +198,7 @@ def main():
 
         elif args.execute == 'pbs':
             logger.debug('running cmd: %s', str(['qsub', bash_path]), skip_format=True)
-
+            
             qsub_output = str(subprocess.check_output(['qsub', bash_path]).decode()).strip()
             cmd = [
                 sys.executable,
