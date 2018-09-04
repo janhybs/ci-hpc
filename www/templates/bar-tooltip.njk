@@ -1,10 +1,10 @@
 <div class="tooltip-tooltip">
   <dl class="tooltip-header">
     <dt>
-      {{ name }}
+      {{ name | safe }}
     </dt>
     <dd>
-      {{ path }}
+      {{ path | safe }}
     </dd>
   </dl>
   <dl class="tooltip-body">
