@@ -164,7 +164,7 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
     obj.add(HighchartsSeries(
         type=linetype,
         name='mean' if not metric_name else metric_name,
-        data=means,
+        data=_fillna(means),
         commits=commits,
         marker=dotdict(enabled=True),
         uuids=uuids,
@@ -178,7 +178,7 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
         obj.add(HighchartsSeries(
             type=areatype,
             name='std',
-            data=stds,
+            data=_fillna(stds),
             commits=commits,
             uuids=uuids,
             color='rgba(0, 0, 0, 0.2)',
