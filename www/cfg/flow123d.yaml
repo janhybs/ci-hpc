@@ -63,15 +63,18 @@ frame-view:
 # test structure which will be displayed
 # name is mandatory
 tests:
-    - name:           memory
-      desc:           A set of memory related benchmarks
+    - name:           01_square_regular_grid
+      desc:           01_square_regular_grid benchmark on 2D mesh
       tests:
-        - name:       cache
-          desc:       A test which deals with a level 1, level 2 and level 3 cache size.
-        - name:       io
-          desc:       A test which deals with various input file sizes
-    - name:           cpu
-      desc:           A set of CPU related benchmarks
+        - name:       transport
+          desc:       Simple transport
+    - name:           02_cube_123d
       tests:
-        - name:       frequency
-          desc:       A test evaluates a CPU frequency
+        - name:       flow_LMH_dg_heat
+        - name:       flow_LMH_richards
+        - name:       flow_bddc
+        - name:       flow_bddc_fieldformula
+        - name:       flow_dg_sorption
+        - name:       flow_fv
+        - name:       flow_fv_sorption
+        - name:       flow_unsteady_dg
