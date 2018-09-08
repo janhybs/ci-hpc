@@ -1,0 +1,36 @@
+{% if radio %}
+  <div class="btn-group ml-3" data-toggle="buttons">
+    <button type="button" class="btn btn-rounded-sm btn-outline-primary btn-sm group disabled">{{ name }}</button>
+    
+    {% for item in items %}
+    <label class="btn form-check-label btn-rounded-sm btn-primary btn-sm {% if item.checked %} active {% endif %}"
+           id="{{ name }}-{{ item.name }}"
+           title="{{ desc|default("If on, will split chart into groups by this property") }}">
+           <input
+               type="radio"
+               name="{{ name }}"
+               value="{{ item.name }}"
+               data-key="{{ key }}"
+               autocomplete="off"
+               {% if item.checked %} checked {% endif %}> {{ item.text }}
+     </label>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="btn-group ml-3" data-toggle="buttons">
+    <button type="button" class="btn btn-rounded-sm btn-outline-primary btn-sm group disabled">{{ name }}</button>
+    
+    {% for item in items %}
+    <label class="btn btn-rounded-sm btn-primary btn-sm {% if item.checked %} active {% endif %}"
+           title="{{ desc|default("If on, will split chart into groups by this property")}}">
+           <input
+             type="checkbox"
+             name="{{ item.name }}" 
+             value="{{ item.name }}"
+             data-key="{{ key }}"
+             autocomplete="off" 
+             {% if item.checked %} checked {% endif %}> {{ item.text }} 
+     </label>
+    {% endfor %}
+  </div>
+{% endif %}

@@ -2,22 +2,26 @@ name:                 Flow123d Example
 desc:                 Flow123d CI-HPC page
 date-format:          long                                    # long or short or null
 git-url:              https://github.com/flow123d/flow123d    # url of the git repo
+logo:                 https://github.com/flow123d/flow123d.github.io/raw/master/images/flow123d-black.png
 
 # main view showing duration in time
 test-view:
   y-property:             result.duration   # what will be on y-axis
-  x-property:             git.datetime      # what will be on x-axis
+  x-property:             git.datetime     # what will be on x-axis
+  # x-property:             git.timestamp     # what will be on x-axis
   commit-property:        git.commit        # what is the field name of the commit
   id-property:            _id               # what is a unique identificator for this document
-  cpu-property:           problem.cpus      # what property points to a number of cpu used
+  cpu-property:           problem.cpu       # what property points to a number of cpu used
+  size-property:          problem.mesh      # what property points to a number of cpu used
   
-  groupby:                          # how can the results be separated
-    test-name: problem.test-name    # for now only groups test-name and case-name are supported
-    case-name: problem.case-name    # they can be set to null if they are not present in the project DB
-  
+  groupby:                     # how can the results be separated
+    test: problem.test-name    # for now only groups test-name and case-name are supported
+    case: problem.case-name    # they can be set to null if they are not present in the project DB
+    size: problem.mesh         # they can be set to null if they are not present in the project DB
+    cpus: problem.cpu         # they can be set to null if they are not present in the project DB
   
   smooth:     false         # should the line be smoothed
-  
+
 
 # secondary view showing frame break down
 frame-view:
@@ -63,18 +67,167 @@ frame-view:
 # test structure which will be displayed
 # name is mandatory
 tests:
-    - name:           01_square_regular_grid
-      desc:           01_square_regular_grid benchmark on 2D mesh
+    - name:                     01_square_regular_grid
+      desc:                     01_square_regular_grid benchmark on 2D mesh
+      disabled:                 true
+      filters:
+        result.returncode:      0
+            
       tests:
-        - name:       transport
-          desc:       Simple transport
-    - name:           02_cube_123d
+        - name:                 transport
+          mode:                 scaling-none
+          desc:                 Simple transport
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+        
+    - name:                     02_cube_123d
+      disabled:                 true
+      filters:
+        result.returncode:      0
+    
       tests:
-        - name:       flow_LMH_dg_heat
-        - name:       flow_LMH_richards
-        - name:       flow_bddc
-        - name:       flow_bddc_fieldformula
-        - name:       flow_dg_sorption
-        - name:       flow_fv
-        - name:       flow_fv_sorption
-        - name:       flow_unsteady_dg
+        - name:                 flow_LMH_dg_heat
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+    
+        - name:                 flow_LMH_richards
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+    
+        - name:                 flow_bddc
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+    
+        - name:                 flow_bddc_fieldformula
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+    
+        - name:                 flow_dg_sorption
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+    
+        - name:                 flow_fv
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+    
+        - name:                 flow_fv_sorption
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+    
+        - name:                 flow_unsteady_dg
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+
+    - name:                     03_mesh_read
+      disabled:                 true
+      filters:
+        result.returncode:      0
+            
+      tests:
+        - name:                 mesh_read
+          mode:                 scaling-none
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scaling-weak
+              filters:  
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scaling-strong
+              filters:
+                problem.strong: true
+
+    - name:                     05_dfn_2d
+      disabled:                 false
+      filters:
+        result.returncode:      0

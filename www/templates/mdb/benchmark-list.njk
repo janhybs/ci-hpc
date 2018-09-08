@@ -1,0 +1,89 @@
+<hr class="my-3" />
+<h6 class="text-muted">{{ title }}</h6>
+
+{% for test in tests %}
+  <div class="list-group list-group-root">
+    <a href="#test-{{ test.name }}" class="benchmark-root list-group-item justify-content-between align-items-center {% if test.disabled %} disabled {% endif %}"
+       id="test-{{ test.name }}"
+       data-filter="{{ test.name }}" data-level="{{ test.level | d(".test") }}"
+       {# data-toggle="collapse" #}
+       {% for k, v in test.filters %}
+         data-filter.{{ k }}="{{ v }}"
+       {% endfor %}
+       {% if test.mode %}
+         data-mode="{{ test.mode }}"
+       {% endif %}
+    >
+      <div class="item-title clearfix">
+        <span>{{ test.name }}</span>
+        {% if test.tests %}
+          <span class="badge badge-primary badge-pill float-right">
+          {% if (test.tests | length) > 1 %}
+            {{ test.tests | length }} cases
+          {% else %}
+            1 case
+          {% endif %}
+          </span>
+        {% endif %}
+      </div>
+      {% if test.desc %}
+        <div class="mb-1 item-body">
+          {{ test.desc | safe }}
+        </div>
+      {% endif %}
+    </a>
+    {% if test.tests %}
+      <div class="list-group collapse.not" id="test-{{ test.name }}">
+        {% for case in test.tests %}
+          <a href="#test-{{ test.name }}-{{ case.name }}" class="list-group-item sm font-weight-bold"
+             data-filter="{{ case.name }}" data-level="{{ case.level | d(".case") }}"
+             id="test-{{ test.name }}-{{ case.name }}"
+             {% for k, v in case.filters %}
+               data-filter.{{ k }}="{{ v }}"
+             {% endfor %}
+             {% if case.mode %}
+               data-mode="{{ case.mode }}"
+             {% endif %}
+          >
+            <div class="item-title clearfix">
+              <span>{{ case.name }}</span>
+            </div>
+            {% if case.desc %}
+              <div class="mb-1 item-body">
+                {{ case.desc | safe }}
+              </div>
+            {% endif %}
+          </a>
+          
+          {% if case.tests %}
+            <div class="list-group collapse.not" id="scale-{{ scale.name }}">
+              {% for scale in case.tests %}
+                <a href="#test-{{ test.name }}-{{ case.name }}-{{ scale.name }}" class="list-group-item sm"
+                   data-filter="{{ scale.name }}" data-level="{{ scale.level | d(".scale") }}"
+                   id="test-{{ test.name }}-{{ case.name }}-{{ scale.name }}"
+                   {% for k, v in scale.filters %}
+                     data-filter.{{ k }}="{{ v }}"
+                   {% endfor %}
+                   {% if scale.mode %}
+                     data-mode="{{ scale.mode }}"
+                   {% endif %}
+                >
+                  <div class="item-title clearfix">
+                    <span>{{ scale.name }}</span>
+                  </div>
+                  {% if scale.desc %}
+                    <div class="mb-1 item-body">
+                      {{ scale.desc | safe }}
+                    </div>
+                  {% endif %}
+              </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+          
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  <hr class="my-3" />
+{% endfor %}

@@ -1,0 +1,16 @@
+<div class="col-xl-6 col-md-12 col-12" id="col-{{ id }}">
+   <div class="card sparkline">
+     <div class="view p-2 text-light bg-primary justify-content-between navbar">
+       
+       <a class="small text-white" href="#col-{{ id }}">{{ title | safe }}</a>
+       <a class="nav-link text-white sparkline-fullscreen" data-target="#col-{{ id }}">
+          <i class="fa fa-arrows-alt"></i>
+      </a>
+       
+     </div>
+     
+      <div class="card-body">
+        <div class="card-text chart-holder" id="{{ id }}"></div>
+      </div>
+   </div>
+</div>

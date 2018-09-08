@@ -1,77 +1,272 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>CI-HPC</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <link rel="stylesheet" href="css/material.min.css">
-  <link rel="stylesheet" href="css/highcharts.min.css">
-  <link rel="stylesheet" href="css/main.css">
-  
-  <script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>
-  <script language="javascript" type="text/javascript" src="js/nunjucks.min.js"></script>
-  <script language="javascript" type="text/javascript" src="js/material.min.js"></script>
-  <script language="javascript" type="text/javascript" src="js/highcharts.js"></script>
-  <script language="javascript" type="text/javascript" src="js/highcharts-more.js"></script>
-  
-  <script language="javascript" type="text/javascript">
-    window.cihpc = {
-      // projectName: 'hello-world',
-      projectName: 'fenics',
-      flaskApiUrl: 'http://hybs.nti.tul.cz:5000',
-    }
-  </script>
-  <script language="javascript" type="text/javascript" src="js/ci-hpc/main.js"></script>
-</head>
-
-<body>
-  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
-    
-    <header class="mdl-layout__header">
-      <div class="mdl-layout__header-row mdl-color--blue-600  mdl-color-text--white">
-        <span class="mdl-layout-title" id="chartTitle">loading...</span>
-        <div class="mdl-layout-spacer"></div>
-        <div id="options">
-        </div>
-      </div>
-    </header>
-    
-    <div class="mdl-layout__drawer mdl-color--grey-800" id="testsRendered">
-    </div>
-    
-    <main class="mdl-layout__content mdl-color--grey-100">
-      <div class="page-content" id="page-content">
-        <div class="mdl-grid">
-          <div class="mdl-cell mdl-cell--12-col">
-            <div id="chartsHolder"></div>
-          </div>
-        </div>
-      </div>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>CI-HPC</title>
+      <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+      <link rel="stylesheet" href="css/material.min.css">
+      <link rel="stylesheet" href="css/highcharts.min.css">
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://getbootstrap.com/docs/4.1/assets/css/docs.min.css"> -->
       
-      <div id="warning-msg" class="fs-outer-container hidden">
-        <div class="fs-inner-container">
-          <div class="fs-centered-content"></div>
-        </div>
-      </div>
+      <!-- <link rel="stylesheet" href="css/main.css"> -->
+      <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script> -->
+      <!-- <script language="javascript" type="text/javascript" src="js/jquery.min.js"></script> -->
+      <!-- <script language="javascript" type="text/javascript" src="js/nunjucks.min.js"></script>
+      <script language="javascript" type="text/javascript" src="js/material.min.js"></script>
+      <script language="javascript" type="text/javascript" src="js/highcharts.js"></script>
+      <script language="javascript" type="text/javascript" src="js/highcharts-more.js"></script> -->
       
-      <div id="loading" class="fs-outer-container">
-        <div class="fs-inner-container">
-          <div class="fs-centered-content">
-            <p>Fetching data</p>
-            <div class="mdl-spinner mdl-js-spinner is-active"></div>
-          </div>
-        </div>
-      </div>
       
-    </main>
-  </div>
-  <dialog class="mdl-dialog" id="dialog">
-     <h4 class="mdl-dialog__title"></h4>
-     <div class="mdl-dialog__content">
+      <!-- Font Awesome -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+      <!-- Bootstrap core CSS -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+      <!-- Material Design Bootstrap -->
+      <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.9/css/mdb.min.css" rel="stylesheet"> -->
+      <link href="https://mdbootstrap.com/wp-content/themes/mdbootstrap4/css/compiled-4.5.9.min.css?ver=4.5.9" rel="stylesheet">
+      <link rel="stylesheet" href="https://getbootstrap.com/docs/4.1/assets/css/docs.min.css">
+      
+      <!-- JQuery -->
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <!-- Bootstrap tooltips -->
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.13.0/umd/popper.min.js"></script>
+      <!-- Bootstrap core JavaScript -->
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js"></script>
+      <!-- MDB core JavaScript -->
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.5.9/js/mdb.min.js"></script>
+      
+      
+      <link rel="stylesheet" href="css/highcharts.min.css">
+      <script language="javascript" type="text/javascript" src="js/nunjucks.min.js"></script>
+      <!-- <script language="javascript" type="text/javascript" src="js/highcharts.js"></script> -->
+      <script src="https://code.highcharts.com/stock/highstock.js"></script>
+      <script language="javascript" type="text/javascript" src="js/highcharts-more.js"></script>
+      
+      <style>
+         div, nav {
+           /* border: 1px solid red; */
+         }
+         body {
+           margin: 0;
+           font-family: Roboto, Arial, sans-serif;
+           font-size: 1rem;
+           font-weight: 400;
+           line-height: 1.428571;
+           color: #404040;
+           text-align: left;
+           background-color: #eee;
+         }
+         
+         .tooltip {
+           z-index: 9999;
+           font-size: 0.8em;
+         }
+         .tooltip code {
+           color: inherit;
+           font-weight: bold;
+         }
+         
+         .card {
+           border: none;
+           -webkit-box-shadow: 0 0 25px 0 rgba(0, 0, 0, .15);
+           box-shadow: 0 0 25px 0 rgba(0, 0, 0, .15);
+           margin-bottom: 30px;
+         }
+         
+         .card.sparkline .card-body {
+           padding: 10px 5px;
+         }
+         .navbar .navbar-brand img {
+           height: 2rem;
+         }
+         .bd-navbar {
+         }
+         .bd-sidebar {
+           background-color: #fefefe;
+           -ms-flex: 0 0 25%;
+           flex: 0 0 25%;
+           
+           position: -webkit-sticky;
+           position: sticky;
+           top: 4rem;
+           height: calc(100vh - 4rem);
+           overflow-y: auto;
+         }
+         
+         .bd-sidebar h6 {
+           font-size: .75rem;
+           padding-top: .5rem;
+           padding-bottom: .5rem;
+           letter-spacing: .04em;
+           text-transform: uppercase;
+         }
+         
+         .list-group.list-group-root > .list-group > .list-group-item {
+             padding-left: 30px;
+         }
+         .list-group.list-group-root > .list-group > .list-group > .list-group-item {
+             padding-left: 45px;
+         }
+         .list-group-item {
+           border: none;
+           background: transparent;
+         }
+         .list-group-item .item-body {
+           font-size: .60rem;
+           padding-top: 0.2rem;
+         }
+         .card .card-body .card-text {
+           color: inherit;
+         }
+         .card.bg-danger {
+           -webkit-box-shadow: 0 0 25px 0 rgba(255, 0, 0, .35);
+           box-shadow: 0 0 25px 0 rgba(255, 0, 0, .35);
+         }
+         
+         .list-group-item.sm {
+           padding: .25rem .50rem;
+           font-size: 0.8em;
+         }
+         
+         #cihpc-option-holder .btn.group {
+           color: #000 !important;
+           -webkit-box-shadow: none !important;
+           box-shadow: none !important;
+           font-weight: bold;
+         }
+         #cihpc-option-holder .btn-group .btn:not(.active) {
+           /* color: #000 !important; */
+         }
+         #cihpc-option-holder .btn-group .btn {
+           -webkit-box-shadow: none !important;
+           box-shadow: none !important;
+         }
+         #cihpc-option-holder .text {
+           padding: 0;
+           margin: 0;
+           line-height: 2.5rem;
+         }
+         .btn-rounded-sm {
+           border-radius: 5px;
+         }
+         .card.card-cascade.narrower .view.view-cascade {
+           margin-left: 10px;
+           margin-right: 10px;
+           margin-top: -1.25rem;
+         }
+         .btn.btn-rounded-sm.btn-sm {
+           padding-left: 0.5rem;
+           padding-right: 0.5rem;
+         }
+      </style>
+      <script language="javascript" type="text/javascript" src="js/ci-hpc/highcharts.ext.js"></script>
+      <script language="javascript" type="text/javascript" src="js/ci-hpc/main.js"></script>
+   </head>
+   <body>
+     
+     <header class="navbar navbar-expand navbar-dark flex-column flex-md-row bd-navbar blue lighten-4">
+       <a class="navbar-brand mr-0 mr-md-2" href="/" aria-label="Bootstrap">
+         <img id="logo" />
+       </a>
+       <div id="cihpc-option-holder" class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+         
+       </div>
+     </header>
+     
+     <div class="container-fluid">
+       <div class="row flex-xl-nowrap">
+         <nav class="bd-sidebar col-12 col-md-3 p-3 grey lighten-5">
+           <div class="container-fluid p-0 bd-menulinks">
+            
+             <div id="benchmark-list">
+            </div>
+            
+           </div>
+         </nav>
+         
+         <div class="col-12 col-md-9 p-md-5 bd-content">
+           <!-- <h1>Fluid jumbotron</h1>
+           <p class="lead">This is a modified jumbotron that occupies the entire horizontal space of its parent.</p> -->
+           
+           <div class="row" id="charts-sm">
+             
+             <!-- <div class="col-xl-3 col-md-6 col-12">
+                <div class="card">
+                   <div class="card-body">
+                      <h5 class="card-title">Card title</h5>
+                      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                      <a href="#" class="btn btn-block btn-primary">Go somewhere</a>
+                   </div>
+                </div>
+             </div>
+             
+             <div class="col-xl-3 col-md-6 col-12">
+                <div class="card text-white bg-danger">
+                   <div class="card-body">
+                      <h5 class="card-title">Card title</h5>
+                      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                      <a href="#" class="btn btn-block btn-danger">Go somewhere</a>
+                   </div>
+                </div>
+             </div>
+             
+             <div class="col-xl-6 col-md-12 col-12">
+                <div class="card sparkline">
+                   <div class="card-body">
+                      <div id="container"></div>
+                   </div>
+                </div>
+             </div> -->
+             
+           </div>
+         </div>
+       </div>
      </div>
-     <div class="mdl-dialog__actions">
-       <button type="button" class="mdl-button close">Ok</button>
-     </div>
-   </dialog>
-</body>
+         <script language="javascript" type="text/javascript">
+            $('#container').highcharts('SparkLine', {
+              series: [{
+                data: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512],
+                pointStart: 1
+              }],
+              tooltip: {
+                backgroundColor: '#FCFFC5'
+              },
+              chart: {
+                height: 150,
+                width: null,
+              },
+              title: {
+                text: null
+              }
+            });
+            $('#container2').highcharts('SparkLine', {
+              series: [{
+                data: [69, 2, 4, 8, 16, 250, 64, 128, 256, 512],
+                pointStart: 1
+              }],
+              tooltip: {
+                backgroundColor: '#FCFFC5'
+              },
+              chart: {
+                height: 150,
+                width: null,
+              },
+              title: {
+                text: null
+              }
+            });
+         </script>
+         <dialog class="mdl-dialog" id="dialog">
+            <h4 class="mdl-dialog__title"></h4>
+            <div class="mdl-dialog__content">
+            </div>
+            <div class="mdl-dialog__actions">
+               <button type="button" class="mdl-button close">Ok</button>
+            </div>
+         </dialog>
+      </div>
+   </body>
 </html>
