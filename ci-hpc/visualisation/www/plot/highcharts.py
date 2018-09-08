@@ -62,7 +62,7 @@ def merge(dct, merge_dct):
 
 
 def _fillna(df):
-    return df.where(pd.notnull(df), None)
+    return df.where(pd.notnull(df), None).round(2)
 
 
 def _group_data(df, agg, x=db.GIT_DATETIME, y=db.DURATION, rename=None):
@@ -212,19 +212,124 @@ def highcharts_frame_in_time(df, config, estimator=np.mean, title=None, color=No
     return obj
 
 
-def _rename (df, **kwargs):
+def highcharts_sparkline_in_time(df, config, estimator=np.mean, title=None, color=None, args=None, add_std=True, add_errorbar=True, metric_name=None):
+    """
+    :type config: visualisation.www.plot.cfg.project_config.ProjectConfig
+    :type args: argparse.Namespace
+    :type df: pd.DataFrame
+    """
+
+    x = config.test_view.x_prop
+    y = config.test_view.y_prop
+    linetype = Chart.TYPE_SPLINE if config.test_view.smooth else Chart.TYPE_LINE
+    areatype = Chart.TYPE_AREA_SPLINE_RANGE if config.test_view.smooth else Chart.TYPE_AREA_RANGE
+
+    agg, renames = config.get_test_view_groupby()
+
+    agg.update({
+        y: [estimator, np.std],
+    })
+    renames.update({
+        x: 'x'
+    })
+
+    with Timer('highcharts: data group', log=logger.debug):
+        result = _group_data(
+            df, agg, x=x, rename=renames
+        )
+
+    commits, uuids = result['commit'], result['id']
+    mean, std = result[y]['mean'], result[y]['std']
+
+    means = pd.DataFrame()
+    means['x'] = result['x']
+    means['y'] = mean
+
+    obj = HighchartsConfig()
+    # obj.rangeSelector = dotdict(selected=1)
+    # obj.showInNavigator = True
+    obj.title.text = title
+    obj.xAxis.title.text = config.test_view.x_prop
+    obj.yAxis.title.text = config.test_view.y_prop
+
+    obj.xAxis.type = 'category'
+
+    obj.add(HighchartsSeries(
+        type=linetype,
+        name='mean' if not metric_name else metric_name,
+        data=_fillna(means),
+        commits=commits,
+        marker=dotdict(enabled=True),
+        uuids=uuids,
+        point=dotdict(events=dotdict()),
+        color=color(1.0),
+        allowPointSelect=True,
+        zIndex=1,
+    ))
+
+    if add_std:
+        info = df.groupby(x)[y].describe()
+        info = info.reset_index()
+        info = _rename(info, **{'x': x})
+        info = info[['x', 'min', '25%', '50%', '75%', 'max']]
+
+        obj.add(HighchartsSeries(
+            type='boxplot',
+            name='info',
+            data=_fillna(info),
+            commits=commits,
+            uuids=uuids,
+            color=color(1.0),
+        ))
+        # stds = pd.DataFrame()
+        # stds['x'] = result['x']
+        # stds['low'] = mean - std
+        # stds['high'] = mean + std
+        # ,HighchartsSeries(
+        #     type=areatype,
+        #     name='std',
+        #     data=_fillna(stds),
+        #     commits=commits,
+        #     uuids=uuids,
+        #     color=color(0.2),
+        #     fillColor=color(0.2),
+        #     dashStyle='Dash',
+        # )),
+    if add_errorbar:
+        e5 = pd.DataFrame()
+        e5['x'] = result['x']
+        e5['low'] = mean - mean * 0.025
+        e5['high'] = mean + mean * 0.025
+
+        obj.add(HighchartsSeries(
+            type='arearange',
+            # type='areasplinerange',
+            name='e5',
+            data=e5,
+            commits=commits,
+            uuids=uuids,
+            color=color(0.05),
+            # stemColor='#FF0000',
+            # whiskerColor='#FF0000',
+            lineWidth=0.5,
+        ))
+
+    return obj
+
+
+def _rename(df, **kwargs):
     """
     :rtype: pd.DataFrame
     :type df: pd.DataFrame
     """
     dels = set()
-    for k, v in kwargs.items():
-        if v is None:
-            del df[k]
+    for new, old in kwargs.items():
+        if old is None:
+            dels.add(new)
         else:
-            df[k] = df[v]
-            if k != v:
-                dels.add(v)
+            df[new] = df[old]
+            if new != old:
+                dels.add(old)
     for d in dels:
         del df[d]
     return df

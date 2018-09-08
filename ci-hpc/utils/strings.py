@@ -51,7 +51,10 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
 
         if isinstance(o, np.ndarray):
-            return list(o)
+            try:
+                return list(np.around(o, 2))
+            except Exception as e:
+                return list(o)
 
         if isinstance(o, pd.Series):
             return list(o)

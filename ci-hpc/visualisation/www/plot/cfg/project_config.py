@@ -193,6 +193,7 @@ class ProjectConfigTestView(ProjectConfigView):
         self.x_prop = config.get('x-property', 'git.datetime')
         self.y_prop = config.get('y-property', 'result.duration')
         self.c_prop = config.get('cpu-property', 'problem.cpus')
+        self.s_prop = config.get('size-property', 'problem.size')
 
         self.git_hash_prop = config.get('commit-property', 'git.commit')
         self.id_prop = config.get('id-property', '_id')
@@ -218,8 +219,12 @@ class ProjectConfigTestView(ProjectConfigView):
 
             if group_name in values:
                 value = values[group_name]
-                if value not in (None, self.MATCH_ALL):
+                if value not in (None, self.MATCH_ALL, ""):
                     result[group_field] = values[group_name]
+
+        for f_name, f_value in values.items():
+            if f_value not in (None, self.MATCH_ALL, ""):
+                result[f_name] = f_value
 
         return result
 

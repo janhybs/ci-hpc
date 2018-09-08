@@ -178,7 +178,7 @@ class HighchartsConfig(HighchartsObject):
         self.title = HighchartsTitle()
         self.yAxis = HighchartsAxis()
         self.xAxis = HighchartsAxis()
-        self.legend = HighchartsLegend()
+        self.legend = undefined
         self.tooltip = HighchartsTooltip()
         self.series = list()
 

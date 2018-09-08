@@ -80,6 +80,7 @@ class TestView(Resource):
         if data_frame.empty:
             logger.info('empty result')
             return dict(
+                status=404,
                 error='No results found',
                 description='\n'.join([
                     '<p>This usually means provided filters filtered out everything.</p>',
@@ -155,4 +156,8 @@ class TestView(Resource):
                             color=color
                         )
                     ))
-        return charts
+
+        return dict(
+            status=200,
+            data=charts
+        )

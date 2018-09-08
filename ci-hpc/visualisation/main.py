@@ -8,6 +8,8 @@ from utils.logging import logger
 from visualisation.www import init_flask_server
 from visualisation.www.rest.report_view import ReportView
 from visualisation.www.rest.test_view import TestView
+from visualisation.www.rest.sparkline_view import SparklineView
+from visualisation.www.rest.scale_view import ScaleView
 from visualisation.www.rest.frame_view import FrameView
 from visualisation.www.rest.config_view import ConfigView
 
@@ -24,6 +26,16 @@ api.add_resource(
     TestView,
     '/<string:project>/case-view/<string:options>',
     '/<string:project>/case-view',
+)
+api.add_resource(
+    SparklineView,
+    '/<string:project>/sparkline-view/<string:base64data>',
+    '/<string:project>/sparkline-view',
+)
+api.add_resource(
+    ScaleView,
+    '/<string:project>/scale-view/<string:options>',
+    '/<string:project>/scale-view',
 )
 
 api.add_resource(
@@ -46,6 +58,7 @@ debug = True if args and args[0].lower() == 'debug' else False
 
 if not debug:
     logger.set_level('info')
+logger.set_level('info')
 
 if __name__ == '__main__':
     logger.debug('running server')
