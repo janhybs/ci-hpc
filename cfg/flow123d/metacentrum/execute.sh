@@ -4,7 +4,7 @@
 # they must be specified in the qsub command
 
 #PBS -l select=1:ncpus=8:mem=16gb
-#PBS -l walltime=1:00:00
+#PBS -l walltime=12:00:00
 #PBS -j oe
 #PBS -q charon
 #PBS -l place=excl

@@ -1,15 +1,5 @@
 workdir: <flow123d-workdir>
 init-shell: |
-  module purge
-  module use  /storage/praha1/home/jan-hybs/modules
-  module load metabase
-  module load gcc-6.4.0
-  module load mpich-3.0.2-gcc
-  module load python-3.6.2-gcc
-  module load python36-modules-gcc
-  module load cmake/3.12.0
-  module load ccache/3.4.2
-  module list -t
   set -x
   export FLOW123D_HOME=<flow123d-home>
 
@@ -33,11 +23,11 @@ install:
 
 
 test:
-  - name: integration
+  - name: benchmarking
     enabled: true
     output: stdout
     repeat: 3
-    # container: docker run --rm -v $(pwd):$(pwd) -w $(pwd) flow123d/flow-libs-dev-dbg:user %s
+    container: docker run --rm -v $(pwd):$(pwd) -w $(pwd) flow123d/flow-libs-dev-dbg:user %s
 
     collect:
       files: <flow123d-workdir>/bench_data/**/profiler_info*.json
@@ -52,7 +42,7 @@ test:
         weak:       <weak|b>
         strong:     <strong|b>
         cpu:        <cpu|i>
-        cl:         charon
+        cl:         local
           
     shell: |
       echo "BENCHMARK: <benchmark>, INPUT-DIR: <mesh>, CPU: <cpu>"
@@ -65,86 +55,86 @@ test:
     
     variables:
       # for testing purposes
-      # - values:
-      #   - benchmark:  01_square_regular_grid
-      #   - mesh:       [1_15662_el, 2_31498_el]
-      #   - weak:       [true, true]
-      #   - strong:     [false, false]
-      #   - cpu:        [1, 2]
-      # 
-      # - values:
-      #   - benchmark:  01_square_regular_grid
-      #   - mesh:       1_15662_el
-      #   - weak:       true
-      #   - strong:     false
-      #   - cpu:        1
+      - values:
+        - benchmark:  01_square_regular_grid
+        - mesh:       [1_15662_el, 2_31498_el]
+        - weak:       [true, true]
+        - strong:     [false, false]
+        - cpu:        [1, 2]
+      
+      - values:
+        - benchmark:  01_square_regular_grid
+        - mesh:       1_15662_el
+        - weak:       true
+        - strong:     false
+        - cpu:        1
       # ------------------------------------------------------------------------
       
-      # 01_square_regular_grid
-      # weak scale
-      - values:
-        - benchmark:  01_square_regular_grid
-        - mesh:       [1_15662_el,      2_31498_el,      3_47122_el,      4_62302_el ]
-        - weak:       [true      ,      true      ,      true      ,      true       ]
-        - strong:     [false     ,      false     ,      false     ,      true       ]
-        - cpu:        [1         ,      2         ,      3         ,      4          ]
-      # strong scale
-      - values:
-        - benchmark:  01_square_regular_grid
-        - mesh:       [8_124498_el,     8_124498_el,     8_124498_el,     8_124498_el]
-        - weak:       [false      ,     false      ,     false      ,     false      ]
-        - strong:     [true       ,     true       ,     true       ,     true       ]
-        - cpu:        [1          ,     2          ,     3          ,     4          ]
-      # ------------------------------------------------------------------------
-      # 02_cube_123d
-      # weak scale
-      - values:
-        - benchmark:  02_cube_123d
-        - mesh:       [1_15786_el,      2_29365_el,      3_47367_el,      4_58803_el ]
-        - weak:       [true      ,      true      ,      true      ,      true       ]
-        - strong:     [false     ,      false     ,      false     ,      true       ]
-        - cpu:        [1         ,      2         ,      3         ,      4          ]
-      # strong scale
-      - values:
-        - benchmark:  02_cube_123d
-        - mesh:       [8_118696_el,     8_118696_el,     8_118696_el,     8_118696_el]
-        - weak:       [false      ,     false      ,     false      ,     false      ]
-        - strong:     [true       ,     true       ,     true       ,     true       ]
-        - cpu:        [1          ,     2          ,     3          ,     4          ]
-      # ------------------------------------------------------------------------
-      # 03_mesh_read
-      # weak scale
-      - values:
-        - benchmark:  03_mesh_read
-        - mesh:       [1_15786_el,      2_29365_el,      3_47367_el,      4_58803_el ]
-        - weak:       [true      ,      true      ,      true      ,      true       ]
-        - strong:     [false     ,      false     ,      false     ,      true       ]
-        - cpu:        [1         ,      2         ,      3         ,      4          ]
-      # strong scale
-      - values:
-        - benchmark:  03_mesh_read
-        - mesh:       [8_118696_el,     8_118696_el,     8_118696_el,     8_118696_el]
-        - weak:       [false      ,     false      ,     false      ,     false      ]
-        - strong:     [true       ,     true       ,     true       ,     true       ]
-        - cpu:        [1          ,     2          ,     3          ,     4          ]
-      # ------------------------------------------------------------------------
-      # 05_dfn_2d
-      # strong scale
-      - values:
-        - benchmark:  05_dfn_2d
-        - mesh:       1_1618_el
-        - weak:       [true      ,      true      ,      true      ,    true         ]
-        - strong:     [false     ,      false     ,      false     ,    true         ]
-        - cpu:        [1         ,      2         ,      3         ,    4            ]
-      # ------------------------------------------------------------------------
-      # 04_kravi_hora
-      # strong scale
+      # # 01_square_regular_grid
+      # # weak scale
       # - values:
-      #   - benchmark: 04_kravi_hora
-      #   - mesh:   1_212773_el
-      #   - weak:   True
-      #   - strong: False
-      #   - cpu:    1
+      #   - benchmark:  01_square_regular_grid
+      #   - mesh:       [1_15662_el,      2_31498_el,      3_47122_el,      4_62302_el ]
+      #   - weak:       [true      ,      true      ,      true      ,      true       ]
+      #   - strong:     [false     ,      false     ,      false     ,      true       ]
+      #   - cpu:        [1         ,      2         ,      3         ,      4          ]
+      # # strong scale
+      # - values:
+      #   - benchmark:  01_square_regular_grid
+      #   - mesh:       [8_124498_el,     8_124498_el,     8_124498_el,     8_124498_el]
+      #   - weak:       [false      ,     false      ,     false      ,     false      ]
+      #   - strong:     [true       ,     true       ,     true       ,     true       ]
+      #   - cpu:        [1          ,     2          ,     3          ,     4          ]
+      # # ------------------------------------------------------------------------
+      # # 02_cube_123d
+      # # weak scale
+      # - values:
+      #   - benchmark:  02_cube_123d
+      #   - mesh:       [1_15786_el,      2_29365_el,      3_47367_el,      4_58803_el ]
+      #   - weak:       [true      ,      true      ,      true      ,      true       ]
+      #   - strong:     [false     ,      false     ,      false     ,      true       ]
+      #   - cpu:        [1         ,      2         ,      3         ,      4          ]
+      # # strong scale
+      # - values:
+      #   - benchmark:  02_cube_123d
+      #   - mesh:       [8_118696_el,     8_118696_el,     8_118696_el,     8_118696_el]
+      #   - weak:       [false      ,     false      ,     false      ,     false      ]
+      #   - strong:     [true       ,     true       ,     true       ,     true       ]
+      #   - cpu:        [1          ,     2          ,     3          ,     4          ]
+      # # ------------------------------------------------------------------------
+      # # 03_mesh_read
+      # # weak scale
+      # - values:
+      #   - benchmark:  03_mesh_read
+      #   - mesh:       [1_15786_el,      2_29365_el,      3_47367_el,      4_58803_el ]
+      #   - weak:       [true      ,      true      ,      true      ,      true       ]
+      #   - strong:     [false     ,      false     ,      false     ,      true       ]
+      #   - cpu:        [1         ,      2         ,      3         ,      4          ]
+      # # strong scale
+      # - values:
+      #   - benchmark:  03_mesh_read
+      #   - mesh:       [8_118696_el,     8_118696_el,     8_118696_el,     8_118696_el]
+      #   - weak:       [false      ,     false      ,     false      ,     false      ]
+      #   - strong:     [true       ,     true       ,     true       ,     true       ]
+      #   - cpu:        [1          ,     2          ,     3          ,     4          ]
+      # # ------------------------------------------------------------------------
+      # # 05_dfn_2d
+      # # strong scale
+      # - values:
+      #   - benchmark:  05_dfn_2d
+      #   - mesh:       1_1618_el
+      #   - weak:       [true      ,      true      ,      true      ,    true         ]
+      #   - strong:     [false     ,      false     ,      false     ,    true         ]
+      #   - cpu:        [1         ,      2         ,      3         ,    4            ]
+      # # ------------------------------------------------------------------------
+      # # 04_kravi_hora
+      # # strong scale
+      # # - values:
+      # #   - benchmark: 04_kravi_hora
+      # #   - mesh:   1_212773_el
+      # #   - weak:   True
+      # #   - strong: False
+      # #   - cpu:    1
 
 # 
 # R=$(pwd)/flow123d/bin/python/runtest.py
