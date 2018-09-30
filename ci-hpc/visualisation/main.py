@@ -17,31 +17,41 @@ from visualisation.www.rest.config_view import ConfigView
 api, app = init_flask_server()
 
 
-api.add_resource(
-    ReportView,
-    '/<string:project>/report/<string:report_id>'
-)
+# api.add_resource(
+#     ReportView,
+#     '/<string:project>/report/<string:report_id>'
+# )
+#
+# api.add_resource(
+#     TestView,
+#     '/<string:project>/case-view/<string:options>',
+#     '/<string:project>/case-view',
+# )
+#
+# api.add_resource(
+#     ScaleView,
+#     '/<string:project>/scale-view/<string:base64data>',
+#     '/<string:project>/scale-view',
+# )
+#
+# api.add_resource(
+#     FrameView,
+#     '/<string:project>/case-view-detail/<string:ids>',
+# )
 
-api.add_resource(
-    TestView,
-    '/<string:project>/case-view/<string:options>',
-    '/<string:project>/case-view',
-)
+
 api.add_resource(
     SparklineView,
     '/<string:project>/sparkline-view/<string:base64data>',
     '/<string:project>/sparkline-view',
 )
-api.add_resource(
-    ScaleView,
-    '/<string:project>/scale-view/<string:options>',
-    '/<string:project>/scale-view',
-)
 
 api.add_resource(
     FrameView,
-    '/<string:project>/case-view-detail/<string:ids>',
+    '/<string:project>/frame-view/<string:base64data>',
+    '/<string:project>/frame-view',
 )
+
 api.add_resource(
     ConfigView,
     '/<string:project>/config',

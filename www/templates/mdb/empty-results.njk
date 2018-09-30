@@ -1,0 +1,29 @@
+<div class="m-auto p-5 card col-9 result-info
+  {% if status == 400 %}
+    error
+  {% elif status == 300 %}
+    warning
+  {% endif %}"
+  >
+  <div class="fs-icon-strike">
+    &nbsp;
+  </div>
+  <center class="fs-icon">
+    {% if status == 400 %}
+      <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+    {% elif status == 300 %}
+      <i class="fa fa-question-circle" aria-hidden="true"></i>
+    {% endif %}
+    
+  </center>
+  
+  <center>
+    <h4>
+      {{ message }}
+    </h4>
+  </center>
+  
+  <p>
+    {{ description | safe }}
+  </p>
+</div>

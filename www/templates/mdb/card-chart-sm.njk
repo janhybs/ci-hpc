@@ -1,16 +1,24 @@
-<div class="col-xl-6 col-md-12 col-12" id="col-{{ id }}">
+<div class="spark-holder col-xl-6 col-md-12 col-12" id="col-{{ id }}" data-id="{{ id }}">
    <div class="card sparkline">
-     <div class="view p-2 text-light bg-primary justify-content-between navbar">
-       
+     <div class="view p-2 text-light bg-primary justify-content-between navbar card-head">
+
        <a class="small text-white" href="#col-{{ id }}">{{ title | safe }}</a>
        <a class="nav-link text-white sparkline-fullscreen" data-target="#col-{{ id }}">
           <i class="fa fa-arrows-alt"></i>
       </a>
-       
+
      </div>
-     
+
       <div class="card-body">
-        <div class="card-text chart-holder" id="{{ id }}"></div>
+        <div class="card-text chart-holder main" id="{{ id }}"></div>
+        <div class="card-text chart-holder detail" id="frame-detail-{{ id }}"></div>
       </div>
+      {% if extra.size | max < 2 %}
+        <div class="card-text bg-warning p-2 smaller text-white text-center">
+          <i class="fa fa-exclamation-circle" aria-hidden="true"></i>
+          The chart does not contain many values on x axis.
+          Try to adjust the filters to see more.
+        </div>
+      {% endif %}
    </div>
 </div>

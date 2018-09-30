@@ -43,3 +43,13 @@ def human_format2(datetime):
     if type(datetime) is maya.MayaDT:
         return human_format2(datetime.datetime())
     return maya.MayaDT.from_datetime(datetime).slang_date()
+
+
+def human_interval(start, end=dt.datetime.now()):
+    td = maya.MayaInterval(maya.MayaDT.from_datetime(start), maya.MayaDT.from_datetime(end)).timedelta
+    days, hours, minutes = td.days, td.seconds // 3600, (td.seconds // 60) % 60
+    if not days:
+        if not hours:
+            return '%d minute%s' % (minutes, 's' if minutes > 1 else '')
+        return '%d hour%s' % (hours, 's' if hours > 1 else '')
+    return '%d day%s' % (days, 's' if days > 1 else '')

@@ -3,32 +3,23 @@
 
 import argparse
 import base64
+import datetime
 
 import itertools
 import json
 
-import time
 from flask_restful import Resource
 from artifacts.db.mongo import CIHPCMongo
 
 import pandas as pd
-import seaborn as sns
+import numpy as np
 
-from utils import strings
-from utils.datautils import ensure_iterable
+from utils import strings, dateutils
+from utils import datautils as du
 from utils.logging import logger
+from utils.strings import str2bool
 from utils.timer import Timer
-from visualisation.www.plot.cfg.project_config import ProjectConfig
-from visualisation.www.plot.highcharts import highcharts_sparkline_in_time
-
-
-def str2bool(v):
-    if v.lower() in ('yes', 'true', '1'):
-        return True
-    elif v.lower() in ('no', 'false', '0'):
-        return False
-    else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+from visualisation.www.plot.cfg.project_config import ProjectConfig, ViewMode
 
 
 parser = argparse.ArgumentParser()
@@ -40,6 +31,151 @@ parser.add_argument('--show-boxplot', type=str2bool, default=True)
 parser.add_argument('--scaling', choices=['none', 'weak', 'strong'], default='none')
 parser.add_argument('-f', '--ff', action='append', default=[], dest='filters')
 parser.add_argument('-g', '--gg', action='append', default=[], dest='groups')
+
+
+class AChart(object):
+    _metrics = list()
+    _chart_type = None
+    _chart_name = None
+
+    def __init__(self, opts, enabled=False):
+        self.opts = opts
+        self.enabled = enabled
+
+        self.chart_type = self._chart_type
+        self.chart_name = self._chart_name
+        self.metrics = self._metrics
+
+    def get_metrics(self):
+        if self.enabled:
+            return {k: True for k in self.metrics}
+        return {}
+
+    @staticmethod
+    def __round_and_fill(df):
+        return du.fillna(df.round(2))
+
+    def get_chart_data(self, df):
+        return self.__round_and_fill(
+            self._compute(df)
+        )
+
+    def get_chart(self, df, title=None, **kwargs):
+        result = dict(
+            type=self.chart_type,
+            data=self.get_chart_data(df),
+            name=self.chart_name + (' (%s)' % title if title not in ('*', '', None) else ''),
+        )
+        result.update(kwargs)
+        return result
+
+    def _compute(self, df):
+        raise Exception("Not supported")
+
+    def __bool__(self):
+        return self.enabled
+
+
+class ChartErrorBar(AChart):
+    _metrics = ['mean']
+    _chart_type = 'errorbar'
+    _chart_name = 'mean +- {}%'
+
+    def __init__(self, opts, enabled=False, interval=0.025):
+        super(ChartErrorBar, self).__init__(opts, enabled)
+        self.interval = interval
+        self.chart_name = self._chart_name.format(int(interval*100))
+
+    def _compute(self, df):
+        result = pd.DataFrame()
+        result['x'] = list(df.index)
+        result['low'] = list(df[self.opts.y]['mean'] * (1 + self.interval/2))
+        result['high'] = list(df[self.opts.y]['mean'] * (1 - self.interval/2))
+        return result
+
+
+class ChartCI(AChart):
+    _metrics = ['mean', 'ci']
+    _chart_type = 'areasplinerange'
+    _chart_name = '95% CI'
+
+    def _compute(self, df):
+        result = pd.DataFrame()
+        result['x'] = list(df.index)
+        result['low'] = list(df[self.opts.y]['mean'] - df[self.opts.y]['ci'])
+        result['high'] = list(df[self.opts.y]['mean'] + df[self.opts.y]['ci'])
+        return result
+
+
+class ChartSTD(AChart):
+    _metrics = ['mean', 'std']
+    _chart_type = 'areasplinerange'
+    _chart_name = 'mean +- std'
+
+    def _compute(self, df):
+        result = pd.DataFrame()
+        result['x'] = list(df.index)
+        result['low'] = list(df[self.opts.y]['mean'] - df[self.opts.y]['std'])
+        result['high'] = list(df[self.opts.y]['mean'] + df[self.opts.y]['std'])
+        return result
+
+
+class ChartBoxPlot(AChart):
+    _metrics = ['min', '25%', '50%', '75%', 'max']
+    _chart_type = 'boxplot'
+    _chart_name = 'boxplot'
+
+    def _compute(self, df):
+        result = df[self.opts.y].reset_index()[
+            [self.opts.x, 'min', '25%', '50%', '75%', 'max']
+        ]
+        return result
+
+
+class ChartLine(AChart):
+    _metrics = ['mean']
+    _chart_type = 'line'
+    _chart_name = 'mean'
+
+    def _compute(self, df):
+        result = pd.DataFrame()
+        result['x'] = list(df.index)
+        result['y'] = list(df[self.opts.y]['mean'])
+        return result
+
+
+class ChartGroup(object):
+    y_metrics_default = {
+        'mean': np.mean,
+        'min': np.min,
+        'max': np.max,
+        'std': np.std,
+        '25%': lambda x: np.percentile(x, 25),
+        '50%': np.median,
+        '75%': lambda x: np.percentile(x, 75),
+        'ci': du.mean_confidence_interval,
+    }
+
+    def __init__(self, chart_options, options):
+        self.line_chart = ChartLine(chart_options, options.get('show-mean', True))
+        self.boxplot_chart = ChartBoxPlot(chart_options, options.get('show-boxplot', False))
+        self.ci_chart = ChartCI(chart_options, options.get('show-ci', False))
+        self.std_chart = ChartSTD(chart_options, options.get('show-stdbar', False))
+        self.errorbar_chart = ChartErrorBar(chart_options, options.get('show-errorbar', False))
+
+        self.all_charts = [
+            self.line_chart, self.boxplot_chart, self.ci_chart,
+            self.std_chart, self.errorbar_chart
+        ]
+
+        allowed = set([k for ch in self.all_charts for k in ch.get_metrics().keys()])
+        self.y_metrics = {k: v for k, v in self.y_metrics_default.items() if k in allowed}
+
+    def __bool__(self):
+        for g in self.all_charts:
+            if g:
+                return True
+        return False
 
 
 class SparklineView(Resource):
@@ -62,310 +198,246 @@ class SparklineView(Resource):
                     result[k] = v
         return result
 
-    def _delete_from_dict(self, obj, *values):
-        return {k: v for k,v in obj.items() if v not in values}
+    def error_empty_df(self, filters):
+        logger.info('empty result')
+        return self.show_error(
+            status=300,
+            message='No results found',
+            description='\n'.join([
+                '<p>This usually means provided filters filtered out everything.</p>',
+                '<p>DEBUG: The following filters were applied:</p>',
+                '<pre><code>%s</code></pre>' % strings.to_json(filters)
 
-    def _join_dict(self, obj, format='{}={}', sep=','):
-        return sep.join([format.format(k, v) for k,v in obj.items()])
+            ])
+        )
 
-    def _join_lists(self, keys, values, format='{}={}', sep=','):
-        keys = ensure_iterable(keys)
-        values = ensure_iterable(values)
-        return sep.join([format.format(keys[i], values[i]) for i in range(len(keys))])
+    def show_error(self, message, status=400, description=''):
+        logger.info('error [%d] %s' % (status, message))
+        return dict(
+            status=status,
+            message=message,
+            description=description
+        )
 
-    def _split_groups_and_colors(self, config, options):
+    def groupby(self, df, groupby):
         """
-        Determine which properties will cause separation into individual charts
-        and which will cause new 'line' to appear within the same chart
-
-        Parameters
-        ----------
-        config : ProjectConfig
-        options : dict
+        :rtype: list[(list[str], list[str], list[str], pd.DataFrame)]
         """
-        group_map = {v: k for k, v in config.test_view.groupby.items()}
-        possible_groups = config.test_view.groupby.values()
-        wanted_groups = options['groups']
+        if not groupby:
+            yield ('', '', '', df)
+        else:
 
-        final_groups = [x for x in possible_groups if wanted_groups.get(x, False)]
-        final_groups_names = [group_map[x] for x in final_groups]
-        final_colors = list(set(possible_groups) - set(final_groups))
-        final_colors_names = [group_map[x] for x in final_colors]
+            keys = du.ensure_iterable(list(groupby.keys()))
+            names = du.ensure_iterable(list(groupby.values()))
 
-        return final_groups, final_groups_names, final_colors, final_colors_names
+            for group_values, group_data in df.groupby(keys):
+                yield (du.ensure_iterable(group_values), du.ensure_iterable(keys), du.ensure_iterable(names), group_data)
 
-    @Timer.decorate('Sparkline: get', logger.info)
-    def get(self, project, base64data=''):
+    def __init__(self):
+        super(SparklineView, self).__init__()
+        self.options = dict()
+        self.config = None
+        self.mongo = None
+
+    def prepare(self, project, base64data=None):
         if base64data:
-            options = json.loads(
+            self.options = json.loads(
                 base64.decodebytes(base64data.encode()).decode()
             )
         else:
-            options = dict()
+            logger.warning('no options given')
+            self.options = dict()
 
-        print(
-            strings.to_json(options)
+        logger.info(strings.to_json(self.options), skip_format=True)
+
+        self.config = ProjectConfig.get(project)
+        self.mongo = CIHPCMongo.get(project)
+
+    @Timer.decorate('Sparkline: get', logger.info)
+    def get(self, project, base64data=''):
+        self.prepare(project, base64data)
+
+        mode = ViewMode(self.options.get('mode', {}).get('mode', ViewMode.SCALE_VIEW.value))
+        squeeze = int(self.options.get('squeeze', {}).get('value', 1))
+        interval = self.options.get('range', {})
+
+        field_set = self.config.fields.required_fields()
+        filter_dict = self.options['filters']
+
+        if interval and 'from' in interval and 'to' in interval:
+            filter_dict[self.config.fields.git.datetime.name] = {
+                '$gte': datetime.datetime.fromtimestamp(int(interval['from'])),
+                '$lte': datetime.datetime.fromtimestamp(int(interval['to'])),
+            }
+
+        projection_list = set(filter_dict.keys()) | field_set
+        db_find_fields = dict(zip(projection_list, itertools.repeat(1)))
+
+        db_find_filters = du.filter_keys(
+            filter_dict,
+            forbidden=("", None, "*")
         )
 
-        scaling = False if options['scaling'] == 'none' else options['scaling']
-        config = ProjectConfig.get(project)
-
-        filters = {}
-        for k in options['filters']:
-            if k.startswith('.'):
-                if k[1:] in config.test_view.groupby:
-                    filters[config.test_view.groupby.get(k[1:])] = options['filters'][k]
-            else:
-                filters[k] = options['filters'][k]
-
-        with Timer('config init', log=logger.debug):
-            mongo = CIHPCMongo.get(project)
-            filters = config.test_view.get_filters(filters)
-            projection = config.test_view.get_projection()
-
-        # with open('mongo.back.5.json', 'w') as fp:
-        #     items = list(mongo.reports.find())
-        #     fp.write(strings.to_json(items))
-        #
-        # for item in mongo.reports.find():
-        #     item['problem']['weak'] = int(item['problem']['cpu']) == int(item['problem']['mesh'].split('_')[0])
-        #     item['problem']['strong'] = int(item['problem']['cpu']) < int(item['problem']['mesh'].split('_')[0])
-        #     print(mongo.reports.replace_one({'_id': item['_id']}, item))
-        # return
-
-        with Timer('db find:', log=logger.debug):
+        with Timer('db find & apply', log=logger.debug):
             data_frame = pd.DataFrame(
-                mongo.find_all(
-                    filters,
-                    projection,
+                self.mongo.find_all(
+                    db_find_filters,
+                    db_find_fields,
                 )
             )
-            # data_frame['git.timestamp'] *= 1000
-            # print(data_frame.columns)
-            # data_frame['problem.weak'] = data_frame.apply(
-            #     lambda row: int(row['problem.cpu']) == int(row['problem.mesh'].split('_')[0])
-            # )
-            # data_frame['problem.strong'] = data_frame.apply(
-            #     lambda row: int(row['problem.cpu']) <= int(row['problem.mesh'].split('_')[0])
-            # )
 
-        if data_frame.empty:
-            logger.info('empty result')
-            return dict(
-                status=404,
-                error='No results found',
-                description='\n'.join([
-                    '<p>This usually means provided filters filtered out everything.</p>',
-                    '<p>DEBUG: The following filters were applied:</p>',
-                    '<pre><code>%s</code></pre>' % strings.to_json(filters)
+            if data_frame.empty:
+                return self.error_empty_df(db_find_filters)
 
-                ])
+            self.config.fields.apply_to_df(data_frame)
+            data_frame[':merged:'] = 'g(?)'
+
+        if mode is ViewMode.SCALE_VIEW:
+            # split charts based on commit when in scale-view mode
+            # if config.fields.git.datetime:
+            #     config.test_view.groupby['git.datetime'] = 'date'
+            # else:
+            self.config.test_view.groupby['git.commit'] = 'commit'
+
+            self.config.test_view.groupby = du.filter_values(
+                self.config.test_view.groupby,
+                forbidden=(self.config.fields.problem.size.name, self.config.fields.problem.cpu.name)
             )
+            chart_options = du.dotdict(
+                y=self.config.fields.result.duration.name,
+                x=self.config.fields.problem.cpu.name,
+                c=self.config.fields.git.commit.name,
+                groupby={k: v for k,v in self.config.test_view.groupby.items() if self.options['groupby'].get(k, False)},
+                colorby={k: v for k,v in self.config.test_view.groupby.items() if not self.options['groupby'].get(k, False)},
+            )
+            data_frame[chart_options.x] = data_frame[chart_options.x].apply(str)
 
-        if scaling and config.test_view.c_prop:
-            x_prop = config.test_view.x_prop
-            y_prop = config.test_view.y_prop
-            c_prop = config.test_view.c_prop
-            s_prop = config.test_view.s_prop
+        elif mode is ViewMode.TIME_SERIES:
+            self.config.test_view.groupby['problem.cpu'] = 'cpu'
+            self.config.test_view.groupby['problem.size'] = 'size'
 
-            # x axis will now be cpu's
-            config.test_view.x_prop = c_prop
+            if self.config.fields.problem.test:
+                self.config.test_view.groupby[self.config.fields.problem.test.name] = 'test'
+                self.options['groupby'][self.config.fields.problem.test.name] = True
 
-            # when in scaling mode, we are not grouping based on CPU used (that is x axis now)
-            # instead we group by commits
-            config.test_view.groupby = self._delete_from_dict(config.test_view.groupby, c_prop)
-            config.test_view.groupby['hash'] = x_prop
+            if self.config.fields.problem.case:
+                self.config.test_view.groupby[self.config.fields.problem.case.name] = 'size'
+                self.options['groupby'][self.config.fields.problem.case.name] = True
 
-            if scaling == 'weak' and config.test_view.s_prop:
-                config.test_view.groupby = self._delete_from_dict(config.test_view.groupby, s_prop)
+            chart_options = du.dotdict(
+                y=self.config.fields.result.duration.name,
+                x=self.config.fields.git.datetime.name,
+                c=self.config.fields.git.commit.name,
+                groupby={k: v for k,v in self.config.test_view.groupby.items() if self.options['groupby'].get(k, False)},
+                colorby={k: v for k,v in self.config.test_view.groupby.items() if not self.options['groupby'].get(k, False)},
+            )
+        else:
+            raise Exception('Given mode is not supported %s' % mode)
+
+        chart_group = ChartGroup(chart_options, self.options)
+        if not chart_group:
+            return self.show_error(
+                status=300,
+                message='No chart series selected',
+                description='<p>All of the chart series are disabled, so no chart can be displayed. '
+                            'Please enable at least one of the chart type series</p>'
+                            '<a class="btn btn-warning" data-toggle="modal" data-target="#modal-options">Click here to open configuration.</a>'
+            )
 
         charts = list()
-        color_pallete = config.color_palette.copy() * 5
-        final_groups, final_groups_names, final_colors, final_colors_names =\
-            self._split_groups_and_colors(config, options)
+        for group_values, group_keys, group_names, group_data in self.groupby(data_frame, chart_options.groupby):
+            group_title = du.join_lists(group_names, group_values, '{} = <b>{}</b>', '<br />')
 
-        if final_groups:
-            groups = data_frame.groupby(final_groups)
-        else:
-            groups = [('*', data_frame)]
+            series = list()
+            extra = dict(size=list())
+            colors_iter = iter(self.config.color_palette.copy() * 5)
+            for color_values, color_keys, color_names, color_data in self.groupby(group_data, chart_options.colorby):
+                color_title = du.join_lists(color_names, color_values, '{} = {}', ', ')
+                if color_title == ' = ':
+                    color_title = '*'
+                color = next(colors_iter)
 
-        for groupby_name, groupby_data in groups:
-            groupby_title = self._join_lists(
-                final_groups_names, groupby_name,
-                '{} = <b>{}</b>', '<br />'
-            )
-            colors_iter = iter(color_pallete)
+                if squeeze and squeeze > 1:
+                    merge_unique = sorted(list(set(color_data[chart_options.x])))
+                    merge_groups = np.repeat(np.arange(int(len(merge_unique)/squeeze + 1)), squeeze)
+                    merge_unique_len = len(merge_unique)
+                    merge_map = dict()
+                    for i in range(merge_unique_len):
+                        s = merge_groups[i]
+                        bb, ee = s*squeeze+1, min((s+1)*squeeze, merge_unique_len)
+                        b, e = merge_unique[bb-1], merge_unique[ee-1]
+                        cnt = ee - (bb - 1)
+                        if b == e:
+                            merge_map[merge_unique[i]] = 'group %s (1 item, %s)' % (chr(65 + s), b)
+                        else:
+                            if isinstance(b, datetime.datetime):
+                                duration = dateutils.human_interval(b, e)
+                                merge_map[merge_unique[i]] = 'group %s (%d items, period of %s)' % (chr(65 + s), cnt, duration)
+                            else:
+                                merge_map[merge_unique[i]] = 'group %s (%d items, %s - %s)' % (chr(65+s), cnt, b, e)
 
-            if final_colors:
-                colors = groupby_data.groupby(final_colors)
-            else:
-                colors = [('*', groupby_data)]
+                    # color_data[':merged:'] = color_data[chart_options.x].map(merge_map)
+                    # TODO carefully think this through
+                    color_data[chart_options.x] = color_data[chart_options.x].map(merge_map)
+                    # chart_options.x = ':merged:'
 
-            series = []
-            # print(groupby_title)
-            for colorby_name, colorby_data in colors:
-                colorby_title = self._join_lists(final_colors_names, colorby_name)
-                # print('   ', colorby_title, colorby_data.shape)
+                with Timer('agg ' + color_title, log=logger.info):
+                    cd_group = color_data.groupby(chart_options.x).aggregate({
+                        chart_options.c: lambda x: list(set(x)),
+                        chart_options.y: chart_group.y_metrics.items(),
+                        '_id': lambda x: list(set(x)),
+                    })
 
-                chart = highcharts_sparkline_in_time(
-                    colorby_data,
-                    config,
-                    title=groupby_title,
-                    color=next(colors_iter),
-                    add_errorbar=options['show-errorbar'],
-                    add_std=options['show-boxplot'],
-                    metric_name='mean %s' % colorby_title
-                )
-                series.extend(chart.series)
+                if chart_group.boxplot_chart:
+                    series.append(chart_group.boxplot_chart.get_chart(
+                        cd_group, color_title,
+                        color=color(0.8)
+                    ))
 
-            chart.series = series  # TODO check empty charts
+                if chart_group.std_chart:
+                    series.append(chart_group.std_chart.get_chart(
+                        cd_group, color_title,
+                        color=color(0.3),
+                        fillColor=color(0.1)
+                    ))
+
+                if chart_group.ci_chart:
+                    series.append(chart_group.ci_chart.get_chart(
+                        cd_group, color_title,
+                        color=color(0.3),
+                        fillColor=color(0.1)
+                    ))
+
+                if chart_group.errorbar_chart:
+                    series.append(chart_group.errorbar_chart.get_chart(
+                        cd_group, color_title,
+                        color=color(0.3),
+                        fillColor=color(0.1)
+                    ))
+
+
+                if chart_group.line_chart:
+                    series.append(chart_group.line_chart.get_chart(
+                        cd_group, color_title,
+                        color=color(1.0),
+                    ))
+
+                if series:
+                    series[-1]['extra'] = {
+                        '_id': cd_group['_id'],
+                        'commits': cd_group[chart_options.c],
+                    }
+
+                extra['size'].append(len(cd_group))
+
             charts.append(dict(
-                size=None,
-                data=chart
+                title=group_title,
+                series=series,
+                xAxis=dict(title=dict(text=chart_options.x)),
+                yAxis=dict(title=dict(text=chart_options.y)),
+                extra=extra,
             ))
-
         return dict(
             status=200,
             data=charts
         )
-
-        # with open('mongo.back.json', 'w') as fp:
-        #     items = list(mongo.reports.find())
-        #     fp.write(strings.to_json(items))
-        # return
-
-        # result = list()
-        # import datetime, time, copy
-        # d1 = datetime.datetime(2018, 7, 15, 15, 45, 59)
-        # d2 = datetime.datetime(2018, 7, 19, 12, 24, 59)
-        # d3 = datetime.datetime(2018, 7, 28, 18, 13, 59)
-        # d4 = datetime.datetime(2018, 8, 2, 11, 30, 59)
-        # cm = [
-        #     '3a31eb8373c092bbc1fdcd16c2103c1c1c32bae3',
-        #     '503469ae8a32154aaa0e17728a70e1e8de3281cd',
-        #     'be59f6e6ee1b1786a7a5d394d54ac88dd13b3975',
-        #     '4893f3a46b7650fa8ec156c5976fee4e6aa6a43b',
-        # ]
-        # ms = [1.5, 1.2, 0.8, 1.1]
-        # ds = [d1, d2, d3, d4]
-        #
-        # for item in mongo.reports.find():
-        #     del item['_id']
-        #
-        #     for j in range(4):
-        #         i = copy.deepcopy(item)
-        #         i['git']['commit'] = cm[j]
-        #         i['git']['datetime'] = ds[j]
-        #         i['result']['duration'] *= ms[j]
-        #         print(i['git']['datetime'])
-        #         result.append(i)
-        #
-        # mongo.reports.insert_many(result)
-        # for item in mongo.reports.find():
-        #     print(item['git']['datetime'])
-        # print(ds)
-        # return
-
-        # if args.show_scale:
-        #     x_prop = config.test_view.x_prop
-        #     y_prop = config.test_view.y_prop
-        #     c_prop = config.test_view.c_prop
-        #
-        #     config.test_view.x_prop = c_prop
-        #     config.test_view.c_prop = x_prop
-        #
-        # with Timer('db find:', log=logger.debug):
-        #     data_frame = pd.DataFrame(
-        #         mongo.find_all(
-        #             filters,
-        #             projection,
-        #         )
-        #     )
-        #
-        # if data_frame.empty:
-        #     logger.info('empty result')
-        #     return dict(
-        #         status=404,
-        #         error='No results found',
-        #         description='\n'.join([
-        #             '<p>This usually means provided filters filtered out everything.</p>',
-        #             '<p>DEBUG: The following filters were applied:</p>',
-        #             '<pre><code>%s</code></pre>' % strings.to_json(filters)
-        #
-        #         ])
-        #     )
-        #
-        # if config.date_format:
-        #     for col in data_frame.columns:
-        #         if str(col).find('datetime') != -1:
-        #             data_frame[col] = data_frame[col].apply(config.date_format)
-        #
-        # groupby = [x for x in config.test_view.groupby.values() if _groups.get(x, False)]
-        #
-        # print(_groups)
-        # print(groupby)
-        #
-        # # if we know cpu property and are plotting charts separately
-        # if config.test_view.c_prop and args.separate:
-        #     groupby.append(config.test_view.c_prop)
-        #
-        # if not groupby:
-        #     groups = [('all', data_frame)]
-        # else:
-        #     groups = data_frame.groupby(groupby)
-        #
-        # charts = list()
-        # colors = config.color_palette.copy()
-        #
-        # with Timer('highcharts', log=logger.debug):
-        #     for groupby_name, groupby_data in groups:
-        #
-        #         # basic title
-        #         title_dict = dict(zip(groupby, ensure_iterable(groupby_name)))
-        #
-        #         if not args.separate and config.test_view.c_prop:
-        #             colors_iter = iter(colors)
-        #             series = list()
-        #
-        #             # scaling charts
-        #             colorby = [config.test_view.c_prop]
-        #             for colorby_name, colorby_data in groupby_data.groupby(colorby):
-        #                 extra_title = dict(zip(colorby, ensure_iterable(colorby_name)))
-        #                 title = ', '.join('%s=<b>%s</b>' % (str(k), str(v)) for k, v in title_dict.items())
-        #                 color = next(colors_iter)(1.0)  # TODO cycle the colors
-        #
-        #                 chart = highcharts_sparkline_in_time(
-        #                     colorby_data,
-        #                     config,
-        #                     title=title,
-        #                     color=color,
-        #                     add_errorbar=False,
-        #                     add_std=False,
-        #                     metric_name='mean (%s)' % (', '.join('%s=%s' % (str(k), str(v)) for k, v in extra_title.items()))
-        #                 )
-        #                 series.extend(chart.series)
-        #
-        #             chart.series = series  # TODO check empty charts
-        #             charts.append(dict(
-        #                 size=None,
-        #                 data=chart
-        #             ))
-        #
-        #         else:
-        #             title = ', '.join('%s=<b>%s</b>' % (str(k), str(v)) for k,v in title_dict.items())
-        #             color = strings.pick_random_item(colors, groupby_name)(1.0)
-        #
-        #             charts.append(dict(
-        #                 size=None,
-        #                 data=highcharts_sparkline_in_time(
-        #                     groupby_data,
-        #                     config,
-        #                     title=title,
-        #                     color=color
-        #                 )
-        #             ))
-        #
-        # return dict(
-        #     status=200,
-        #     data=charts
-        # )

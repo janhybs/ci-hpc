@@ -13,11 +13,15 @@ Highcharts.SparkMedium = function(a, b, c) {
         type: 'area',
         width: null,
         height: 340,
+        zoomType: 'xy',
         style: {
           overflow: 'visible'
         },
         // small optimalization, saves 1-2 ms each sparkline
         skipClone: true,
+        // scrollablePlotArea: {
+        //   minWidth: 800,
+        // }
         // marginBottom: 100
       },
       legend: {
@@ -35,8 +39,10 @@ Highcharts.SparkMedium = function(a, b, c) {
       },
       xAxis: {
         labels: {
-          enabled: false
+          enabled: false,
+          useHTML: true,
         },
+        type: 'category',
         // title: {
         //   text: null
         // },
@@ -46,7 +52,8 @@ Highcharts.SparkMedium = function(a, b, c) {
       },
       yAxis: {
         labels: {
-          enabled: false
+          enabled: false,
+          zIndex: 0
         },
         // endOnTick: false,
         // startOnTick: false,
@@ -56,11 +63,15 @@ Highcharts.SparkMedium = function(a, b, c) {
         // tickPositions: [0]
       },
       tooltip: {
-        borderWidth: 0,
+        borderWidth: 1,
+        outside: true,
         shadow: false,
         useHTML: true,
+        split: true,
         hideDelay: 200,
         shared: true,
+        crosshairs: true,
+        followPointer: true,
         padding: 5,
         positioner: function(w, h, point) {
           return {
@@ -70,49 +81,83 @@ Highcharts.SparkMedium = function(a, b, c) {
         }
       },
       plotOptions: {
-        series: {
+        errorbar: {
           animation: false,
-          lineWidth: 1,
-          shadow: false,
-          states: {
-            hover: {
-              lineWidth: 1
-            }
-          },
+          color: 'rgba(0,0,0,0.2)',
+          showInLegend: false,
+          enableMouseTracking: false,
+        },
+        arearange: {
+          animation: false,
+          lineWidth: 0,
+          dashStyle: 'None',
+          allowPointSelect: false,
+          enableMouseTracking: false,
+          showInLegend: false,
           marker: {
-            radius: 1,
-            states: {
-              hover: {
-                radius: 2
+            enabled: false
+          }
+        },
+        areasplinerange: {
+          animation: false,
+          lineWidth: 0,
+          dashStyle: 'None',
+          allowPointSelect: false,
+          enableMouseTracking: false,
+          showInLegend: false,
+          marker: {
+            enabled: false
+          }
+        },
+        line: {
+          animation: false,
+          allowPointSelect: true,
+          enableMouseTracking: true,
+          marker: {
+            enabled: true
+          },
+          point: {
+            events: {
+              select: function () {
+                $(this.series.chart.renderTo).trigger('point-select', [this]);
               }
             }
-          },
-          fillOpacity: 0.25
+          }
         },
-        column: {
-          negativeColor: '#910000',
-          borderColor: 'silver'
-        }
       },
-      
+
       responsive: {
           rules: [{
               condition: {
-                  minHeight: 500
+                  minHeight: 600
               },
               chartOptions: {
                   legend: {
                       enabled: true
                   },
                   yAxis: {
-                      labels: { 
+                      labels: {
                           enabled: true
                       }
                   },
                   xAxis: {
-                      labels: { 
+                      labels: {
                           enabled: true
                       }
+                  },
+                  plotOptions: {
+                    errorbar: {
+                      showInLegend: false,
+                      enableMouseTracking: true,
+                    },
+                    arearange: {
+                      showInLegend: true,
+                      enableMouseTracking: true,
+                    },
+                    areasplinerange: {
+                      showInLegend: true,
+                      enableMouseTracking: true,
+                    },
                   }
               }
           }]
@@ -124,12 +169,80 @@ Highcharts.SparkMedium = function(a, b, c) {
   return hasRenderToArg ?
     new Highcharts.Chart(a, options, c) :
     new Highcharts.Chart(options, b);
-    
+
   return hasRenderToArg ?
     new Highcharts.stockChart(a, options, c) :
     new Highcharts.stockChart(options, b);
 };
 
+
+/**
+ * Create a constructor for sparklines that takes some sensible defaults and merges in the individual
+ * chart options. This function is also available from the jQuery plugin as $(element).highcharts('SparkLine').
+ */
+Highcharts.SparkBar = function(a, b, c) {
+  var hasRenderToArg = typeof a === 'string' || a.nodeName,
+    options = arguments[hasRenderToArg ? 1 : 0],
+    defaultOptions = {
+      chart: {
+        renderTo: (options.chart && options.chart.renderTo) || this,
+        backgroundColor: null,
+        borderWidth: 0,
+        type: 'bar',
+        width: null,
+        height: 640,
+        zoomType: 'xy',
+        style: {
+          overflow: 'visible'
+        },
+        // scrollablePlotArea: {
+        //   minHeight: 800,
+        //   scrollPositionY: 1
+        // },
+        // small optimalization, saves 1-2 ms each sparkline
+        skipClone: true
+      },
+      credits: {
+        enabled: false
+      },
+      yAxis: {
+        type: 'logarithmic',
+      },
+      xAxis: {
+        type: 'category',
+        scrollbar: {
+            enabled: true
+        },
+      },
+      tooltip: {
+        borderWidth: 0,
+        shadow: false,
+        useHTML: true,
+        hideDelay: 200,
+        shared: true,
+        crosshairs: false,
+        followPointer: true,
+        padding: 5,
+      },
+      plotOptions: {
+        scatter: {
+          marker: {
+            symbol: 'diamond',
+            lineWidth: 1,
+            // lineColor: 'blue',
+            // fillColor: 'red',
+            radius: 4,
+          }
+        },
+      }
+    };
+
+  options = Highcharts.merge(defaultOptions, options);
+
+  return hasRenderToArg ?
+    new Highcharts.Chart(a, options, c) :
+    new Highcharts.Chart(options, b);
+};
 
 /**
  * Create a constructor for sparklines that takes some sensible defaults and merges in the individual
@@ -170,7 +283,7 @@ Highcharts.SparkLine = function(a, b, c) {
         },
         startOnTick: false,
         endOnTick: false,
-        tickPositions: []
+        tickPositions: [],
       },
       yAxis: {
         endOnTick: false,

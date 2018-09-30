@@ -128,13 +128,6 @@ class CIHPCMongo(Mongo):
             opts = artifacts_default_configuration(self.project_name)
         return opts
 
-    def aggregate(self, pipeline):
-        logger.debug('db.getCollection("%s").aggregate(\n%s\n)',
-                     str(self.reports.name),
-                     strings.pad_lines(strings.to_json(pipeline))
-                     )
-        return self.reports.aggregate(pipeline)
-
     def find_all(self, filter=None, projection=None, *args, flatten=True, **kwargs):
         if not filter:
             filter = dict()
@@ -171,7 +164,7 @@ class CIHPCMongo(Mongo):
                      )
         return self.reports.find_one(filter, *args, **kwargs)
 
-    def agg(self, match=None, unwind=None, project=None, *args):
+    def aggregate(self, match=None, unwind=None, project=None, flatten=True, *args):
         """
         Shortcut for a aggregate method
         Parameters
@@ -198,7 +191,25 @@ class CIHPCMongo(Mongo):
         if args:
             pipeline.extend(args)
 
-        return self.aggregate(pipeline)
+        logger.debug('db.getCollection("%s").aggregate(\n%s\n)',
+                     str(self.reports.name),
+                     strings.pad_lines(strings.to_json(pipeline))
+                     )
+
+        with Timer('db find: db-stuff', log=logger.debug):
+
+            with Timer('db aggregate: db-stuff: find', log=logger.debug):
+
+                # TODO this may take a while depending on the size of the collection
+                cursor = self.reports.aggregate(pipeline)
+
+            with Timer('db aggregate: db-stuff: fetch and flatten', log=logger.debug):
+                if flatten:
+                    items = [datautils.flatten(x, sep='.') for x in list(cursor)]
+                else:
+                    items = list(cursor)
+
+        return items
 
     @classmethod
     def get(cls, project_name):

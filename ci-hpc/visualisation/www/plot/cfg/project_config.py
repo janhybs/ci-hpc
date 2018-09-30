@@ -4,13 +4,16 @@
 import os
 
 import itertools
+from collections import namedtuple
+import re
+from enum import Enum
+
 import yaml
 
 from utils import dateutils
 from utils.colors import configurable_html_color
 from utils.glob import global_configuration
 from utils.logging import logger
-
 
 sns_color_palette = [
     [
@@ -123,6 +126,7 @@ class ProjectConfig(object):
         self.desc = config.get('desc', None)
 
         self.test_view = ProjectConfigTestView(config.get('test-view', {}))
+        self.scale_view = ProjectConfigScaleView(config.get('scale-view', {}))
         self.frame_view = ProjectConfigFrameView(config.get('frame-view', {}))
         self.tests = [ProjectConfigTest(x) for x in config.get('tests', [])]
 
@@ -134,6 +138,8 @@ class ProjectConfig(object):
             self.date_format = dateutils.long_format
         elif date_format == 'short':
             self.date_format = dateutils.short_format
+
+        self.fields = ProjectConfigFields(config.get('fields', {}))
 
     def get_test_view_groupby(self):
         """
@@ -175,7 +181,86 @@ class ProjectConfigView(object):
             return dict()
 
 
-class ProjectConfigTestView(ProjectConfigView):
+class ViewMode(Enum):
+    TIME_SERIES = 'time-series'
+    SCALE_VIEW = 'scale-view'
+
+
+class FieldExpression(object):
+    _operators = list('+-*/')
+
+    def __init__(self, conf, name):
+        self.name = name
+        self.expression = conf.get(self.name, None)
+
+        if not self.expression:
+            self.is_complex = False
+            self.fields = set()
+            self.func = lambda row: None
+            self.valid = False
+            return
+
+        self.fields = set()
+        self.valid = True
+
+        if self.expression.startswith('='):
+            self.is_complex = True
+            self.func = eval('lambda row: ' + self.expression[1:])
+        else:
+            self.is_complex = False
+            self.func = lambda row: row[self.expression]
+            self.fields.add(self.expression)
+
+    def __bool__(self):
+        return self.valid
+
+class ProjectConfigFields(object):
+    _result = namedtuple('Result', ['duration', 'returncode'])
+    _git = namedtuple('Git', ['datetime', 'commit', 'branch'])
+    _problem = namedtuple('Problem', ['test', 'case', 'subcase', 'cpu', 'size', 'per_cpu', 'scale'])
+
+    def __init__(self, fields: dict):
+        self.result = self._result(
+            FieldExpression(fields, 'result.duration'),
+            FieldExpression(fields, 'result.returncode'),
+        )
+        self.git = self._git(
+            FieldExpression(fields, 'git.datetime'),
+            FieldExpression(fields, 'git.commit'),
+            FieldExpression(fields, 'git.branch'),
+        )
+        self.problem = self._problem(
+            FieldExpression(fields, 'problem.test'),
+            FieldExpression(fields, 'problem.case'),
+            FieldExpression(fields, 'problem.subcase'),
+            FieldExpression(fields, 'problem.cpu'),
+            FieldExpression(fields, 'problem.size'),
+            FieldExpression(fields, 'problem.per.cpu'),
+            FieldExpression(fields, 'problem.scale'),
+        )
+        self.extra = fields.get('extra', list())
+
+    def required_fields(self):
+        result = set()
+        for i in [self.result, self.git, self.problem]:
+            for j in i:
+                result |= j.fields
+        result |= set(self.extra)
+
+        return result
+
+    def apply_to_df(self, df):
+        for field_group in [self.result, self.git, self.problem]:
+            for field in field_group:
+                if field:
+                    df[field.name] = df.apply(field.func, axis=1)
+        return df
+
+    def __repr__(self):
+        return str(self.__dict__)
+
+
+class ProjectConfigScaleView(ProjectConfigView):
     def __init__(self, config):
         """
         Parameters
@@ -184,11 +269,7 @@ class ProjectConfigTestView(ProjectConfigView):
             a piece of configuration for the view
         """
         self.groupby = config.get('groupby', dict())
-
-        self.unwind = config.get('unwind', {
-            'from': 'timers',
-            'to':   'timer',
-        })
+        self.series =  config.get('series', list())
 
         self.x_prop = config.get('x-property', 'git.datetime')
         self.y_prop = config.get('y-property', 'result.duration')
@@ -197,10 +278,6 @@ class ProjectConfigTestView(ProjectConfigView):
 
         self.git_hash_prop = config.get('commit-property', 'git.commit')
         self.id_prop = config.get('id-property', '_id')
-
-        self.extra = ProjectConfigViewExtra(config.get('extra', []))
-        self.smooth = config.get('smooth', False)
-        self.uniform = config.get('uniform', True)
 
     def get_filters(self, values):
         """
@@ -239,11 +316,11 @@ class ProjectConfigTestView(ProjectConfigView):
             self.git_hash_prop,
         ])
         result.extend(self.groupby.values())
-        result.extend([x.map_from for x in self.extra.vars])
+        result.extend([k for s in self.series for k in s.get('filters', {})])
         return [x for x in result if x is not None]
 
 
-class ProjectConfigFrameView(ProjectConfigView):
+class ProjectConfigTestView(object):
     def __init__(self, config):
         """
         Parameters
@@ -251,32 +328,31 @@ class ProjectConfigFrameView(ProjectConfigView):
         config : dict
             a piece of configuration for the view
         """
-        self.groupby = config.get('groupby', {
-            'git-datetime': 'git.datetime',
-            'case-cpus': 'problem.cpus',
-        })
+        self.groupby = config.get('groupby', dict())
 
-        self.unwind = config.get('unwind', {
-            'from': 'timers',
-            'to':   'timer',
-        })
 
-        self.x_prop = config.get('x-property', 'timer.name')
-        self.y_prop = config.get('y-property', 'timer.duration')
+class ProjectConfigFrameView(ProjectConfigView):
+    _fields = namedtuple('Field', ['timers'])
+    _timers = namedtuple('Timer', ['duration', 'name', 'path'])
 
-        self.id_prop = config.get('id-property', '_id')
+    def __init__(self, config):
+        """
+        Parameters
+        ----------
+        config : dict
+            a piece of configuration for the view
+        """
+        self.groupby = config.get('groupby', {})
 
-    def get_projection_list(self):
-        result = list()
-        result.extend([
-            '_id',
-            self.unwind['from'],
-            self.x_prop,
-            self.y_prop,
-            self.id_prop,
-        ])
-        result.extend(self.groupby.values())
-        return result
+        self.unwind = config.get('unwind', 'timers')
+        fields = config.get('fields', {})
+        self.fields = self._fields(
+            self._timers(
+                FieldExpression(fields, 'timers.duration'),
+                FieldExpression(fields, 'timers.name'),
+                FieldExpression(fields, 'timers.path'),
+            )
+        )
 
 
 class ProjectConfigTest(object):

@@ -5,6 +5,9 @@
 import numpy as np
 import collections
 
+import pandas as pd
+from scipy import stats as st
+
 olist = lambda x: sorted(list(set(x)))
 set_if_none = lambda x,y: y if x is None else x
 
@@ -54,3 +57,39 @@ class dotdict(dict):
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+
+def fillna(df):
+    return df.where(pd.notnull(df), None)
+
+
+def filter_keys(d, required=None, forbidden=None):
+    if required:
+        d = {k: v for k,v in d.items() if v in required}
+    if forbidden:
+        d = {k: v for k, v in d.items() if v not in forbidden}
+    return d
+
+
+def filter_values(d, required=None, forbidden=None):
+    if required:
+        d = {k: v for k,v in d.items() if k in required}
+    if forbidden:
+        d = {k: v for k, v in d.items() if k not in forbidden}
+    return d
+
+
+def join_lists(keys, values, format='{}={}', sep=','):
+    keys = ensure_iterable(keys)
+    values = ensure_iterable(values)
+    return sep.join([format.format(keys[i], values[i]) for i in range(len(keys))])
+
+
+def mean_confidence_interval(data, confidence=0.95, return_intervals=False):
+    a = 1.0 * np.array(data)
+    n = len(a)
+    m, se = np.mean(a), st.sem(a)
+    h = se * st.t.ppf((1 + confidence) / 2., n-1)
+    if return_intervals:
+        return m, m-h, m+h
+    return h
