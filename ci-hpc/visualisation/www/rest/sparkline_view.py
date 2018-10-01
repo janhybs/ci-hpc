@@ -185,7 +185,7 @@ class SparklineView(Resource):
     """
 
     def _process_list_args(self, value):
-        result = dict([tuple(v.split('=')) for v in value])
+        result: dict = dict([tuple(v.split('=')) for v in value])
         for k, v in result.items():
             if v.lower() == 'true':
                 result[k] = True
@@ -414,7 +414,6 @@ class SparklineView(Resource):
                         color=color(0.3),
                         fillColor=color(0.1)
                     ))
-
 
                 if chart_group.line_chart:
                     series.append(chart_group.line_chart.get_chart(

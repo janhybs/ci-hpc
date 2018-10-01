@@ -50,6 +50,10 @@ def _fillna(df):
     return df.where(pd.notnull(df), None)
 
 
+def dropzero(df):
+    return df[(df != 0).all(1)]
+
+
 class FrameView(Resource):
     """
     a view which returns a list of chart configuration with data when called
@@ -219,20 +223,73 @@ class FrameView(Resource):
                     #     chart_options.n: 'first'
                     # }).sort_values(by=chart_options.y, ascending=False).head(50)
 
-                    color_data = color_data.sort_values(by=chart_options.y, ascending=False).reset_index()
+                    small_values = color_data[color_data[chart_options.y] < 0.5]
+                    color_data = color_data[color_data[chart_options.y] >= 0.5]
 
-                    bar = pd.DataFrame()
-                    bar['y'] = list(color_data[chart_options.x])
-                    bar['x'] = list(color_data[chart_options.y])
-                    series.append(dict(
-                        type='scatter',
-                        extra={
-                            'path': color_data[chart_options.n],
+                    small_values_grouped = small_values.groupby(chart_options.x).agg({
+                        chart_options.y: 'mean',
+                    }).sum()
+
+                    color_data = color_data.append({
+                        chart_options.y: small_values_grouped[chart_options.y],
+                        chart_options.x: 'values &lt; 0.5',
+                        chart_options.n: 'sum of the means of the values lesser than 0.5 sec',
+
+                    }, ignore_index=True)
+
+                    color_data_grouped = color_data.groupby(chart_options.x).agg({
+                        chart_options.y: {
+                            '25%': lambda x: np.percentile(x, 25),
+                            '75%': lambda x: np.percentile(x, 75),
                         },
-                        data=_fillna(bar.round(3)),
+                        chart_options.n: 'first',
+                    }).reset_index()
+
+                    print(color_data_grouped)
+
+                    columnrange = pd.DataFrame()
+                    columnrange['y'] = list(color_data_grouped[chart_options.x])
+                    columnrange['n'] = list(color_data_grouped[chart_options.n]['first'])
+                    columnrange['low'] = list(color_data_grouped[chart_options.y]['25%'])
+                    columnrange['high'] = list(color_data_grouped[chart_options.y]['75%'])
+                    columnrange = columnrange.sort_values(by='high', ascending=False).reset_index(drop=True)
+
+                    a, b = list(columnrange['y']), list(columnrange['n'])
+                    columnrange.drop(columns=['n'], inplace=True)
+
+                    series.append(dict(
+                        type='columnrange',
+                        extra={
+                            'path': dict(zip(a, b))
+                        },
+                        data=dropzero(_fillna(columnrange.round(3))),
                         name='mean (%s)' % color_title,
                         color=color(0.7)),
                     )
+
+                    color_data = color_data.reset_index()
+                    scatter = pd.DataFrame()
+                    scatter['y'] = list(color_data[chart_options.x])
+                    scatter['x'] = list(color_data[chart_options.y])
+                    scatter['n'] = list(color_data[chart_options.n])
+                    scatter = scatter.sort_values(by='x', ascending=False).reset_index(drop=True)
+
+                    a, b = list(scatter['y']), list(scatter['n'])
+
+                    paths = list(scatter['n'])
+                    scatter.drop(columns=['n'], inplace=True)
+
+
+                    series.append(dict(
+                        type='scatter',
+                        extra={
+                            'path': dict(zip(a, b)),
+                        },
+                        data=dropzero(_fillna(scatter.round(3))),
+                        name='mean (%s)' % color_title,
+                        color=color(0.7)),
+                    )
+
 
             charts.append(dict(
                 title=group_title,
