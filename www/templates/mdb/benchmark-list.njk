@@ -1,4 +1,3 @@
-<hr class="my-3" />
 <h6 class="text-muted">{{ title }}</h6>
 
 {% for test in tests %}
@@ -54,7 +53,7 @@
               </div>
             {% endif %}
           </a>
-          
+
           {% if case.tests %}
             <div class="list-group collapse.not" id="scale-{{ scale.name }}">
               {% for scale in case.tests %}
@@ -80,7 +79,7 @@
               {% endfor %}
             </div>
           {% endif %}
-          
+
         {% endfor %}
       </div>
     {% endif %}

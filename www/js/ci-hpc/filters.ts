@@ -9,8 +9,8 @@ class ConfigureViewFilters {
         value: 1, min: 1, max: 10,
         format: 'Squeeze <span class="text code text-monospace"></span> commit(s) together',
         desc: 'This options is usefull when you have plenty of <code>commits</code> but have only couple of ' +
-              '<code>repetitions</code> per commit. Higher value will increase performace but it can also ' +
-              'conceal potential problem',
+          '<code>repetitions</code> per commit. Higher value will increase performace but it can also ' +
+          'conceal potential problem',
       },
     ]
   };
@@ -18,7 +18,7 @@ class ConfigureViewFilters {
   static filterSeries = {
     text: 'Options',
     desc: 'Turn off additional series to save space and computing time <br />' +
-          '<em>At least one option must be checked for chart to be displayed.</em>',
+      '<em>At least one option must be checked for chart to be displayed.</em>',
     items: [
       {
         text: 'show mean',
@@ -26,36 +26,36 @@ class ConfigureViewFilters {
         style: 'predefined',
         checked: true,
         desc: 'If checked, will display basic <strong>mean</strong> ' +
-              'line chart.'
+          'line chart.'
       },
       {
         text: 'show std',
         name: 'show-stdbar',
         checked: true,
         desc: 'If checked, will also include <strong>area</strong> ' +
-              'representing <code>standard deviation</code> of the observation.'
+          'representing <code>standard deviation</code> of the observation.'
       },
       {
         text: 'show ci',
         name: 'show-ci',
         checked: true,
         desc: 'If checked, will also include <strong>area</strong> ' +
-              'representing <code>95 % confidence interval</code> of the observation.'
+          'representing <code>95 % confidence interval</code> of the observation.'
       },
       {
         text: 'show errorbar',
         name: 'show-errorbar',
         checked: false,
         desc: 'If checked, will also include <strong>error bar</strong> ' +
-              'in range of <code>mean &pm; 2.5%</code>.'
+          'in range of <code>mean &pm; 2.5%</code>.'
       },
       {
         text: 'show boxplot',
         name: 'show-boxplot',
         checked: false,
         desc: 'If checked, will also include <strong>box-and-whisker plot</strong> ' +
-              'depicting groups of numerical data through their <code>quartiles</code>.<br /> ' +
-              'Note that this option may slow down CI-HPC performance.'
+          'depicting groups of numerical data through their <code>quartiles</code>.<br /> ' +
+          'Note that this option may slow down CI-HPC performance.'
       },
     ]
   };
@@ -88,7 +88,7 @@ class ConfigureViewFilters {
       checked: true,
       style: 'predefined',
       desc: '[auto option] if checked, will split the results into groups' +
-            'based on COMMIT value each group will have its own chart.'
+        'based on COMMIT value each group will have its own chart.'
     },
     {
       text: 'size',
@@ -96,7 +96,7 @@ class ConfigureViewFilters {
       style: 'predefined',
       checked: true,
       desc: '[auto option] if checked, will split the results into groups' +
-            'based on SIZE value each group will have its own chart.'
+        'based on SIZE value each group will have its own chart.'
     },
     {
       text: 'cpus',
@@ -104,7 +104,7 @@ class ConfigureViewFilters {
       style: 'predefined',
       checked: true,
       desc: '[auto option] if checked, will split the results into groups' +
-            'based on CPU value each group will have its own chart.'
+        'based on CPU value each group will have its own chart.'
     }];
   }
 

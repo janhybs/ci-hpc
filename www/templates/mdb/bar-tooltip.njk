@@ -4,7 +4,7 @@
       {{ points[0].key | safe }}
     </dt>
     <dd>
-      {{ points[0].series.userOptions.extra.path[x] | aslist | safe }}
+      {{ points[0].series.userOptions.extra.path[points[0].key] | aslist | safe }}
     </dd>
   </dl>
   <dl class="tooltip-body">
@@ -15,8 +15,12 @@
         {% for n, _ in props %}
           {{ n }}={{ point.point[n] }}
         {% endfor %}
-    </dt>
-    <dd>{{ point.y | toFixed }} sec</dd>
+      </dt>
+      {% if point.point.low %}
+        <dd>{{ point.point.low | toFixed }} - {{ point.point.high | toFixed }} sec</dd>
+      {% else %}
+        <dd>{{ point.y | toFixed }} sec</dd>
+      {% endif %}
     {% endfor %}
   </dl>
 </div>

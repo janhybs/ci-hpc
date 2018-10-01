@@ -220,7 +220,7 @@ Highcharts.SparkBar = function(a, b, c) {
         useHTML: true,
         hideDelay: 200,
         shared: true,
-        crosshairs: false,
+        crosshairs: true,
         followPointer: true,
         padding: 5,
       },
