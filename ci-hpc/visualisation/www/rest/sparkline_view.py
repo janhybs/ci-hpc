@@ -352,7 +352,7 @@ class SparklineView(Resource):
             extra = dict(size=list())
             colors_iter = iter(self.config.color_palette.copy() * 5)
             for color_values, color_keys, color_names, color_data in self.groupby(group_data, chart_options.colorby):
-                color_title = du.join_lists(color_names, color_values, '{} = {}', ', ')
+                color_title = du.join_lists(color_names, color_values, '<small>{}</small> <b>{}</b>', ', ')
                 if color_title == ' = ':
                     color_title = '*'
                 color = next(colors_iter)

@@ -18,7 +18,7 @@ import numpy as np
 import seaborn as sns
 
 from utils import strings
-from utils.datautils import ensure_iterable, dotdict
+from utils.datautils import ensure_iterable, dotdict, dropzero, fillna
 from utils.logging import logger
 from utils.timer import Timer
 from visualisation.www.plot.cfg.project_config import ProjectConfig, ViewMode
@@ -46,12 +46,6 @@ parser.add_argument('-g', '--gg', action='append', default=[], dest='groups')
 
 
 
-def _fillna(df):
-    return df.where(pd.notnull(df), None)
-
-
-def dropzero(df):
-    return df[(df != 0).all(1)]
 
 
 class FrameView(Resource):
@@ -262,8 +256,8 @@ class FrameView(Resource):
                         extra={
                             'path': dict(zip(a, b))
                         },
-                        data=dropzero(_fillna(columnrange.round(3))),
-                        name='mean (%s)' % color_title,
+                        data=dropzero(fillna(columnrange.round(3))),
+                        name='Q1-Q3 (%s)' % color_title,
                         color=color(0.7)),
                     )
 
@@ -285,7 +279,7 @@ class FrameView(Resource):
                         extra={
                             'path': dict(zip(a, b)),
                         },
-                        data=dropzero(_fillna(scatter.round(3))),
+                        data=dropzero(fillna(scatter.round(3))),
                         name='mean (%s)' % color_title,
                         color=color(0.7)),
                     )

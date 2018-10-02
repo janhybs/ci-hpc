@@ -4,6 +4,7 @@
 
 import numpy as np
 import collections
+from collections import defaultdict
 
 import pandas as pd
 from scipy import stats as st
@@ -63,6 +64,10 @@ def fillna(df):
     return df.where(pd.notnull(df), None)
 
 
+def dropzero(df):
+    return df[(df != 0).all(1)]
+
+
 def filter_keys(d, required=None, forbidden=None):
     if required:
         d = {k: v for k,v in d.items() if v in required}
@@ -93,3 +98,32 @@ def mean_confidence_interval(data, confidence=0.95, return_intervals=False):
     if return_intervals:
         return m, m-h, m+h
     return h
+
+
+class xdict(defaultdict):
+    def __init__(self, default=None):
+        super(xdict, self).__init__(default)
+
+    def __getitem__(self, keys):
+        keys = ensure_iterable(keys)
+        if len(keys) == 1:
+            return super(xdict, self).__getitem__(keys[0])
+
+        tmp = self
+        for k in keys[:-1]:
+            if k not in tmp:
+                tmp[k] = xdict(self.default_factory)
+            tmp = tmp[k]
+        return tmp[keys[-1]]
+
+    def __setitem__(self, keys, value):
+        keys = ensure_iterable(keys)
+        if len(keys) == 1:
+            return super(xdict, self).__setitem__(keys[0], value)
+
+        tmp = self
+        for k in keys[:-1]:
+            if k not in tmp:
+                tmp[k] = xdict(self.default_factory)
+            tmp = tmp[k]
+        tmp[keys[-1]] = value

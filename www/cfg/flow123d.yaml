@@ -4,65 +4,58 @@ date-format:          long                                    # long or short or
 git-url:              https://github.com/flow123d/flow123d    # url of the git repo
 logo:                 https://github.com/flow123d/flow123d.github.io/raw/master/images/flow123d-black.png
 
+fields:
+  result.duration:          result.duration
+  result.returncode:        result.returncode
+
+  git.datetime:             git.datetime
+  git.commit:               git.commit
+  git.branch:               git.branch
+
+  problem.test:             problem.test-name
+  problem.case:             problem.case-name
+  problem.subcase:          null
+
+  problem.cpu:              problem.cpu
+  problem.size:             problem.size      # number of elements/ degrees of freedom
+  problem.per.cpu:          = int(row['problem.task-size'] / row['problem.cpu'])
+  problem.scale:            = int(row['problem.weak'])
+
+  # tell the db to also select following fields
+  extra:
+    - problem.task-size
+    - problem.weak
+    - problem.size
+
 # main view showing duration in time
 test-view:
-  y-property:             result.duration   # what will be on y-axis
-  x-property:             git.datetime     # what will be on x-axis
-  # x-property:             git.timestamp     # what will be on x-axis
-  commit-property:        git.commit        # what is the field name of the commit
-  id-property:            _id               # what is a unique identificator for this document
-  cpu-property:           problem.cpu       # what property points to a number of cpu used
-  size-property:          problem.mesh      # what property points to a number of cpu used
-  
-  groupby:                     # how can the results be separated
-    test: problem.test-name    # for now only groups test-name and case-name are supported
-    case: problem.case-name    # they can be set to null if they are not present in the project DB
-    size: problem.mesh         # they can be set to null if they are not present in the project DB
-    cpus: problem.cpu         # they can be set to null if they are not present in the project DB
-  
-  smooth:     false         # should the line be smoothed
+
+  # key is the field name and value is human readable value
+  groupby:
+    problem.scale:  scale
+    git.branch:     branch
 
 
 # secondary view showing frame break down
 frame-view:
-  unwind:
-    from:             timers          # will take fields 'timers' (which must be a array)
-    to:               timer           # and will put individual items to seperate document
-  
+  unwind: timers                      # will take fields 'timers' (which must be a array)
+                                      # and will put individual items to seperate document
+  fields:
+    timers.duration: timers.duration
+    timers.name:     timers.name
+    timers.path:     timers.path
+
   groupby:                            # how can the benchmark frames be separated
-    date:     git.datetime
-    cpus:     problem.cpus 
-  
-  id-property:        _id
-  y-property:         timer.duration  # after unwinding, properties which were in array, will
-  x-property:         timer.path      # be accesible via names joined by a dot
-                                      # before:
-                                      #   {
-                                      #     duration: 1.0
-                                      #     timers: [
-                                      #       {
-                                      #         name: foo
-                                      #         duration: 0.8
-                                      #       }
-                                      #       {
-                                      #         name: bar
-                                      #         duration: 0.2
-                                      #       }
-                                      #     ]
-                                      #   }
-                                      # 
-                                      # after unwind:
-                                      #   {
-                                      #     duration: 1.0
-                                      #     timer.name: foo
-                                      #     timer.duration: 0.8
-                                      #   }
-                                      # and second document:
-                                      #   {
-                                      #     duration: 1.0
-                                      #     timer.name: bar
-                                      #     timer.duration: 0.2
-                                      #   }
+    git.datetime:   date
+    problem.cpu:    cpus
+    problem.scale:  scale
+    problem.size:   size
+
+
+
+
+
+
 
 # test structure which will be displayed
 # name is mandatory
@@ -72,158 +65,52 @@ tests:
       disabled:                 true
       filters:
         result.returncode:      0
-            
+
       tests:
         - name:                 transport
-          mode:                 scaling-none
+          mode:                 time-series
           desc:                 Simple transport
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-        
+
     - name:                     02_cube_123d
+      mode:                     time-series
       disabled:                 true
       filters:
         result.returncode:      0
-    
+
       tests:
         - name:                 flow_LMH_dg_heat
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-    
+
         - name:                 flow_LMH_richards
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-    
+
         - name:                 flow_bddc
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-    
+
         - name:                 flow_bddc_fieldformula
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-    
+
         - name:                 flow_dg_sorption
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-    
+
         - name:                 flow_fv
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-    
+
         - name:                 flow_fv_sorption
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
-    
+
         - name:                 flow_unsteady_dg
-          mode:                 scaling-none
-          tests:
-            - name:             weak scaling
-              level:            null
-              mode:             scaling-weak
-              filters:  
-                problem.weak:   true
-            - name:             strong scaling
-              level:            null
-              mode:             scaling-strong
-              filters:
-                problem.strong: true
 
     - name:                     03_mesh_read
       disabled:                 true
       filters:
         result.returncode:      0
-            
+
       tests:
         - name:                 mesh_read
-          mode:                 scaling-none
+          mode:                 time-series
           tests:
             - name:             weak scaling
               level:            null
-              mode:             scaling-weak
-              filters:  
+              mode:             scale-view
+              filters:
                 problem.weak:   true
             - name:             strong scaling
               level:            null
-              mode:             scaling-strong
+              mode:             scale-view
               filters:
                 problem.strong: true
 
