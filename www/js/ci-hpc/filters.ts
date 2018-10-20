@@ -24,8 +24,16 @@ class ConfigureViewFilters {
         text: 'show mean',
         name: 'show-mean',
         style: 'predefined',
-        checked: true,
+        checked: false,
         desc: 'If checked, will display basic <strong>mean</strong> ' +
+          'line chart.'
+      },
+      {
+        text: 'show median',
+        name: 'show-median',
+        style: 'predefined',
+        checked: true,
+        desc: 'If checked, will display basic <strong>median</strong> ' +
           'line chart.'
       },
       {

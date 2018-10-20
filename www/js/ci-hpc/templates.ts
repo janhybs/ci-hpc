@@ -11,6 +11,8 @@ class Templates {
     static barTooltip: nunjucks.Template;
     static dateSliders: nunjucks.Template;
 
+    static serverError: nunjucks.Template;
+
     static loadTemplates() {
         var compileNow: boolean = true;
 
@@ -20,5 +22,6 @@ class Templates {
         this.barTooltip = Globals.env.getTemplate("templates/mdb/bar-tooltip.njk", compileNow);
         this.dateSliders = Globals.env.getTemplate("templates/mdb/date-sliders.njk", compileNow);
         this.emptyResults = Globals.env.getTemplate("templates/mdb/empty-results.njk", compileNow);
+        this.serverError = Globals.env.getTemplate("templates/mdb/server-error.njk", compileNow);
     }
 }

@@ -14,30 +14,6 @@ $(document).ready(() => {
   Utils.extendJQuery();
 
 
-  $('html > head').append('<style type="text/css" id="cihpc-css"></style>');
-  var globalCSS = $('#cihpc-css');
-  var cntrlIsPressed: boolean = false;
-  var tooltipEnabled: boolean = true;
-  $(document).keydown((event: JQuery.Event) => {
-
-    if (event.which == 17) {
-      cntrlIsPressed = true;
-
-    } else if (event.which == 16) {
-      tooltipEnabled = !tooltipEnabled;
-      if (tooltipEnabled) {
-        globalCSS.html('');
-      } else {
-        globalCSS.html('.highcharts-tooltip { display: none !important;}');
-      }
-
-    }
-
-  });
-  $(document).keyup((event: JQuery.Event) => {
-    cntrlIsPressed = false;
-  });
-
   CIHPC.url_base = window.cihpc.flaskApiUrl + '/' + window.cihpc.projectName;
 
   $.ajax({
@@ -63,34 +39,10 @@ $(document).ready(() => {
         // alert(result);
     },
     success: function(config) {
+      console.log(config);
       CIHPC.init(config);
-      CIHPC.addFilters(config);
-      CIHPC.addTestList(config);
-
-      $('#modal-options').on('hide.bs.modal', function() {
-        Utils.updateOptionGroups();
-        CIHPC.showChart(CIHPC.sender);
-      });
-
-      $('#benchmark-list a.list-group-item').click(function(e) {
-        var $this = $(this);
-        $('#benchmark-list a.list-group-item').removeClass('active');
-        $this.addClass('active');
-
-        CIHPC.paused = true;
-        if ($this.data('mode')) {
-          $('#mode-' + $this.data('mode')).click();
-        }
-        CIHPC.paused = false;
-        CIHPC.showChart(this);
-      });
-
-      $('#cihpc-option-holder input').change(function(e) {
-        Utils.updateOptionGroups();
-      });
-
-      Utils.updateOptionGroups();
-      Utils.createDateSliders();
+      // CIHPC.addFilters(config);
+      // CIHPC.addTestList(config);
     }
   });
 });

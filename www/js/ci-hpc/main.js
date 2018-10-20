@@ -1,29 +1,3 @@
-var Globals = (function () {
-    function Globals() {
-    }
-    Globals.initEnv = function () {
-        this.env = nunjucks.configure({});
-        this.env.addFilter('toFixed', function (num, digits) {
-            return parseFloat(num).toFixed(digits || 2);
-        });
-        this.env.addFilter('cut', function (str, digits) {
-            return str.substring(0, digits || 8);
-        });
-        this.env.addFilter('max', function (values) {
-            return Math.max.apply(Math, values);
-        });
-        this.env.addFilter('aslist', function (value) {
-            var s = '';
-            value.split('/').forEach(function (element) {
-                if (element) {
-                    s += '<li>' + element + '</li>';
-                }
-            });
-            return '<ul>' + s + '</ul>';
-        });
-    };
-    return Globals;
-}());
 $(document).ready(function () {
     Globals.initEnv();
     Templates.loadTemplates();
@@ -50,32 +24,25 @@ $(document).ready(function () {
         cntrlIsPressed = false;
     });
     CIHPC.url_base = window.cihpc.flaskApiUrl + '/' + window.cihpc.projectName;
-    var grabFilter = function (elem) {
-        var $data = $(elem);
-        var filters = {};
-        var data = $data.attr();
-        for (var key in data) {
-            if (key.indexOf('data-filter') == 0) {
-                if (key.substring(12)) {
-                    filters[key.substring(5)] = data[key];
-                }
-                else {
-                    if (data['data-level']) {
-                        filters[data['data-level']] = data[key];
-                    }
-                }
-            }
-        }
-        return filters;
-    };
-    var tryToExtractFilters = function (element) {
-        if ($(element).hasClass('list-group-item')) {
-            return grabFilter(element);
-        }
-        return {};
-    };
     $.ajax({
         url: CIHPC.url_base + '/config',
+        error: function (result) {
+            $('#configure-view').addClass('disabled');
+            $('#charts-sm').html(Templates.serverError.render({
+                title: 'Server error',
+                shortDesc: 'Cannot connect to the server [500]',
+                description: '<p>Could not connect to the server, make sure it is running ' +
+                    'and is accesible. The server should be running on this address: ' +
+                    '<code>' + CIHPC.url_base + '</code></p>' +
+                    '<p>This can be changed in <code>index.html</code> file, in ' +
+                    'section:</p><code><pre>' +
+                    'window.cihpc = {\n' +
+                    '  projectName: "foobar",\n' +
+                    '  flaskApiUrl: "http://foo.bar.com:5000",\n' +
+                    '}\n' +
+                    '</pre></code>'
+            }));
+        },
         success: function (config) {
             CIHPC.init(config);
             CIHPC.addFilters(config);
