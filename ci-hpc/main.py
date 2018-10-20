@@ -9,9 +9,12 @@
 # bin/python
 
 
-import argparse
 import os
 import sys
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+import argparse
 import time
 import subprocess
 from collections import defaultdict

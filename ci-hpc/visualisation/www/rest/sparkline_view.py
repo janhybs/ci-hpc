@@ -132,7 +132,7 @@ class ChartBoxPlot(AChart):
         return result
 
 
-class ChartLine(AChart):
+class ChartMean(AChart):
     _metrics = ['mean']
     _chart_type = 'line'
     _chart_name = 'mean'
@@ -143,10 +143,22 @@ class ChartLine(AChart):
         result['y'] = list(df[self.opts.y]['mean'])
         return result
 
+class ChartMedian(AChart):
+    _metrics = ['median']
+    _chart_type = 'line'
+    _chart_name = 'median'
+
+    def _compute(self, df):
+        result = pd.DataFrame()
+        result['x'] = list(df.index)
+        result['y'] = list(df[self.opts.y]['median'])
+        return result
+
 
 class ChartGroup(object):
     y_metrics_default = {
         'mean': np.mean,
+        'median': np.median,
         'min': np.min,
         'max': np.max,
         'std': np.std,
@@ -157,14 +169,15 @@ class ChartGroup(object):
     }
 
     def __init__(self, chart_options, options):
-        self.line_chart = ChartLine(chart_options, options.get('show-mean', True))
+        self.mean_chart = ChartMean(chart_options, options.get('show-mean', True))
+        self.median_chart = ChartMedian(chart_options, options.get('show-median', False))
         self.boxplot_chart = ChartBoxPlot(chart_options, options.get('show-boxplot', False))
         self.ci_chart = ChartCI(chart_options, options.get('show-ci', False))
         self.std_chart = ChartSTD(chart_options, options.get('show-stdbar', False))
         self.errorbar_chart = ChartErrorBar(chart_options, options.get('show-errorbar', False))
 
         self.all_charts = [
-            self.line_chart, self.boxplot_chart, self.ci_chart,
+            self.mean_chart, self.median_chart, self.boxplot_chart, self.ci_chart,
             self.std_chart, self.errorbar_chart
         ]
 
@@ -236,8 +249,8 @@ class SparklineView(Resource):
     def __init__(self):
         super(SparklineView, self).__init__()
         self.options = dict()
-        self.config = None
-        self.mongo = None
+        self.config = None   # type: ProjectConfig
+        self.mongo = None    # type: CIHPCMongo
 
     def prepare(self, project, base64data=None):
         if base64data:
@@ -285,6 +298,7 @@ class SparklineView(Resource):
                     db_find_fields,
                 )
             )
+            data_frame = data_frame.sort_values(by=self.config.fields.git.datetime.name, ascending=False).reset_index(drop=True)
 
             if data_frame.empty:
                 return self.error_empty_df(db_find_filters)
@@ -382,7 +396,7 @@ class SparklineView(Resource):
                     # chart_options.x = ':merged:'
 
                 with Timer('agg ' + color_title, log=logger.info):
-                    cd_group = color_data.groupby(chart_options.x).aggregate({
+                    cd_group = color_data.groupby(chart_options.x, sort=True).aggregate({
                         chart_options.c: lambda x: list(set(x)),
                         chart_options.y: chart_group.y_metrics.items(),
                         '_id': lambda x: list(set(x)),
@@ -415,8 +429,14 @@ class SparklineView(Resource):
                         fillColor=color(0.1)
                     ))
 
-                if chart_group.line_chart:
-                    series.append(chart_group.line_chart.get_chart(
+                if chart_group.mean_chart:
+                    series.append(chart_group.mean_chart.get_chart(
+                        cd_group, color_title,
+                        color=color(1.0),
+                    ))
+
+                if chart_group.median_chart:
+                    series.append(chart_group.median_chart.get_chart(
                         cd_group, color_title,
                         color=color(1.0),
                     ))

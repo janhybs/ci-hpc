@@ -132,7 +132,7 @@ class CIHPCMongo(Mongo):
         if not filter:
             filter = dict()
 
-        logger.debug('db.getCollection("%s").find(\n'
+        logger.info('db.getCollection("%s").find(\n'
                      '%s\n'
                      ',\n%s\n)',
                      str(self.reports.name),

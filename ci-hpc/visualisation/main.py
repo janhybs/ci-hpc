@@ -1,49 +1,84 @@
 #!/usr/bin/python3
 # author: Jan Hybs
 
-import os, sys
+import os
+import sys
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '..',
+        )
+    )
+)
+
 
 from utils.logging import logger
 
-from visualisation.www import init_flask_server
-from visualisation.www.rest.sparkline_view import SparklineView
-from visualisation.www.rest.frame_view import FrameView
-from visualisation.www.rest.config_view import ConfigView
+import argparse
 
 
-api, app = init_flask_server()
+def parse_args():
+    from utils.parsing import RawFormatter
+
+    # create parser
+    parser = argparse.ArgumentParser(formatter_class=RawFormatter)
+    parser.add_argument('--host', default="0.0.0.0", type=str, help='''R|
+                            IP mask which this server will be available to.
+                            By default the value is 0.0.0.0 meaning the server
+                            will be reachable to anyone.
+                            ''')
+    parser.add_argument('-d', '--debug', default=False, action="store_true", help='''R|
+                            Turns on the debug mode increasing verbosity.
+                            ''')
+    parser.add_argument('-p', '--port', default=5000, type=int, help='''R|
+                            The port of the webserver. Defaults to 5000.
+                            ''')
+
+    # parse given arguments
+    args = parser.parse_args()
+    return args
 
 
-api.add_resource(
-    SparklineView,
-    '/<string:project>/sparkline-view/<string:base64data>',
-    '/<string:project>/sparkline-view',
-)
-
-api.add_resource(
-    FrameView,
-    '/<string:project>/frame-view/<string:base64data>',
-    '/<string:project>/frame-view',
-)
-
-api.add_resource(
-    ConfigView,
-    '/<string:project>/config',
-)
+def main():
+    args = parse_args()
+    
+    from visualisation.www import init_flask_server
+    from visualisation.www.rest.sparkline_view import SparklineView
+    from visualisation.www.rest.frame_view import FrameView
+    from visualisation.www.rest.config_view import ConfigView
+    api, app = init_flask_server()
 
 
-@app.route('/')
-def hello_world():
-    return 'Your server is running!'
+    api.add_resource(
+        SparklineView,
+        '/<string:project>/sparkline-view/<string:base64data>',
+        '/<string:project>/sparkline-view',
+    )
+
+    api.add_resource(
+        FrameView,
+        '/<string:project>/frame-view/<string:base64data>',
+        '/<string:project>/frame-view',
+    )
+
+    api.add_resource(
+        ConfigView,
+        '/<string:project>/config',
+    )
 
 
-args = sys.argv[1:]
-debug = True if args and args[0].lower() == 'debug' else False
+    @app.route('/')
+    def hello_world():
+        return 'Your server is running!'
 
-if not debug:
+    if not args.debug:
+        logger.set_level('info')
     logger.set_level('info')
-logger.set_level('info')
+    
+    logger.info('running server (debug: %s, host: %s, port: %d)', args.debug, args.host, args.port)
+    app.run(debug=args.debug, host=args.host, port=args.port)
 
 if __name__ == '__main__':
-    logger.debug('running server')
-    app.run(debug=debug, host='0.0.0.0')
+    main()
