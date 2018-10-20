@@ -17,15 +17,17 @@ fields:
   problem.subcase:          null
 
   problem.cpu:              problem.cpu
-  problem.size:             problem.size      # number of elements/ degrees of freedom
+  # problem.size:             problem.size      # number of elements/ degrees of freedom
+  problem.size:             = int(row['problem.mesh'].split('_')[1])      # number of elements/ degrees of freedom
   problem.per.cpu:          = int(row['problem.task-size'] / row['problem.cpu'])
-  problem.scale:            = int(row['problem.weak'])
+  problem.scale:            = 'weak' if int(row['problem.weak'] == 1) else 'strong'
 
   # tell the db to also select following fields
   extra:
     - problem.task-size
     - problem.weak
-    - problem.size
+    - problem.mesh
+    # - problem.size
 
 # main view showing duration in time
 test-view:
