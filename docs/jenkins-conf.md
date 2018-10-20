@@ -12,7 +12,7 @@
 
       ![jenkins-plugins](imgs/jenkins-plugins-2.png)    
 
-# Configuring a Jenkins server
+## Configuring a Jenkins server
   1. Create new Job (type can be `Freestyle project`)
   
       ![jenkins-new](imgs/jenkins-new.png)
@@ -112,7 +112,7 @@
           Add `SSH Username with private key` kind
           ![jenkins-creds-2](imgs/jenkins-creds-2.png)
   
-# `cihpc` arguments
+## cihpc arguments
 When calling `bin/cihpc` binary you can pass plenty of arguments (see the file),
 but couple of them are worth mentioning in this section: 
   - arguments `install` and `test`
@@ -153,6 +153,3 @@ but couple of them are worth mentioning in this section:
     ```
     *Note:* by default no system is set,
     you should **always** set which system to use.
-    
-    
-[« back to docs](README.md)

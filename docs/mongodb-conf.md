@@ -1,4 +1,4 @@
-## ![mongodb-logo-small](imgs/mongodb-logo-small.jpg) MongoDB configuration
+# ![mongodb-logo-small](imgs/mongodb-logo-small.jpg) MongoDB configuration
 
 Configuring MongoDB storage is basically just creating an user, which has 
 permissions to read and write to a database.
@@ -23,7 +23,7 @@ create section `database`This section can contain several options but all of the
 to the construcotr of the python's 
 [pymongo.mongo_client.MongoClient constructor](https://api.mongodb.com/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient). Please refer to [api.mongodb.com](https://api.mongodb.com/python/current/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient) for further information.
 
-Take a look at the example of the `secret.yaml` file [here](../cfg/secret.template.yaml).
+Take a look at the example of the `secret.yaml` file [here](https://github.com/janhybs/ci-hpc/blob/master/cfg/secret.template.yaml).
 
 If your MongoDB server is not hosted, you must setup MongoDB authorization (for example via `/etc/mongodb.conf`):
 
@@ -87,5 +87,3 @@ hello-world:
 
 *Note:* Assuming we are trying to override artifacts location fot the 
 project `hello-world`
-
-[« back to docs](README.md)

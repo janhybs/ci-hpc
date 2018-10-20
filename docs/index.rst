@@ -7,14 +7,12 @@ Welcome to CI-HPC's documentation!
 ==================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :caption: CI-HPC Documentation
+   :maxdepth: 3
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   getting-started
+   jenkins-conf
+   hpc-conf
+   config.yaml
+   mongodb-conf
+   flask-conf

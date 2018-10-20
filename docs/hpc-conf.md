@@ -1,4 +1,4 @@
-## Configuring project on HPC server
+# Configuring project on HPC server
 *Note:* Assuming we are testing project named `hello-world`.
 
 1. Login to HPC server and clone `ci-hpc` repository:
@@ -32,7 +32,5 @@ nano     cfg/$PROJECT_NAME/config.yaml
 
 4. Setup `config.yaml` configuration file 
 
-*Please refer to [config.yaml](config.yaml.md) section to find out more
+*Please refer to [config.yaml](config.yaml.html) section to find out more
 about configuration.*
-
-[« back to docs](README.md)
