@@ -106,3 +106,7 @@ venv.bak/
 /queue
 /visualisation
 ci-hpc.log
+
+
+# Docs
+/docs/_build
