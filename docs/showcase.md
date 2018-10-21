@@ -2,7 +2,7 @@
 
 - Visualisation page:
 
-  ![Demo](docs/imgs/ci-hpc-demo-dev.gif)
+  ![Demo](imgs/ci-hpc-demo-dev.gif)
 
   ![Visualisation page](imgs/demo/demo-01.png)
 
