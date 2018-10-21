@@ -1,4 +1,4 @@
-# ![mongodb-logo-small](imgs/mongodb-logo-small.jpg) MongoDB configuration
+# MongoDB configuration
 
 Configuring MongoDB storage is basically just creating an user, which has 
 permissions to read and write to a database.
