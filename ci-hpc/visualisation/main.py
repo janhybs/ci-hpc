@@ -48,6 +48,7 @@ def main():
     from visualisation.www.rest.sparkline_view import SparklineView
     from visualisation.www.rest.frame_view import FrameView
     from visualisation.www.rest.config_view import ConfigView
+    from flask import redirect
     api, app = init_flask_server()
 
 
@@ -72,6 +73,14 @@ def main():
     @app.route('/')
     def hello_world():
         return 'Your server is running!'
+
+    @app.route('/<string:project>/badge')
+    def badge(project, opts=''):
+        shields = 'https://img.shields.io/badge'
+        lbl = 'label=CI-HPC'
+        style = 'style=flat-square'
+        url = '%s/cihpc-%s-orange.svg?%s&%s' % (shields, project, lbl, style)
+        return redirect(url)
 
     if not args.debug:
         logger.set_level('info')
