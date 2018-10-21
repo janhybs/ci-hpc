@@ -18,11 +18,13 @@
       ![jenkins-new](imgs/jenkins-new.png)
 
   2. Setup git connection to your repository
+  
       ![jenkins-git](imgs/jenkins-git.png)
 
   3. Make sure `Poll SCM` is set (CRON syntax)
   
       *Note:* The value `H 18 * * *` translates to daily, between 6PM to 7PM
+      
       ![jenkins-poll](imgs/jenkins-poll.png)
 
   4. Add Shell `Build` step to your project:
@@ -37,6 +39,7 @@
       CIHPC_HPC_URL="charon-ft.nti.tul.cz"
       CIHPC_WORKSPACE="/storage/praha1/home/jan-hybs/projects/ci-hpc"
       ```
+      
       ![jenkins-shell](imgs/jenkins-shell.png)
       
       - when using *SSH Key-Based Authentication*:
@@ -107,9 +110,11 @@
           ```
           
           Setup `Bindings`
+          
           ![jenkins-creds](imgs/jenkins-creds.png)
           
           Add `SSH Username with private key` kind
+          
           ![jenkins-creds-2](imgs/jenkins-creds-2.png)
   
 ## cihpc arguments

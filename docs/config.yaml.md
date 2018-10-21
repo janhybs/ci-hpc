@@ -53,45 +53,56 @@ test:
 *Note:* keys in `[brackets]` are optional.
 
 ```yaml
-install:                      # value is list of steps
-  - name: string              # name of the step
-  
-    [description]: string     # description of the step
+# value is list of steps
+install:
+    # name of the step
+  - name: string
+   
+    # description of the step
+    [description]: string
     
-    [enabled]: boolean        # default true, if true step is enabled 
-                              # will be processed, otherwised will be skipped
-                              
-    [verbose]: boolean        # default false, if true shell is started with set-x
+    # default true, if true step is enabled 
+    # will be processed, otherwised will be skipped
+    [enabled]: boolean
     
-    [repeat]: int             # default 1, number of this step repetition
-                              # (useful for benchmark testing)
+    # default false, if true shell is started with set-x
+    [verbose]: boolean
     
-    [shell]: string           # bash commands to be executed
-                              
-    [output]: string          # default log+stdout, how should be output 
-                              # of the shell be displayed, possible values:
-                              #   log         - logging to log file only
-                              #   stdout      - only display output
-                              #   log+stdout  - combination of both
+    # default 1, number of this step repetition
+    # (useful for benchmark testing)
+    [repeat]: int
     
-    [container]: string       # if set, will execute shell in side container 
-                              # value must command(s) which when called will
-                              # start container (docker/singularity), command
-                              # must contain string %s at the end
-                              # %s will be subsituted with a suitable command
-                              # 
-                              # examples:
-                              #   container: |
-                              #     docker run --rm -v $(pwd):$(pwd) -w $(pwd) ubuntu %s
-                              #   container: |
-                              #     module load singularity
-                              #     singularity exec -B /mnt sin.simg %s
-                              
-    [variables]:              # complex type, if set, will create build matrix of variables
-                              # detailed explanation below
-                              
-    [collect]:                # complex type, if set, will collect results
-                              # detailed explanation below
+    # bash commands to be executed
+    [shell]: string
+    
+    # default log+stdout, how should be output 
+    # of the shell be displayed, possible values:
+    #   log         - logging to log file only
+    #   stdout      - only display output
+    #   log+stdout  - combination of both
+    [output]: string
+    
+    # if set, will execute shell in side container 
+    # value must command(s) which when called will
+    # start container (docker/singularity), command
+    # must contain string %s at the end
+    # %s will be subsituted with a suitable command
+    # 
+    # examples:
+    #   container: |
+    #     docker run --rm -v $(pwd):$(pwd) -w $(pwd) ubuntu %s
+    #   container: |
+    #     module load singularity
+    #     singularity exec -B /mnt sin.simg %s
+    [container]: string
+    
+    # complex type, if set, will create build matrix of variables
+    # detailed explanation below
+    [variables]: <variables>
+    
+    # complex type, if set, will collect results
+    # detailed explanation below
+    [collect]: <collect>
 ```
 
 
@@ -239,9 +250,9 @@ collect:
   # The second variable size will be that of the typo of integer
   # this is bacause |i was specified at the end. All possible 
   # conversions are:
-  # |s for string (default)
-  # |i for integer
-  # |f for floats
+  #     |s for string (default)
+  #     |i for integer
+  #     |f for floats
   [extra]: dictionary
 
   # if true, will save the processed results to the DB

@@ -5,7 +5,7 @@
 ```shell
 cd $WORKSPACE # directory where you keep your projects
 git clone https://github.com/janhybs/ci-hpc.git
-cd `ci-hpc`
+cd ci-hpc
 ```
 
 2. Install necessary pip packages:
