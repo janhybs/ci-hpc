@@ -1,6 +1,9 @@
 var CIHPC = (function () {
     function CIHPC() {
     }
+    CIHPC.chartSize = function () {
+        return CIHPC.layout == 'small' ? 340 : 550;
+    };
     CIHPC._getCommitUrl = function (git_url) {
         var tmp = git_url.replace('http://', '').replace('https://', '');
         if (!!~tmp.indexOf('bitbucket.org')) {
@@ -116,6 +119,7 @@ var CIHPC = (function () {
     };
     ;
     CIHPC.paused = false;
+    CIHPC.layout = 'small';
     CIHPC.getFilters = function (opts, level) {
         var result = $.extend({}, opts.filters);
         if (level === null) {
@@ -127,6 +131,27 @@ var CIHPC = (function () {
     CIHPC.grabFilters = function (elem) {
         return CIHPC.testDict[elem.id];
     };
+    CIHPC.destroyAllCharts = function () {
+        if (Highcharts.charts) {
+            for (var _i = 0, _a = Highcharts.charts; _i < _a.length; _i++) {
+                var chart = _a[_i];
+                if (chart) {
+                    chart.destroy();
+                }
+            }
+        }
+    };
+    CIHPC.updateAllCharts = function () {
+        if (Highcharts.charts) {
+            var height = CIHPC.chartSize();
+            for (var _i = 0, _a = Highcharts.charts; _i < _a.length; _i++) {
+                var chart = _a[_i];
+                if (chart) {
+                    chart.setSize(null, height, false);
+                }
+            }
+        }
+    };
     CIHPC.showChart = function (sender) {
         if (CIHPC.paused) {
             return;
@@ -134,6 +159,7 @@ var CIHPC = (function () {
         if (!sender) {
             return;
         }
+        CIHPC.destroyAllCharts();
         CIHPC.sender = sender;
         var options = $.extend(Utils.grabOptions(), {
             filters: CIHPC.grabFilters(sender)
@@ -182,6 +208,9 @@ var CIHPC = (function () {
                             }
                         }
                     };
+                    chart.chart = {
+                        height: CIHPC.chartSize()
+                    };
                     $('#' + id).highcharts('SparkMedium', chart);
                     $('#' + id).on('point-select', function (target, point) {
                         var chartID = this.id;
@@ -210,7 +239,7 @@ var CIHPC = (function () {
                     }
                     else {
                         $col.addClass(cls).removeClass('expanded');
-                        chart.setSize(null, 340, false);
+                        chart.setSize(null, CIHPC.chartSize(), false);
                         if (detail) {
                             detail.setSize(null, 250, false);
                         }

@@ -88,6 +88,13 @@ $(document).ready(() => {
       $('#cihpc-option-holder input').change(function(e) {
         Utils.updateOptionGroups();
       });
+      
+      $('#view-mode').click(function() {
+        CIHPC.layout = CIHPC.layout == 'small' ? 'large' : 'small';
+        $(this).attr('data-mode', CIHPC.layout);
+        $('#charts-sm').attr('data-mode', CIHPC.layout);
+        CIHPC.updateAllCharts();
+      });
 
       Utils.updateOptionGroups();
       Utils.createDateSliders();

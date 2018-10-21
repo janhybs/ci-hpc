@@ -210,3 +210,17 @@ pre code, .code {
 #configure-view.disabled {
  opacity: 0.5;
 }
+
+#view-mode[data-mode="small"] > .layout-large {
+  display: none;
+}
+
+#view-mode[data-mode="large"] > .layout-small {
+  display: none;
+}
+
+#charts-sm[data-mode="large"] > .spark-holder {
+  -ms-flex: 0 0 100% !important;
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
+}

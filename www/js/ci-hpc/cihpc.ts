@@ -7,6 +7,12 @@ class CIHPC {
   static testDict: object;
   static paused: boolean = false;
   static sender: HTMLElement;
+  static layout: string = 'small';
+  
+  
+  static chartSize() {
+    return CIHPC.layout == 'small' ? 340 : 550;
+  }
 
 
 
@@ -147,7 +153,25 @@ class CIHPC {
     }
   };
 
-
+  static destroyAllCharts = function() {
+    if (Highcharts.charts) {
+      for (let chart of Highcharts.charts) {
+        if (chart) {
+          chart.destroy();
+        }
+      }
+    }
+  }
+  static updateAllCharts = function() {
+    if (Highcharts.charts) {
+      var height = CIHPC.chartSize();
+      for (let chart of Highcharts.charts) {
+        if (chart) {
+          chart.setSize(null, height, false);
+        }
+      }
+    }
+  }
 
   static showChart = function(sender: HTMLElement) {
     if (CIHPC.paused) {
@@ -157,6 +181,7 @@ class CIHPC {
     if (!sender) {
       return;
     }
+    CIHPC.destroyAllCharts()
     CIHPC.sender = sender;
 
     var options = $.extend(Utils.grabOptions(), {
@@ -170,13 +195,11 @@ class CIHPC {
     $.ajax({
       url: CIHPC.url_base + '/sparkline-view/' + strOptions,
 
-
       error: function(result) {
         console.log(result);
         $('#loader').hide();
         alert('fatal error');
       },
-
 
       success: function(result) {
         console.log(result);
@@ -218,6 +241,9 @@ class CIHPC {
               }
             }
           };
+          chart.chart = {
+            height: CIHPC.chartSize()
+          };
 
           // display the chart
           (<any>$('#' + id)).highcharts('SparkMedium', chart);
@@ -250,7 +276,7 @@ class CIHPC {
             }
           } else {
             $col.addClass(cls).removeClass('expanded');
-            chart.setSize(null, 340, false);
+            chart.setSize(null, CIHPC.chartSize(), false);
             if (detail) {
               detail.setSize(null, 250, false);
             }
