@@ -2,7 +2,7 @@ name:                 Flow123d Example
 desc:                 Flow123d CI-HPC page
 date-format:          long                                    # long or short or null
 git-url:              https://github.com/flow123d/flow123d    # url of the git repo
-logo:                 https://github.com/flow123d/flow123d.github.io/raw/master/images/flow123d-black.png
+logo:                 http://flow123d.github.io/assets/img/flow123d-logo.svg
 
 fields:
   result.duration:          result.duration
