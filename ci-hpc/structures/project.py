@@ -16,7 +16,7 @@ class Counter(object):
     Dummy class which simply counts on demand
     """
     def __init__(self, value=0):
-        self.value = value;
+        self.value = value
 
     @property
     def current(self):
@@ -35,7 +35,8 @@ class Counter(object):
         if attr.startswith(prefix):
             fmt = attr[len(prefix):]
             return ('{:%s}' % fmt).format(self.next)
-    
+
+
 class Project(object):
     """
     Main class representing single project in a yaml configuration file
@@ -71,6 +72,10 @@ class Project(object):
         self.install = ProjectSection('install', kwargs.get('install', []))
         self.test = ProjectSection('test', kwargs.get('test', []))
 
+    def unique(self):
+        import uuid
+        return uuid.uuid4().hex
+
     def update_global_args(self, o):
         self._global_args.update(o)
 
@@ -84,6 +89,10 @@ class Project(object):
             random=utils.strings.generate_random_key(6),
         )
         return cp
+
+    @property
+    def tmp_workdir(self):
+        return os.path.join(self.workdir, 'tmp.%s' % self.name)
 
     def __repr__(self):
         return '<Project %s>' % self.name

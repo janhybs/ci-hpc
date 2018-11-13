@@ -2,6 +2,8 @@
 # author: Jan Hybs
 
 import argparse
+from collections import defaultdict
+
 
 class RawFormatter(argparse.HelpFormatter):
     """
@@ -20,3 +22,30 @@ class RawFormatter(argparse.HelpFormatter):
 
         # this is the RawTextHelpFormatter._split_lines
         return argparse.HelpFormatter._split_lines(self, text, width)
+
+
+def defaultdict_type(items, default_value='', default_name='', separator=':'):
+    """
+    Convert list to dict
+    Example:
+        list ["key:value", "key2:value2", ...] to dict {key:value, key2:value2}
+    :param items:
+    :param default_value:
+    :param default_name:
+    :param separator:
+    :return:
+    """
+    result = dict()
+    if items:
+        for item in items:
+            split = item.split(separator, 1)
+            # no name provided
+            if len(split) == 1:
+                result[default_name] = split[0]
+            else:
+                result[split[0]] = split[1]
+
+    return defaultdict(lambda: default_value, **result)
+
+    # args.git_branch = dict(tuple(d.split(':', 1)) for d in args.git_branch)
+    # args.git_branch = defaultdict(lambda: 'master', **args.git_branch)

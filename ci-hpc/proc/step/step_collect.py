@@ -16,7 +16,7 @@ from utils.config import configure_string
 
 
 def convert_method(type):
-    return dict(json=json.loads, yaml=yaml.load).get(type, lambda y: y)
+    return dict(json=json.loads, yaml=yaml.load).get(type, lambda x: x)
 
 
 def iter_reports(reports, conversion, is_file):
@@ -45,7 +45,6 @@ def process_step_collect(project, step, process_result, format_args=None):
     :type project:        structures.project.Project
     :type process_result: proc.step.step_shell.ProcessStepResult
     """
-
     logger.debug('collecting artifacts')
 
     module = importlib.import_module(step.collect.module)
@@ -62,6 +61,7 @@ def process_step_collect(project, step, process_result, format_args=None):
     # create instance of the CollectModule
     instance = CollectModule(project.name)  # type: AbstractCollectModule
 
+    # get either yaml or json
     conversion = convert_method(step.collect.type)
 
     # --------------------------------------------------
@@ -72,7 +72,7 @@ def process_step_collect(project, step, process_result, format_args=None):
 
     if step.collect.parse:
         reports = process_step_collect_parse(project, step, process_result, format_args)
-        logger.debug('found %d reports to process', len(reports))
+        logger.debug('artifacts: found %d reports to process', len(reports))
 
         for report, file in iter_reports(reports, conversion, is_file=False):
             with logger:
@@ -83,12 +83,12 @@ def process_step_collect(project, step, process_result, format_args=None):
                     results.append(collect_result)
                 except Exception as e:
                     logger.warning(
-                    'artifact processing failed (parse method) \n'
-                    'module: %s\n'
-                    'report: %s\n'
-                    'file: %s\n', str(CollectModule), str(report), str(file))
+                        'artifact processing failed (parse method) \n'
+                        'module: %s\n'
+                        'report: %s\n'
+                        'file: %s\n', str(CollectModule), str(report), str(file)
+                    )
                 
-
         with logger:
             for file, timers in timers_info:
                 logger.debug('%20s: %5d timers found', file, timers)
@@ -105,8 +105,9 @@ def process_step_collect(project, step, process_result, format_args=None):
     timers_total = 0
 
     if step.collect.files:
-        files = glob.glob(step.collect.files, recursive=True)
-        logger.debug('found %d files to process', len(files))
+        files_glob = configure_string(step.collect.files, format_args)
+        files = glob.glob(files_glob, recursive=True)
+        logger.debug('artifacts: found %d files to process', len(files))
 
         for report, file in iter_reports(files, conversion, is_file=True):
             with logger:
@@ -117,10 +118,11 @@ def process_step_collect(project, step, process_result, format_args=None):
                     results.append(collect_result)
                 except Exception as e:
                     logger.warning(
-                    'artifact processing failed (files method) \n'
-                    'module: %s\n'
-                    'report: %s\n'
-                    'file: %s\n', str(CollectModule), str(report), str(file))
+                        'artifact processing failed (files method) \n'
+                        'module: %s\n'
+                        'report: %s\n'
+                        'file: %s\n', str(CollectModule), str(report), str(file)
+                    )
 
         with logger:
             for file, timers in timers_info:
@@ -134,7 +136,7 @@ def process_step_collect(project, step, process_result, format_args=None):
         # move results to they are not processed twice
         if step.collect.move_to:
             move_to = configure_string(step.collect.move_to, format_args)
-            logger.debug('moving %d files to %s', len(files), move_to)
+            logger.debug('artifacts: moving %d files to %s', len(files), move_to)
 
             for file in files:
                 old_filepath = os.path.abspath(file)
@@ -156,3 +158,5 @@ def process_step_collect(project, step, process_result, format_args=None):
                     )
                     os.makedirs(move_to, exist_ok=True)
                     os.rename(old_filepath, new_filepath)
+
+    return timers_total

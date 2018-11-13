@@ -473,7 +473,7 @@ class AbstractCollectModule(object):
         :type collect_results: list[CollectResult]
         """
 
-        logger.info('saving %d profile.json files to database', len(collect_results))
+        logger.debug('saving %d report files to database', len(collect_results))
         cihpc_mongo = CIHPCMongo.get(self.project_name)
 
         results = list()

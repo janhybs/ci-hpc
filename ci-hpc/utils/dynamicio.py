@@ -2,7 +2,6 @@
 # author: Jan Hybs
 
 from utils.glob import global_configuration
-from utils.logging import logger
 import tempfile
 import os
 import subprocess
@@ -68,7 +67,6 @@ class OpenerBoth(Opener):
         self.fp.close()
         with open(self.tf, 'r') as fp:
             self.output = fp.read()
-            logger.info('content: \n%s', self.output)
         os.unlink(self.tf)
         return None
 

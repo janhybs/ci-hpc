@@ -4,7 +4,11 @@
 
 import itertools
 import shutil
+
+from utils import strings
+from utils.config import configure_string
 from utils.logging import logger
+from utils.glob import global_configuration
 
 import os
 
@@ -14,9 +18,14 @@ from structures.project import Project
 
 from proc import merge_dict, iter_over
 from proc.step.step_git import process_step_git
-from proc.step.step_shell import process_step_shell, ShellProcessing
+from proc.step.step_shell import process_step_shell, ShellProcessing, ProcessConfigCrate, ProcessStepResult, process_popen
 from proc.step.step_collect import process_step_collect
 from proc.step.step_measure import process_step_measure
+from utils.parallels import extract_cpus_from_worker
+from utils.timer import Timer
+
+# from multiproc.pool import WorkerPool, Worker, PoolInt
+from multiproc.thread_pool import WorkerPool, Worker, PoolInt
 
 
 class ProcessProject(object):
@@ -49,32 +58,107 @@ class ProcessProject(object):
         :type section:  ProjectSection
         """
         logger.info('processing section %s', section.name)
+        # define more complex value so it can be accessed
+        # in nested method
+        timers_total = PoolInt()
+
+        def step_on_enter(worker: Worker):
+            logger.info('Executing **%s** with %d cpu' % (worker.crate.name, worker.cpus))
+
+        def step_on_exit(worker: Worker):
+            logger.info('Finishing **%s**' % worker.crate.name)
+
+            if worker.crate.collect:
+                project, step, _, format_args = worker.crate.collect
+                process_result = worker.result
+                timers_total.value += process_step_collect(
+                    project, step, process_result, format_args
+                )
+
+        # clear temp files
+        if global_configuration.project_clear_temp:
+            tmp_dir = os.path.join(self.project.tmp_workdir, section.ord_name)
+            logger.info('removing temp dir %s', tmp_dir)
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
         for step in section:
+            processes = list()  # type: list[ProcessConfigCrate]
+
             with logger:
                 for i in range(step.repeat):
                     logger.debug('Repetition %02d of %02d', i + 1, step.repeat)
-                    self.process_step(step, section)
+                    if step.repeat > 1:
+                        processes.extend(
+                            self.process_step(step, section, indices=['rep-%d-%d' % (i+1, step.repeat)])
+                        )
+                    else:
+                        processes.extend(
+                            self.process_step(step, section, indices=[])
+                        )
+            timers_total.value = 0
+            with Timer('step execution', log=logger.info) as execution_timer:
 
-    def process_step_with_vars(self, step, section, vars):
+                pool = WorkerPool(processes, step.parallel.cpus, process_popen)
+                pool.update_cpu_values(extract_cpus_from_worker)
+                pool.thread_event.on_exit.on(step_on_exit)
+                pool.thread_event.on_enter.on(step_on_enter)
+
+                # run in serial or parallel
+                if step.parallel:
+                    logger.info('%d processes will be now executed in parallel' % len(processes))
+                    pool.start_parallel()
+                else:
+                    logger.info('%d processes will be now executed in serial' % len(processes))
+                    pool.start_serial()
+
+            try:
+                # here we will store additional info to the DB
+                # such as how many result we have for each commit
+                # or how long the testing took.
+                # is this manner, we will have better control over
+                # execution for specific commit value, we will now how many results
+                # we have for each step, so we can automatically determine how many
+                # repetition we need in order to have minimum result available
+                if section.name == 'test':
+                    from artifacts.collect.modules import CIHPCReport, CIHPCMongo
+
+                    stats = dict()
+                    stats['git'] = CIHPCReport.global_git.copy()
+                    stats['system'] = CIHPCReport.global_system.copy()
+                    stats['name'] = step.name
+                    stats['reps'] = step.repeat
+                    stats['docs'] = timers_total()
+                    stats['config'] = strings.to_yaml(step.raw_config)
+                    stats['duration'] = execution_timer.duration
+                    stats['parallel'] = bool(step.parallel)
+                    logger.dump(stats, 'stats')
+
+                    cihpc_mongo = CIHPCMongo.get(self.project.name)
+                    insert_result = cihpc_mongo.history.insert_one(stats)
+                    logger.info('DB write acknowledged: %s' % str(insert_result.acknowledged))
+            except Exception as e:
+                logger.warn_exception(str(e))
+
+    def process_step_with_vars(self, step, section, vars, indices=None):
         """
         Method will actually process given step with a given configuration
         Everything else happening before was for this moment
 
         :type step:     ProjectStep
         :type section:  ProjectSection
+        :type indices:  list[str]
         """
         if not step.shell:
             logger.debug('no shell defined in step %s', step.name)
         else:
             shell_processing = ShellProcessing()
-            if step.measure:
-                process_step_measure(step, step.measure, shell_processing)
+            # TODO: move measure block in order to support parallel processing
+            # if step.measure:
+            #     process_step_measure(step, step.measure, shell_processing)
 
-            return process_step_shell(self.project, section, step, vars, shell_processing)
+            return process_step_shell(self.project, section, step, vars, shell_processing, indices)
 
     def expand_variables(self, section):
-
         def extract_first(iterator):
             return next(iter(iterator))
 
@@ -109,16 +193,19 @@ class ProcessProject(object):
 
         return product
 
-    def process_step(self, step, section):
+    def process_step(self, step, section, indices=list()):
         """
         :type step:     ProjectStep
         :type section:  ProjectSection
         """
 
+        processes = list()  # type: list[ProcessConfigCrate]
+
         if not step.enabled:
             logger.debug('step %s is disabled', step.name)
             return
-        logger.info('processing step %s', step.name)
+
+        logger.info('processing step %s (%s)', step.name, indices)
 
         if not step.git:
             logger.debug('no repos setup')
@@ -128,25 +215,41 @@ class ProcessProject(object):
         if step.variables:
             logger.debug('found %d build matrices', len(step.variables))
             logger.debug('processing step %s with build matrix', step.name)
+
+            len_variables = len(step.variables)
+            cur_variables = 0
             with logger:
                 for matrix_section in step.variables:
+                    cur_variables += 1
                     variables = self.expand_variables(matrix_section)
 
                     for vars, current, total in iter_over(variables):
+                        proc_indices = indices.copy() + [
+                            'var-%d-%d' % (cur_variables, len_variables),
+                            'cfg-%d-%d' % (current+1, total),
+                        ]
                         with logger:
-                            vars = merge_dict(vars, dict(__total__=total, __current__=current+1))
-                            process_result = self.process_step_with_vars(step, section, vars)
+                            vars = merge_dict(vars, dict(
+                                __total__=total,
+                                __current__=current+1,
+                                __unique__=self.project.unique(),
+                            ))
+                            process_result = self.process_step_with_vars(step, section, vars, proc_indices)
 
-                            # artifact collection
-                            if step.collect:
-                                format_args = merge_dict(
-                                    self.project.global_args,
-                                    vars,
-                                )
-                                process_step_collect(self.project, step, process_result, format_args)
+                            processes.append(process_result)
+                            # # artifact collection
+                            # if step.collect:
+                            #     format_args = merge_dict(
+                            #         self.project.global_args,
+                            #         vars,
+                            #     )
+                            #     process_step_collect(self.project, step, process_result, format_args)
         else:
             logger.info('processing step %s without variables', step.name)
-            self.process_step_with_vars(step, section, None)
+            process_result = self.process_step_with_vars(step, section, None, indices.copy())
+            processes.append(process_result)
+
+        return processes
 
     @classmethod
     def configure(cls, o, d):

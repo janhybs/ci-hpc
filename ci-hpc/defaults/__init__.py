@@ -46,4 +46,5 @@ def artifacts_default_configuration(project_name=None):
         db_name=project_name,
         col_timers_name='timers',
         col_files_name='files',
+        col_history_name='hist',
     )

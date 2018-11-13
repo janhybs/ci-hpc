@@ -65,7 +65,7 @@ class Mongo(object):
                 'database features.',
                 self.project_name,
             )
-            raise Exception('No database configuration found')
+            raise Exception('No database configuration found for %s' % self.project_name)
         return opts
 
     def __repr__(self):
@@ -106,12 +106,15 @@ class CIHPCMongo(Mongo):
         self.db = self.client.get_database(opts.get('db_name'))
         self.reports = self.db.get_collection(opts.get('col_timers_name'))
         self.files = self.db.get_collection(opts.get('col_files_name'))
+        self.history = self.db.get_collection(opts.get('col_history_name'))
 
     def _get_artifacts(self, opts=None):
         if opts:
             return opts
 
+        base_opts = artifacts_default_configuration(self.project_name)
         opts = cfg.get('%s.artifacts' % self.project_name)
+
         if not opts:
             if self._warn_first_time(self.SECTION_ARTIFACTS):
                 logger.warning(
@@ -126,7 +129,8 @@ class CIHPCMongo(Mongo):
                 )
 
             opts = artifacts_default_configuration(self.project_name)
-        return opts
+        base_opts.update(opts)
+        return base_opts
 
     def find_all(self, filter=None, projection=None, *args, flatten=True, **kwargs):
         if not filter:
@@ -210,6 +214,41 @@ class CIHPCMongo(Mongo):
                     items = list(cursor)
 
         return items
+
+    def commit_history(self):
+        return list(self.history.find())
+
+    def timers_stats(self):
+        pipeline = [
+            {
+                '$group': {
+                    '_id': {
+                        'hash': '$git.commit',
+                        'date': {
+                            '$dateToString':{
+                                'date': '$git.datetime',
+                                'format': '%Y-%m-%d %H:%M:%S'
+                            }
+                        }
+                    },
+                    'dur_sum': {'$sum': '$result.duration'},
+                    'dur_avg': {'$avg': '$result.duration'},
+                    'dur_max': {'$max': '$result.duration'},
+                    'dur_min': {'$min': '$result.duration'},
+                    'items':   {'$sum': 1},
+                }
+            },
+            {
+                '$sort': {
+                    '_id.date': -1
+                }
+            }
+        ]
+        logger.debug('db.getCollection("%s").aggregate(\n%s\n)',
+                     str(self.reports.name),
+                     strings.pad_lines(strings.to_json(pipeline))
+                     )
+        return list(self.reports.aggregate(pipeline))
 
     @classmethod
     def get(cls, project_name):

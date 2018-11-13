@@ -2,28 +2,27 @@
 # author: Jan Hybs
 
 
-from utils.glob import global_configuration
 import logging
 import sys
 import time
 
 from colorama import Fore, Back, Style
+from utils.glob import global_configuration
 
 
 class ColorLevels(object):
-    isatty = sys.stdout.isatty()
     color_map = {
-        'INFO':       Style.DIM + Fore.CYAN,
-        'WARNING':    Style.NORMAL + Fore.YELLOW,
-        'ERROR':      Style.BRIGHT + Back.RED + Fore.WHITE,
-        'FATAL':      Style.BRIGHT + Back.RED + Fore.WHITE,
-        'CRITICAL':   Style.BRIGHT + Back.RED + Fore.WHITE,
+        'INFO':       Style.DIM + Fore.CYAN + 'INFO' + Style.RESET_ALL,
+        'WARNING':    Style.NORMAL + Fore.YELLOW + 'WARN' + Style.RESET_ALL,
+        'ERROR':      Style.BRIGHT + Back.RED + Fore.WHITE + 'ERROR' + Style.RESET_ALL,
+        'FATAL':      Style.BRIGHT + Back.RED + Fore.WHITE + 'FATAL' + Style.RESET_ALL,
+        'CRITICAL':   Style.BRIGHT + Back.RED + Fore.WHITE + 'CRIT' + Style.RESET_ALL,
     }
     
     @classmethod
     def get(cls, levelname):
-        if cls.isatty:
-            return cls.color_map.get(levelname, '') + ('%5s' % levelname[:5]) + Style.RESET_ALL
+        if global_configuration.tty:
+            return cls.color_map.get(levelname, '')
         return levelname
 
 
@@ -124,10 +123,16 @@ class Logger(object):
     LOGGER_FILEHANDLER = 0
     LOGGER_STREAMHANDLER = 1
     LOGGER_ALL_HANDLERS = -1
-    
+
+    LEVEL_INFO = 'info'
+    LEVEL_DEBUG = 'debug'
+    LEVEL_WARN = 'warn'
+    LEVEL_ERROR = 'error'
+
     def __init__(self, logger):
         self._indent = 0
         self.logger = logger
+        self.tty = None
         self.file_handler = self.logger.handlers[0]
         self.stream_handler = self.logger.handlers[1]
         self.log_file = self.file_handler.baseFilename
@@ -157,6 +162,28 @@ class Logger(object):
     @property
     def indent(self):
         return '' if self._indent == 0 else self._indent * '--' + ' '
+
+    def dump(self, obj, name='object', *args, skip_format=True, level='info', **kwargs):
+        if self.tty:
+            header = 'dumping ' + Style.BRIGHT + name + Style.RESET_ALL + ':\n'
+        else:
+            header = 'dumping %s: \n' % name
+        try:
+            import json, yaml
+            obj = json.loads(json.dumps(obj))
+            msg = header + yaml.dump(obj, default_flow_style=False)
+        except Exception as e:
+            try:
+                import json, yaml
+                obj = yaml.dump(obj, default_flow_style=False)
+                msg = header + obj
+            except:
+                msg = header + str(obj)
+
+        if skip_format:
+            getattr(self.logger, level)(self.indent + msg, *args)
+        else:
+            getattr(self.logger, level)(self.indent + msg.format(**kwargs), *args)
 
     def info(self, msg, *args, skip_format=False, **kwargs):
         if skip_format:
@@ -208,11 +235,6 @@ class Logger(object):
         """
         :rtype: Logger
         """
-        from os.path import abspath, join, dirname
-
-        if not log_path:
-            log_path = global_configuration.log_path
-
         logger = logging.getLogger('root')
 
         file_log = logging.FileHandler(log_path)
@@ -223,7 +245,7 @@ class Logger(object):
             stream_formatter = RelativeDateFormatter(''.join([
                     Fore.BLUE + Style.BRIGHT + '>>> ' + Style.RESET_ALL,
                     Style.DIM + '{time} ' + Style.RESET_ALL,
-                    Fore.GREEN + Style.DIM + '{levelname}' + Style.RESET_ALL,
+                    '{levelname}',
                     ": %(message)s"
                 ])
             )
@@ -241,8 +263,9 @@ class Logger(object):
         logger.addHandler(stream_log)
 
         logger = Logger(logger)
+        logger.tty = sys.stdout.isatty() or use_tty
         return logger
 
 
-logger = Logger.init()
+logger = None  # type: Logger
 # logger.info('\n' + '-' * 80)

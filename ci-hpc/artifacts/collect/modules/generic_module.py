@@ -3,6 +3,7 @@
 
 
 from artifacts.collect.modules import CollectResult, CIHPCReport, AbstractCollectModule
+from utils.logging import logger
 
 
 class CollectModule(AbstractCollectModule):
@@ -50,10 +51,11 @@ class CollectModule(AbstractCollectModule):
         }
 
     """
+
     def process(self, object, from_file=None):
         report = CIHPCReport()
         report.merge(object)
 
-        print(report)
+        logger.dump(report, 'report', level=logger.LEVEL_DEBUG)
 
         return CollectResult([report])

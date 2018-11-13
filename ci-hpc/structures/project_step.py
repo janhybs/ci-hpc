@@ -1,18 +1,22 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
-import structures
+import structures as structures_init
 from structures.project_step_measure import ProjectStepMeasure
 from structures import pick
 from structures.project_step_git import ProjectStepGit
 from structures.project_step_container import ProjectStepContainer
 from structures.project_step_collect import ProjectStepCollect
+from structures.project_step_parallel import ProjectStepParallel
 from utils.glob import global_configuration
+from utils.parallels import determine_cpus
 
 
 class ProjectStep(object):
     """
     Class representing single step in a project
+
+    :type section:          structures.project_section.ProjectSection
     :type git:              list[ProjectStepGit]
     :type description:      str
     :type enabled:          bool
@@ -25,17 +29,20 @@ class ProjectStep(object):
     :type variables:        list
     :type measure:          ProjectStepMeasure
     :type collect:          ProjectStepCollect
+    :type parallel:         ProjectStepParallel
     """
-    def __init__(self, **kwargs):
+    def __init__(self, section, **kwargs):
         self.name = kwargs['name']
 
         self.git = [ProjectStepGit(**x) for x in kwargs.get('git', [])]
         self.description = kwargs.get('description', [])
         self.enabled = kwargs.get('enabled', True)
         self.verbose = pick(kwargs, False, 'verbose', 'debug')
-        self.container = structures.new(kwargs, 'container', ProjectStepContainer)
+        self.container = structures_init.new(kwargs, 'container', ProjectStepContainer)
         self.repeat = kwargs.get('repeat', 1)
         self.shell = kwargs.get('shell', None)
+        self.parallel = ProjectStepParallel(**kwargs.get('parallel', dict()))
+
         self.output = kwargs.get(
             'output',
             'stdout' if global_configuration.tty else 'log+stdout'
@@ -45,6 +52,16 @@ class ProjectStep(object):
         self.variables = kwargs.get('variables', [])
 
         # artifact generation
-        self.measure = structures.new(kwargs, 'measure', ProjectStepMeasure)
+        self.measure = structures_init.new(kwargs, 'measure', ProjectStepMeasure)
         # artifact collection
-        self.collect = structures.new(kwargs, 'collect', ProjectStepCollect)
+        self.collect = structures_init.new(kwargs, 'collect', ProjectStepCollect)
+
+        # project section
+        self.section = section
+
+        # save raw configuration
+        self.raw_config = kwargs
+
+    @property
+    def ord_name(self):
+        return '%d.%s' % (self.section.steps.index(self) + 1, self.name)

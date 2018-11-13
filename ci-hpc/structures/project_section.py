@@ -19,7 +19,7 @@ class ProjectSection(object):
         self.steps = list()
         if items:
             for step in items:
-                self.steps.append(ProjectStep(**step))
+                self.steps.append(ProjectStep(self, **step))
 
     def __iter__(self):
         return iter(self.steps)

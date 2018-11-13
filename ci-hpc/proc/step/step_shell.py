@@ -2,13 +2,9 @@
 # author: Jan Hybs
 
 import os
-import sys
 import subprocess as sp
-from datetime import datetime
 from time import time
-
-import proc.step.step_measure as step_measure
-import utils.strings as strings
+import yaml
 
 from files.temp_file import TempFile
 from proc import merge_dict
@@ -16,6 +12,7 @@ from utils.events import EnterExitEvent
 from utils.dynamicio import DynamicIO
 from utils.logging import logger
 from utils.config import configure_string
+from utils.parallels import parse_cpu_property
 
 
 class ShellProcessing(object):
@@ -50,36 +47,59 @@ class ProcessStepResult(object):
         self.duration = self.end_time - self.start_time
         return False
 
+    def to_json(self):
+        return dict(
+            start_time=self.start_time,
+            end_time=self.end_time,
+            returncode=self.returncode,
+            duration=self.duration,
+            output=self.output,
+            error=self.error,
+            shell_duration=self.shell_duration,
+        )
 
-def process_step_shell(project, section, step, vars, shell_processing):
+
+def process_step_shell(project, section, step, vars, shell_processing, indices):
     """
     Function will execute shell from given step using specific vars in the process
-    :type project:         structures.project.Project
-    :type section:         structures.project_section.ProjectSection
-    :type step:            structures.project_step.ProjectStep
+    :type project:          structures.project.Project
+    :type section:          structures.project_section.ProjectSection
+    :type step:             structures.project_step.ProjectStep
     :type shell_processing: ShellProcessing
+    :type indices:          list[str]
     """
     logger.debug('processing shell script in step %s', step.name)
     format_args = project.global_args
 
-    if vars:
-        format_args = merge_dict(
-            format_args,
-            vars,
-        )
+    if vars is None:
+        vars = dict()
+
+    # here we try to determine how many cpus we want to use in this step
+    # based on a cpu-prop value
+    if step.parallel and step.parallel.prop:
+        cpu_prop_conf = configure_string(step.parallel.prop, vars)
+        cpu_prop = parse_cpu_property(cpu_prop_conf)
+        vars.update(dict(__cpu__=cpu_prop))
+
+    format_args = merge_dict(
+        format_args,
+        vars,
+    )
 
     if step.shell:
         # determine tmp dir which will hold all the scripts
-        tmp_dir = os.path.join(
-            'tmp.%s' % project.name,
+        tmp_dir_lst = [
+            project.tmp_workdir,
             section.ord_name,
-            '%d.%s' % (section.index(step) + 1, step.name))
+            step.ord_name,
+        ]
 
         # if vars are given, we go deeper and create subdirectory for each configuration
-        if vars:
-            tmp_dir = os.path.join(
-                tmp_dir,
-                '%d.%d.conf' % (format_args['__current__'], format_args['__total__']))
+        if indices:
+            tmp_dir_lst += indices
+
+        # convert list to file path string
+        tmp_dir = os.path.join(*tmp_dir_lst)
 
         # create dir
         os.makedirs(tmp_dir, exist_ok=True)
@@ -92,6 +112,14 @@ def process_step_shell(project, section, step, vars, shell_processing):
         with tmp_sh:
             tmp_sh.write_shebang()
 
+            if vars:
+                try:
+                    vars_json = yaml.dump(vars, default_flow_style=False)
+                except:
+                    vars_json = str(vars)
+
+                tmp_sh.write_section('CONFIGURATION', '\n'.join(['# ' + x for x in vars_json.splitlines()]))
+
             with shell_processing.init(tmp_sh):
                 if project.init_shell:
                     configured = configure_string(project.init_shell, format_args)
@@ -99,32 +127,70 @@ def process_step_shell(project, section, step, vars, shell_processing):
 
             with shell_processing.shell(tmp_sh):
                 configured = configure_string(step.shell, format_args)
-                tmp_sh.write(configured)
+                tmp_sh.write_section('STEP SHELL', configured)
 
         # ---------------------------------------------------------------------
 
-        result = ProcessStepResult()
-        io = DynamicIO(step.output)
-        with io as fp:
-            with shell_processing.process(result):
-                if not step.container:
-                    logger.info('running vanilla shell script %s', tmp_sh.path)
-                    process = sp.Popen(['/bin/bash', tmp_sh.path], stdout=fp, stderr=sp.STDOUT)
-                else:
-                    tmp_cont = TempFile(os.path.join(tmp_dir, 'cont.sh'), verbose=step.verbose)
+        format_args = merge_dict(
+            project.global_args,
+            vars,
+        )
 
-                    with tmp_cont:
-                        tmp_cont.write_shebang()
-                        tmp_cont.write(configure_string(step.container.exec % tmp_sh.path, format_args))
+        crate = ProcessConfigCrate(
+            args=['/bin/bash', tmp_sh.path],
+            output=step.output,
+            container=step.container,
+            name=step.name if not indices else step.name + ' ' + ','.join(indices),
+            collect=[project, step, None, format_args],
+            vars=format_args
+        )
 
-                    logger.info('running container shell script %s', tmp_cont.path)
-                    process = sp.Popen(['/bin/bash', tmp_cont.path], stdout=fp, stderr=sp.STDOUT)
+        if not step.collect:
+            crate.collect = []
 
-                result.process = process
-                with result:
-                    result.returncode = process.wait()
+        if not step.container:
+            logger.debug('preparing vanilla shell script %s', tmp_sh.path)
+            return crate
+        else:
+            tmp_cont = TempFile(os.path.join(tmp_dir, 'cont.sh'), verbose=step.verbose)
+            with tmp_cont:
+                tmp_cont.write_shebang()
+                tmp_cont.write(configure_string(step.container.exec % tmp_sh.path, format_args))
 
-        # try to grab output
-        result.output = getattr(io.opener, 'output', None)
+            logger.debug('preparing container shell script %s', tmp_cont.path)
+            crate.args = ['/bin/bash', tmp_cont.path]
+            return crate
 
-        return result
+
+class ProcessConfigCrate(object):
+    def __init__(self, args, output, container, name=None, collect=None, vars=None):
+        self.args = args                # type. list[str]
+        self.output = output            # type: str
+        self.container = container      # type: ProjectStepContainer
+        self.name = name or str(args)   # type: str
+        self.collect = collect          # type: list
+        self.vars = vars                # type: dict
+
+    def __repr__(self):
+        return 'Crate<{self.name}>'.format(self=self)
+
+
+def process_popen(worker):
+    """
+    :type worker: multiproc.thread_pool.Worker
+    :return:
+    """
+    crate = worker.crate
+    io = DynamicIO(crate.output)
+    result = ProcessStepResult()
+    with io as fp:
+        process = sp.Popen(crate.args, stdout=fp, stderr=sp.STDOUT)
+
+        result.process = process
+        with result:
+            result.returncode = process.wait()
+
+    # try to grab output
+    result.output = getattr(io.opener, 'output', None)
+
+    return result

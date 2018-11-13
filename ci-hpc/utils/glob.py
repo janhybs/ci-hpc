@@ -22,3 +22,11 @@ class global_configuration(object):
 
     # this file should be PROTECTED, as it may contain passwords and database connection details
     cfg_secret_path = os.path.join(__cfg__, 'secret.yaml')
+
+    # project details
+    project_name = None
+    project_cfg = None
+    project_cfg_dir = '.'
+
+    # clear tmp files if True
+    project_clear_temp = True
