@@ -7,15 +7,10 @@ class CIHPC {
   static testDict: object;
   static paused: boolean = false;
   static sender: HTMLElement;
-  static layout: string = 'small';
+  static layout: string = 'medium';
+  static layouts: string[] = ['medium', 'large', 'small'];
   
   
-  static chartSize() {
-    return CIHPC.layout == 'small' ? 340 : 550;
-  }
-
-
-
   static getFilters = function(opts: any, level: string) {
     var result: object = $.extend({}, opts.filters);
     if (level === null) {
@@ -34,10 +29,10 @@ class CIHPC {
   private static _getCommitUrl(git_url: string) {
     var tmp = git_url.replace('http://', '').replace('https://', '');
     if (!!~tmp.indexOf('bitbucket.org')) {
-      return git_url + '/commits/';
+      return git_url + '/commits';
     }
 
-    return git_url + '/commit/';
+    return git_url + '/commit';
   }
 
   static addTestList(config: any) {
@@ -45,6 +40,8 @@ class CIHPC {
     $('#benchmark-list').html(
       Templates.benchmarkList.render({
         title: config.name,
+        desc: config.desc,
+        git_url: config['git-url'],
         tests: config.tests,
       })
     );
@@ -152,6 +149,39 @@ class CIHPC {
       }
     }
   };
+  
+  static showHistory  = function() {
+    $('#loader').show();
+    $('#charts-sm').empty();
+    
+    $.ajax({
+      url: CIHPC.url_base + '/commit-history',
+
+      error: function(error) {
+        console.log({error});
+        $('#loader').hide();
+        alert('fatal error');
+      },
+
+      success: function(result) {
+        console.log(result[0]);
+        $('#loader').hide();
+        $('#charts-sm').html(
+          Templates.commitHistory.render({
+            id:'commit-history-table',
+            commit_url: CIHPC.commit_url,
+            keys: Object.keys(result[0]),
+            items: result
+          })
+        );
+        $('#commit-history-table').DataTable({
+          searching: false,
+          paging: false,
+          autoWidth: false,
+        });
+      }
+    });
+  };
 
   static destroyAllCharts = function() {
     if (Highcharts.charts) {
@@ -164,10 +194,9 @@ class CIHPC {
   }
   static updateAllCharts = function() {
     if (Highcharts.charts) {
-      var height = CIHPC.chartSize();
       for (let chart of Highcharts.charts) {
         if (chart) {
-          chart.setSize(null, height, false);
+          chart.setSize(null, null, false);
         }
       }
     }
@@ -195,14 +224,14 @@ class CIHPC {
     $.ajax({
       url: CIHPC.url_base + '/sparkline-view/' + strOptions,
 
-      error: function(result) {
-        console.log(result);
+      error: function(error) {
+        console.log({error});
         $('#loader').hide();
         alert('fatal error');
       },
 
       success: function(result) {
-        console.log(result);
+        console.log({result});
         $('#loader').hide();
 
         if (result.status != 200) {
@@ -226,13 +255,13 @@ class CIHPC {
             formatter: function() {
               var commits: string[] = this.axis.series[this.axis.series.length - 1].userOptions.extra.commits[this.pos][0];
               if (commits.length == 1) {
-                var link = CIHPC.commit_url + commits[0];
+                var link = CIHPC.commit_url + '/' + commits[0];
                 return '<a class="xaxis-link pt-4" href="' + link + '" target="_blank">' + this.value + '</a>';
               } else {
                 var links = [];
                 var atonce = [];
                 for (let commit of commits) {
-                  var link = CIHPC.commit_url + commit;
+                  var link = CIHPC.commit_url + '/' + commit;
                   links.push('<a class="xaxis-link" href="' + link + '" target="_blank">' + commit.substr(0, 6) + '</a>');
                   atonce.push("window.open('" + link + "')");
                 }
@@ -240,9 +269,6 @@ class CIHPC {
                   (links.join(', ')) + ')';
               }
             }
-          };
-          chart.chart = {
-            height: CIHPC.chartSize()
           };
 
           // display the chart
@@ -264,28 +290,33 @@ class CIHPC {
 
         $('.spark-holder').on('updateFullscreen', function(event, value) {
           var $col = $(this);
-          var cls = 'col-xl-6';
           var chart = $col.find('.chart-holder.main').highcharts();
           var detail = $col.find('.chart-holder.detail').highcharts();
-
+          
+          console.log($col.find('.chart-holder.main').width());
           if (value) {
-            $col.removeClass(cls).addClass('expanded');
-            chart.setSize(null, 640, false);
-            if (detail) {
-              detail.setSize(null, 500, false);
-            }
+            $col.addClass('expanded fullscreen p-1');
           } else {
-            $col.addClass(cls).removeClass('expanded');
-            chart.setSize(null, CIHPC.chartSize(), false);
-            if (detail) {
-              detail.setSize(null, 250, false);
-            }
+            $col.removeClass('expanded fullscreen p-1');
           }
+          console.log($col.find('.chart-holder.main').width());
+          chart.reflow();
+          if (detail) {
+              detail.reflow();
+          }
+          console.log($col.find('.chart-holder.main').width());
+          chart.reflow();
+          if (detail) {
+              detail.reflow();
+          }
+          // window.dispatchEvent(new Event('resize'));
+          // chart.reflow();
         });
 
         $('.sparkline-fullscreen').click(function(e) {
           var $col = $($(this).data('target'));
           $col.trigger('updateFullscreen', [!$col.hasClass('expanded')])
+          // window.dispatchEvent(new Event('resize'));
         });
 
         if (result.data.length == 1) {
@@ -307,11 +338,11 @@ class CIHPC {
     $.ajax({
       url: CIHPC.url_base + '/frame-view/' + strOptions,
       error: function(error) {
-        console.log(error);
+        console.log({error});
         alert(error);
       },
       success: function(result) {
-        console.log(result);
+        console.log({result});
         $('.bd-sidebar').animate({ scrollTop: 0 }, 300);
         var opts = result.data[0];
         opts.tooltip = {
@@ -326,10 +357,10 @@ class CIHPC {
                 y: this.y
               });
             }
-
           }
         };
         (<any>$('#frame-detail-' + chartID)).highcharts('SparkBar', opts);
+        $('#col-' + chartID).addClass('has-detail');
         $('#col-' + chartID).trigger('updateFullscreen', [true]);
       }
     })

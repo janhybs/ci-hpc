@@ -1,4 +1,27 @@
-<h6 class="text-muted">{{ title }}</h6>
+<div class="project-header">
+  {% if git_url %}
+    <a href="{{ git_url }}" class="hide-icon-default" target="_blank" title="Open project repository">
+      <h5 class="text-muted">
+        <i class="fa fa-git" aria-hidden="true"></i>
+        {{ title }}
+      </h5>
+    </a>
+  {% else %}
+    <h5 class="text-muted">
+      <i class="fa fa-github" aria-hidden="true"></i>
+      {{ title }}
+    </h5>
+  {% endif %}
+  
+  {% if desc %}
+    <h6 class="tiny">{{ desc }}</h6>
+  {% endif %}
+</div>
+
+
+<hr class="my-3" />
+
+
 
 {% for test in tests %}
   <div class="list-group list-group-root">
@@ -13,10 +36,10 @@
          data-mode="{{ test.mode }}"
        {% endif %}
     >
-      <div class="item-title clearfix">
+      <div class="item-title">
         <span>{{ test.name }}</span>
         {% if test.tests %}
-          <span class="badge badge-primary badge-pill float-right">
+          <span class="badge">
           {% if (test.tests | length) > 1 %}
             {{ test.tests | length }} cases
           {% else %}

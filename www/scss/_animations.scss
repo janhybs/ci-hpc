@@ -1,0 +1,16 @@
+// main: main.scss
+
+@keyframes pulse-margin {
+ 10% {
+   padding: 20px;
+ }
+ 15% {
+   padding: 5px;
+ }
+ 20% {
+   padding: 20px;
+ }
+ 100% {
+   padding: 20px;
+ }
+}

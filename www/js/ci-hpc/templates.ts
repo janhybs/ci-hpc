@@ -12,6 +12,7 @@ class Templates {
     static dateSliders: nunjucks.Template;
 
     static serverError: nunjucks.Template;
+    static commitHistory: nunjucks.Template;
 
     static loadTemplates() {
         var compileNow: boolean = true;
@@ -23,5 +24,6 @@ class Templates {
         this.dateSliders = Globals.env.getTemplate("templates/mdb/date-sliders.njk", compileNow);
         this.emptyResults = Globals.env.getTemplate("templates/mdb/empty-results.njk", compileNow);
         this.serverError = Globals.env.getTemplate("templates/mdb/server-error.njk", compileNow);
+        this.commitHistory = Globals.env.getTemplate("templates/mdb/commit-history.njk", compileNow);
     }
 }

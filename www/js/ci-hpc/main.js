@@ -66,11 +66,18 @@ $(document).ready(function () {
                 Utils.updateOptionGroups();
             });
             $('#view-mode').click(function () {
-                CIHPC.layout = CIHPC.layout == 'small' ? 'large' : 'small';
+                CIHPC.layout = CIHPC.layouts[(CIHPC.layouts.indexOf(CIHPC.layout) + 1) % CIHPC.layouts.length];
+                localStorage.setItem('layout', CIHPC.layout);
                 $(this).attr('data-mode', CIHPC.layout);
-                $('#charts-sm').attr('data-mode', CIHPC.layout);
+                $('.cihpc-content').attr('data-mode', CIHPC.layout);
                 CIHPC.updateAllCharts();
             });
+            $('#view-history').click(function () {
+                CIHPC.showHistory();
+            });
+            CIHPC.layout = localStorage.getItem('layout') || CIHPC.layout;
+            $('#view-mode').attr('data-mode', CIHPC.layout);
+            $('.cihpc-content').attr('data-mode', CIHPC.layout);
             Utils.updateOptionGroups();
             Utils.createDateSliders();
         }

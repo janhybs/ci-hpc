@@ -1,20 +1,19 @@
 var CIHPC = (function () {
     function CIHPC() {
     }
-    CIHPC.chartSize = function () {
-        return CIHPC.layout == 'small' ? 340 : 550;
-    };
     CIHPC._getCommitUrl = function (git_url) {
         var tmp = git_url.replace('http://', '').replace('https://', '');
         if (!!~tmp.indexOf('bitbucket.org')) {
-            return git_url + '/commits/';
+            return git_url + '/commits';
         }
-        return git_url + '/commit/';
+        return git_url + '/commit';
     };
     CIHPC.addTestList = function (config) {
         $('#benchmark-list').empty();
         $('#benchmark-list').html(Templates.benchmarkList.render({
             title: config.name,
+            desc: config.desc,
+            git_url: config['git-url'],
             tests: config.tests
         }));
     };
@@ -90,11 +89,11 @@ var CIHPC = (function () {
         $.ajax({
             url: CIHPC.url_base + '/frame-view/' + strOptions,
             error: function (error) {
-                console.log(error);
+                console.log({ error: error });
                 alert(error);
             },
             success: function (result) {
-                console.log(result);
+                console.log({ result: result });
                 $('.bd-sidebar').animate({ scrollTop: 0 }, 300);
                 var opts = result.data[0];
                 opts.tooltip = {
@@ -113,13 +112,15 @@ var CIHPC = (function () {
                     }
                 };
                 $('#frame-detail-' + chartID).highcharts('SparkBar', opts);
+                $('#col-' + chartID).addClass('has-detail');
                 $('#col-' + chartID).trigger('updateFullscreen', [true]);
             }
         });
     };
     ;
     CIHPC.paused = false;
-    CIHPC.layout = 'small';
+    CIHPC.layout = 'medium';
+    CIHPC.layouts = ['medium', 'large', 'small'];
     CIHPC.getFilters = function (opts, level) {
         var result = $.extend({}, opts.filters);
         if (level === null) {
@@ -130,6 +131,33 @@ var CIHPC = (function () {
     };
     CIHPC.grabFilters = function (elem) {
         return CIHPC.testDict[elem.id];
+    };
+    CIHPC.showHistory = function () {
+        $('#loader').show();
+        $('#charts-sm').empty();
+        $.ajax({
+            url: CIHPC.url_base + '/commit-history',
+            error: function (error) {
+                console.log({ error: error });
+                $('#loader').hide();
+                alert('fatal error');
+            },
+            success: function (result) {
+                console.log(result[0]);
+                $('#loader').hide();
+                $('#charts-sm').html(Templates.commitHistory.render({
+                    id: 'commit-history-table',
+                    commit_url: CIHPC.commit_url,
+                    keys: Object.keys(result[0]),
+                    items: result
+                }));
+                $('#commit-history-table').DataTable({
+                    searching: false,
+                    paging: false,
+                    autoWidth: false
+                });
+            }
+        });
     };
     CIHPC.destroyAllCharts = function () {
         if (Highcharts.charts) {
@@ -143,11 +171,10 @@ var CIHPC = (function () {
     };
     CIHPC.updateAllCharts = function () {
         if (Highcharts.charts) {
-            var height = CIHPC.chartSize();
             for (var _i = 0, _a = Highcharts.charts; _i < _a.length; _i++) {
                 var chart = _a[_i];
                 if (chart) {
-                    chart.setSize(null, height, false);
+                    chart.setSize(null, null, false);
                 }
             }
         }
@@ -169,13 +196,13 @@ var CIHPC = (function () {
         $('#charts-sm').empty();
         $.ajax({
             url: CIHPC.url_base + '/sparkline-view/' + strOptions,
-            error: function (result) {
-                console.log(result);
+            error: function (error) {
+                console.log({ error: error });
                 $('#loader').hide();
                 alert('fatal error');
             },
             success: function (result) {
-                console.log(result);
+                console.log({ result: result });
                 $('#loader').hide();
                 if (result.status != 200) {
                     $('#charts-sm').html(Templates.emptyResults.render(result));
@@ -191,7 +218,7 @@ var CIHPC = (function () {
                         formatter: function () {
                             var commits = this.axis.series[this.axis.series.length - 1].userOptions.extra.commits[this.pos][0];
                             if (commits.length == 1) {
-                                var link = CIHPC.commit_url + commits[0];
+                                var link = CIHPC.commit_url + '/' + commits[0];
                                 return '<a class="xaxis-link pt-4" href="' + link + '" target="_blank">' + this.value + '</a>';
                             }
                             else {
@@ -199,7 +226,7 @@ var CIHPC = (function () {
                                 var atonce = [];
                                 for (var _i = 0, commits_1 = commits; _i < commits_1.length; _i++) {
                                     var commit = commits_1[_i];
-                                    var link = CIHPC.commit_url + commit;
+                                    var link = CIHPC.commit_url + '/' + commit;
                                     links.push('<a class="xaxis-link" href="' + link + '" target="_blank">' + commit.substr(0, 6) + '</a>');
                                     atonce.push("window.open('" + link + "')");
                                 }
@@ -207,9 +234,6 @@ var CIHPC = (function () {
                                     (links.join(', ')) + ')';
                             }
                         }
-                    };
-                    chart.chart = {
-                        height: CIHPC.chartSize()
                     };
                     $('#' + id).highcharts('SparkMedium', chart);
                     $('#' + id).on('point-select', function (target, point) {
@@ -227,22 +251,24 @@ var CIHPC = (function () {
                 }
                 $('.spark-holder').on('updateFullscreen', function (event, value) {
                     var $col = $(this);
-                    var cls = 'col-xl-6';
                     var chart = $col.find('.chart-holder.main').highcharts();
                     var detail = $col.find('.chart-holder.detail').highcharts();
+                    console.log($col.find('.chart-holder.main').width());
                     if (value) {
-                        $col.removeClass(cls).addClass('expanded');
-                        chart.setSize(null, 640, false);
-                        if (detail) {
-                            detail.setSize(null, 500, false);
-                        }
+                        $col.addClass('expanded fullscreen p-1');
                     }
                     else {
-                        $col.addClass(cls).removeClass('expanded');
-                        chart.setSize(null, CIHPC.chartSize(), false);
-                        if (detail) {
-                            detail.setSize(null, 250, false);
-                        }
+                        $col.removeClass('expanded fullscreen p-1');
+                    }
+                    console.log($col.find('.chart-holder.main').width());
+                    chart.reflow();
+                    if (detail) {
+                        detail.reflow();
+                    }
+                    console.log($col.find('.chart-holder.main').width());
+                    chart.reflow();
+                    if (detail) {
+                        detail.reflow();
                     }
                 });
                 $('.sparkline-fullscreen').click(function (e) {

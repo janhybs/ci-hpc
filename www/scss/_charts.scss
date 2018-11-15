@@ -1,0 +1,150 @@
+// main: main.scss
+
+.expanded g.highcharts-tooltip .highcharts-label.highcharts-tooltip-box:first-child,
+.expanded .highcharts-tooltip .highcharts-label:first-child {
+  visibility: hidden !important;
+}
+
+.card {
+  border: none;
+  -webkit-box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 25px 0 rgba(0, 0, 0, 0.15);
+  margin-bottom: 30px;
+  
+  &.sparkline .card-body {
+    padding: 10px 5px;
+  }
+}
+
+
+.cihpc-content, .cihpc-content[data-mode="medium"] {
+  .row > .spark-holder {
+    -ms-flex: 0 0 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
+    position: relative;
+    width: 100%;
+    min-height: 1px;
+    padding-right: 15px;
+    padding-left: 15px;
+    
+    .card-head {
+      flex-wrap: nowrap;
+      
+      dl {
+        width: 100%;
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+      }
+      dt, dd {
+        padding: 0;
+        margin: -3px 0;
+        float: left;
+        font-size: .75rem;
+      }
+      dt {
+        min-width: 100px;
+      }
+      dd {
+        font-family: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+        width: calc(100% - 100px);
+      }
+    }
+    
+    .detail {
+      display: none;
+    }
+    &.has-detail {
+      .detail {
+        display: block;
+      }
+    }
+    &.expanded {
+      &> .card {
+        height: 100%;
+      }
+      &> .card > .card-body {
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+      }
+      & > .card > .card-body > .main {
+        width: 100%;
+        height: 100%;
+      }
+      & > .card > .card-body > .detail {
+        width: 0;
+        height: 100%;
+      }
+      &.has-detail > .card > .card-body > .main {
+        max-width: 60%;
+        overflow: hidden;
+        height: 100%;
+        flex: 60 0 auto;
+      }
+      &.has-detail > .card > .card-body > .detail {
+        max-width: 40%;
+        float: right;
+        overflow: hidden;
+        height: 100%;
+        flex: 40 0 auto;
+      }
+    }
+  }
+  .card > .card-body {
+    &> .main {
+      height: $chartHeightMedium;
+    }
+    &> .detail {
+      height: $chartDetailHeightMedium;
+    }
+  }
+}
+
+.cihpc-content[data-mode="large"] {
+  .row > .spark-holder {
+    -ms-flex: 0 0 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .card > .card-body {
+    &> .main {
+      height: $chartHeightLarge;
+    }
+    &> .detail {
+      height: $chartDetailHeightLarge;
+    }
+  }
+}
+
+.cihpc-content[data-mode="small"] {
+  .row > .spark-holder {
+    -ms-flex: 0 0 33.33%;
+    flex: 0 0 33.33%;
+    max-width: 33.33%;
+    padding-right: 0;
+    padding-left: 0;
+    
+    &:nth-child(3n+2) .card {
+      border: 1px solid fade_out(#000, 0.8);
+      border-width: 0 1px 0 1px;
+    }
+    .card {
+      margin-bottom: 0;
+      box-shadow: none;
+      border-radius: 0;
+    }
+  }
+  
+  
+  .card > .card-body {
+    &> .main {
+      height: $chartHeightSmall
+    }
+    &> .detail {
+      height: $chartDetailHeightSmall;
+    }
+  }
+}

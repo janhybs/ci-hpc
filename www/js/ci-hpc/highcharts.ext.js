@@ -12,7 +12,7 @@ Highcharts.SparkMedium = function(a, b, c) {
         borderWidth: 0,
         type: 'area',
         width: null,
-        height: 340,
+        height: null,
         zoomType: 'xy',
         style: {
           overflow: 'visible'
@@ -190,7 +190,7 @@ Highcharts.SparkBar = function(a, b, c) {
         borderWidth: 0,
         type: 'bar',
         width: null,
-        height: 640,
+        height: null,
         zoomType: 'xy',
         style: {
           overflow: 'visible'
