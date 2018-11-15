@@ -298,10 +298,12 @@ class SparklineView(Resource):
                     db_find_fields,
                 )
             )
-            data_frame = data_frame.sort_values(by=self.config.fields.git.datetime.name, ascending=False).reset_index(drop=True)
 
             if data_frame.empty:
                 return self.error_empty_df(db_find_filters)
+
+            sort_field = self.config.fields.git.datetime.name
+            data_frame = data_frame.sort_values(by=sort_field, ascending=False).reset_index(drop=True)
 
             self.config.fields.apply_to_df(data_frame)
             data_frame[':merged:'] = 'g(?)'
@@ -360,7 +362,8 @@ class SparklineView(Resource):
 
         charts = list()
         for group_values, group_keys, group_names, group_data in self.groupby(data_frame, chart_options.groupby):
-            group_title = du.join_lists(group_names, group_values, '{} = <b>{}</b>', '<br />')
+            group_title = du.join_lists(group_names, group_values, '<dt>{}</dt><dd>{}</dd>', '')
+            group_title = '<dl>%s</dl>' % group_title
 
             series = list()
             extra = dict(size=list())

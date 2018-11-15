@@ -48,6 +48,7 @@ def main():
     from visualisation.www.rest.sparkline_view import SparklineView
     from visualisation.www.rest.frame_view import FrameView
     from visualisation.www.rest.config_view import ConfigView
+    from visualisation.www.rest.commit_history_view import CommitHistoryView
     from flask import redirect
     api, app = init_flask_server()
 
@@ -69,6 +70,10 @@ def main():
         '/<string:project>/config',
     )
 
+    api.add_resource(
+        CommitHistoryView,
+        '/<string:project>/commit-history',
+    )
 
     @app.route('/')
     def hello_world():
