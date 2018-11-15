@@ -8,8 +8,8 @@ from structures.project_step_git import ProjectStepGit
 from structures.project_step_container import ProjectStepContainer
 from structures.project_step_collect import ProjectStepCollect
 from structures.project_step_parallel import ProjectStepParallel
+from structures.project_step_repeat import ProjectStepRepeat
 from utils.glob import global_configuration
-from utils.parallels import determine_cpus
 
 
 class ProjectStep(object):
@@ -22,6 +22,7 @@ class ProjectStep(object):
     :type enabled:          bool
     :type verbose:          bool
     :type container:        ProjectStepContainer
+    :type smart_repeat:     ProjectStepRepeat
     :type repeat:           int
     :type shell:            str
     :type output:           str
@@ -39,7 +40,7 @@ class ProjectStep(object):
         self.enabled = kwargs.get('enabled', True)
         self.verbose = pick(kwargs, False, 'verbose', 'debug')
         self.container = structures_init.new(kwargs, 'container', ProjectStepContainer)
-        self.repeat = kwargs.get('repeat', 1)
+        self.smart_repeat = ProjectStepRepeat(kwargs.get('repeat', 1))
         self.shell = kwargs.get('shell', None)
         self.parallel = ProjectStepParallel(**kwargs.get('parallel', dict()))
 
@@ -62,6 +63,15 @@ class ProjectStep(object):
         # save raw configuration
         self.raw_config = kwargs
 
+        # if git repos were set, the first one is taken as
+        # a project main git repository
+        if self.git:
+            global_configuration.project_repo = self.git[0].repo
+
     @property
     def ord_name(self):
         return '%d.%s' % (self.section.steps.index(self) + 1, self.name)
+
+    @property
+    def repeat(self):
+        return self.smart_repeat.value

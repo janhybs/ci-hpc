@@ -45,8 +45,8 @@ class Mongo(object):
         logger.debug('establishing connection to the database')
         self.client = MongoClient(**opts)
 
-        logger.debug('Connection established %s', str(self.client))
-        logger.info('Connected to the mongo server %s', str(self))
+        logger.debug('connection established %s', str(self.client))
+        logger.info('connected to the mongo server %s', str(self))
 
     def _warn_first_time(self, warning):
         result = self._was_warned.get(warning) is False
@@ -215,8 +215,10 @@ class CIHPCMongo(Mongo):
 
         return items
 
-    def commit_history(self):
-        return list(self.history.find())
+    def commit_history(self, filters=None, excludes=('config',)):
+        exclude = {x: 0 for x in excludes} if excludes else None
+
+        return list(self.history.find(filters, exclude))
 
     def timers_stats(self):
         pipeline = [

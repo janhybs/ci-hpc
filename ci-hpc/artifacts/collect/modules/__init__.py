@@ -11,6 +11,7 @@ from artifacts.db.mongo import CIHPCMongo
 from utils import datautils, strings
 from utils.datautils import dotdict
 from utils.logging import logger
+from utils.glob import global_configuration
 
 
 class ICollectTool(object):
@@ -188,6 +189,82 @@ def parse_output(out, line=None):
 
 
 class CIHPCReportGit(dict):
+
+    instances = dict()
+
+    @staticmethod
+    def create(repo: str):
+        """
+        will try to determine branch/commit
+
+        Parameters
+        ----------
+        repo : str
+            a path to a dir or file located within git repository
+        Returns
+        -------
+        CIHPCReportGit
+        """
+
+        root = repo
+        if os.path.isfile(repo):
+            root = os.path.dirname(repo)
+
+        repo_name = parse_output(
+            check_output('basename `git rev-parse --show-toplevel`', shell=True, cwd=root)
+        )
+        try:
+            branch = parse_output(
+                check_output('git symbolic-ref --short -q HEAD', shell=True, cwd=root)
+            )
+        except Exception as e:
+            branch = 'HEAD'
+
+        commit = parse_output(
+            check_output('git rev-parse HEAD', shell=True, cwd=root)
+        )
+        timestamp = int(parse_output(
+            check_output('git show -s --format=%%ct %s' % commit, shell=True, cwd=root)
+        ))
+        logger.info('current git index of *%s* is at:\n'
+                    'commit=%s, branch=%s', repo, commit, branch)
+
+        git = CIHPCReportGit()
+        git.update(
+            dict(
+                name=repo_name,
+                branch=branch,
+                commit=commit,
+                timestamp=timestamp,
+                datetime=datetime.datetime.fromtimestamp(float(timestamp)),
+            )
+        )
+        return git
+
+    @classmethod
+    def current_commit(cls):
+        if global_configuration.project_repo:
+            return cls.get(global_configuration.project_repo).commit
+        return None
+
+    @classmethod
+    def get(cls, repo):
+        """
+        :rtype: CIHPCReportGit
+        :return: CIHPCReportGit
+        """
+        if not repo:
+            raise ValueError('Expected a valid repository value')
+
+        # assuming we are in a <workdir>
+        if repo not in cls.instances:
+            cls.instances[repo] = cls.create(repo)
+        return cls.instances[repo]
+
+    @classmethod
+    def has(cls, repo: str):
+        return repo in cls.instances
+
     def __init__(self):
         super(CIHPCReportGit, self).__init__()
         self.update(
@@ -285,9 +362,13 @@ class CIHPCReport(dotdict):
             return
 
         if path_to_repo:
-            cls.global_git = git_info(path_to_repo)
-        cls.global_system = system_info()
+            cls.global_git = CIHPCReportGit.get(path_to_repo)
+        elif global_configuration.project_repo:
+            cls.global_git = CIHPCReportGit.get(global_configuration.project_repo)
+        else:
+            logger.warning('no git repository set')
 
+        cls.global_system = system_info()
         cls.inited = True
 
     def __init__(self):
@@ -392,55 +473,6 @@ class CIHPCReport(dotdict):
 
     def __repr__(self):
         return strings.to_json(self)
-
-
-def git_info(repo):
-    """
-    will try to determine branch/commit
-
-    Parameters
-    ----------
-    repo : str
-        a path to a dir or file located within git repository
-    Returns
-    -------
-    CIHPCReportGit
-    """
-
-    logger.debug('getting git information')
-    root = repo
-    if os.path.isfile(repo):
-        root = os.path.dirname(repo)
-
-    repo_name = parse_output(
-        check_output('basename `git rev-parse --show-toplevel`', shell=True, cwd=root)
-    )
-    try:
-        branch = parse_output(
-            check_output('git symbolic-ref --short -q HEAD', shell=True, cwd=root)
-        )
-    except Exception as e:
-        branch = 'HEAD'
-    
-    commit = parse_output(
-        check_output('git rev-parse HEAD', shell=True, cwd=root)
-    )
-    timestamp = int(parse_output(
-        check_output('git show -s --format=%%ct %s' % commit, shell=True, cwd=root)
-    ))
-    logger.info('current git index at (branch=%s, commit=%s)', branch, commit)
-
-    git = CIHPCReportGit()
-    git.update(
-        dict(
-            name=repo_name,
-            branch=branch,
-            commit=commit,
-            timestamp=timestamp,
-            datetime=datetime.datetime.fromtimestamp(float(timestamp)),
-        )
-    )
-    return git
 
 
 class AbstractCollectModule(object):

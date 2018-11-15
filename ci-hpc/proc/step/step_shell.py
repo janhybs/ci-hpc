@@ -140,7 +140,7 @@ def process_step_shell(project, section, step, vars, shell_processing, indices):
             args=['/bin/bash', tmp_sh.path],
             output=step.output,
             container=step.container,
-            name=step.name if not indices else step.name + ' ' + ','.join(indices),
+            name=step.name if not indices else step.name + '(' + ' '.join(indices) + ')',
             collect=[project, step, None, format_args],
             vars=format_args
         )

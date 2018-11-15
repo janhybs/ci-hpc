@@ -99,7 +99,7 @@ class RelativeDateFormatter(ExtendedFormatter):
     start_time = time.time()
     
     def __init__(self, fmt, datefmt=6):
-        super(RelativeDateFormatter, self).__init__(18, 80, fmt, datefmt)
+        super(RelativeDateFormatter, self).__init__(17, 80, fmt, datefmt)
     
     def format(self, record):
         result = self._fmt

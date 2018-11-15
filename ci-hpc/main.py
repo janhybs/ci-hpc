@@ -12,6 +12,8 @@
 import os
 import sys
 
+from utils.parsing import defaultdict_type
+
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 import argparse
@@ -19,7 +21,6 @@ import time
 import subprocess
 from collections import defaultdict
 
-import utils.strings
 from utils.glob import global_configuration
 
 
@@ -76,6 +77,9 @@ def parse_args():
     parser.add_argument('-v', '--verbosity', default=0, action='count', help='''R|
                             Increases verbosity of the application.
                             ''')
+    parser.add_argument('--tty', default=False, action='store_true', help='''R|
+                            If set, will force tty human readable mode
+                            ''')
     parser.add_argument('step', type=str, nargs='*', default=['install', 'test'])
 
     # parse given arguments
@@ -89,12 +93,24 @@ def main():
     if args.log_path:
         global_configuration.log_path = args.log_path
 
+    # force tty mode if set
+    if args.tty:
+        global_configuration.tty = True
+
+    # -------------------------------------------------------
+
+    import utils.logging
+
+    utils.logging.logger = utils.logging.Logger.init(
+        global_configuration.log_path,
+        global_configuration.tty
+    )
+
     # -------------------------------------------------------
 
     # now import other packages
     import utils.config as cfgutil
     from utils.logging import logger
-    from utils.config import Config as cfg
     from utils.strings import generate_random_key as rands, pad_lines
 
     from proc.project import ProcessProject
@@ -107,6 +123,9 @@ def main():
     __cfg__ = global_configuration.cfg
     __src__ = global_configuration.src
 
+    # all the paths depend on the project name
+    project_name = args.project
+
     # change stream_handler level to info
     logger.set_level('INFO', logger.LOGGER_STREAMHANDLER)
     logger.increase_verbosity(args.verbosity)
@@ -115,16 +134,11 @@ def main():
 
     # convert list ["key:value", "key2:value2", ...] to dict {key:value, key2:value2}
     # default value for this dictionary is string value 'master'
-    args.git_branch = dict(tuple(d.split(':', 1)) for d in args.git_branch)
-    args.git_branch = defaultdict(lambda: 'master', **args.git_branch)
+    args.git_branch = defaultdict_type(args.git_branch, 'master', project_name)
 
     # default value for this dictionary is string value ''
-    args.git_commit = dict(tuple(d.split(':', 1)) for d in args.git_commit)
-    args.git_commit = defaultdict(lambda: '', **args.git_commit)
+    args.git_commit = defaultdict_type(args.git_commit, '', project_name)
 
-    # all the paths depend on the project name
-    project_name = args.project
-    
     # all configuration files are cfg/<project-name> directory if not set otherwise
     project_dir = args.config_dir if args.config_dir else os.path.join(__cfg__, project_name)
     if args.config_dir:
@@ -235,6 +249,10 @@ def main():
     # update cpu count
     variables = cfgutil.load_config(variables_path)
     # variables['cpu-count'] = args.cpu_count
+
+    global_configuration.project_name = project_name
+    global_configuration.project_cfg_dir = project_dir
+    global_configuration.project_cfg = config_path
 
     # load config
     project_config = cfgutil.configure_file(config_path, variables)

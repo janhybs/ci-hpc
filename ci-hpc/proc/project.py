@@ -18,7 +18,7 @@ from structures.project import Project
 
 from proc import merge_dict, iter_over
 from proc.step.step_git import process_step_git
-from proc.step.step_shell import process_step_shell, ShellProcessing, ProcessConfigCrate, ProcessStepResult, process_popen
+from proc.step.step_shell import process_step_shell, ShellProcessing, ProcessConfigCrate, process_popen
 from proc.step.step_collect import process_step_collect
 from proc.step.step_measure import process_step_measure
 from utils.parallels import extract_cpus_from_worker
@@ -63,10 +63,10 @@ class ProcessProject(object):
         timers_total = PoolInt()
 
         def step_on_enter(worker: Worker):
-            logger.info('Executing **%s** with %d cpu' % (worker.crate.name, worker.cpus))
+            logger.info('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
 
         def step_on_exit(worker: Worker):
-            logger.info('Finishing **%s**' % worker.crate.name)
+            logger.info('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
 
             if worker.crate.collect:
                 project, step, _, format_args = worker.crate.collect
@@ -81,17 +81,28 @@ class ProcessProject(object):
             logger.info('removing temp dir %s', tmp_dir)
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
-        for step in section:
+        for step in section.steps:
             processes = list()  # type: list[ProcessConfigCrate]
+
+            if step.smart_repeat.is_complex() and global_configuration.project_repo:
+                from artifacts.collect.modules import CIHPCReportGit
+
+                logger.info('determining how many repetitions to run from the database')
+                with logger:
+                    step.smart_repeat.load_stats(
+                        self.project.name,
+                        step.name,
+                        CIHPCReportGit.current_commit()
+                    )
 
             with logger:
                 for i in range(step.repeat):
-                    logger.debug('Repetition %02d of %02d', i + 1, step.repeat)
+                    logger.debug('repetition %02d of %02d', i + 1, step.repeat)
                     if step.repeat > 1:
                         processes.extend(
                             self.process_step(step, section, indices=['rep-%d-%d' % (i+1, step.repeat)])
                         )
-                    else:
+                    elif step.repeat == 1:
                         processes.extend(
                             self.process_step(step, section, indices=[])
                         )
@@ -102,6 +113,8 @@ class ProcessProject(object):
                 pool.update_cpu_values(extract_cpus_from_worker)
                 pool.thread_event.on_exit.on(step_on_exit)
                 pool.thread_event.on_enter.on(step_on_enter)
+                # pretty status async logging
+                # # pool.log_statuses()
 
                 # run in serial or parallel
                 if step.parallel:
@@ -119,7 +132,7 @@ class ProcessProject(object):
                 # execution for specific commit value, we will now how many results
                 # we have for each step, so we can automatically determine how many
                 # repetition we need in order to have minimum result available
-                if section.name == 'test':
+                if section.name == 'test' and processes and len(processes) > 0:
                     from artifacts.collect.modules import CIHPCReport, CIHPCMongo
 
                     stats = dict()

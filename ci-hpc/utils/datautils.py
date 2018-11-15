@@ -2,15 +2,40 @@
 # author: Jan Hybs
 
 
-import numpy as np
 import collections
 from collections import defaultdict
 
-import pandas as pd
-from scipy import stats as st
 
 olist = lambda x: sorted(list(set(x)))
 set_if_none = lambda x,y: y if x is None else x
+
+
+def recursive_get(d, attr, default=None, sep='.'):
+    """
+    Recursive getter with default dot separation
+    :param d:
+    :param attr:
+    :param default:
+    :param sep:
+    :return:
+    """
+    if not isinstance(attr, str):
+        return default
+    if not isinstance(d, dict) or not dict:
+        return default
+
+    if sep:
+        items = attr.split(sep)
+    else:
+        items = [attr]
+
+    root = d
+    for p in items:
+        if p in root:
+            root = root[p]
+        else:
+            return default
+    return root
 
 
 def filter_rows(data, **rules):
@@ -38,6 +63,8 @@ def flatten(d, parent_key='', sep='-'):
 
 
 def gmean(a):
+    import numpy as np
+
     return np.array(a).prod()**(1.0/len(a))
 
 
@@ -61,6 +88,8 @@ class dotdict(dict):
 
 
 def fillna(df):
+    import pandas as pd
+
     return df.where(pd.notnull(df), None)
 
 
@@ -91,6 +120,9 @@ def join_lists(keys, values, format='{}={}', sep=','):
 
 
 def mean_confidence_interval(data, confidence=0.95, return_intervals=False):
+    import numpy as np
+    from scipy import stats as st
+
     a = 1.0 * np.array(data)
     n = len(a)
     m, se = np.mean(a), st.sem(a)

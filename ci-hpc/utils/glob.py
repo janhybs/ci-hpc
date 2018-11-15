@@ -29,4 +29,8 @@ class global_configuration(object):
     project_cfg_dir = '.'
 
     # clear tmp files if True
-    project_clear_temp = True
+    project_clear_temp = False
+
+    # path to a main repository, from which
+    # git information is taken
+    project_repo = None

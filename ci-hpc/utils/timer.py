@@ -34,10 +34,11 @@ class Timer(object):
 
     @property
     def duration(self):
-        if self.stop_time:
+        if self.stop_time and self.start_time:
             return self.stop_time - self.start_time
-        else:
+        elif self.start_time:
             return time.time() - self.start_time
+        return 0.0
 
     @property
     def micro(self):
