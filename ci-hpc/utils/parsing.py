@@ -49,3 +49,34 @@ def defaultdict_type(items, default_value='', default_name='', separator=':'):
 
     # args.git_branch = dict(tuple(d.split(':', 1)) for d in args.git_branch)
     # args.git_branch = defaultdict(lambda: 'master', **args.git_branch)
+
+
+def convert_project_arguments(namespace, excludes=None):
+    args = vars(namespace)
+    result = list()
+    base_args = ['project', 'git-url', 'config-dir', 'execute', 'timeout', 'check-interval', 'log-path', 'log-style']
+    bool_args = ['verbosity', 'tty']
+    extra_args = ['git-commit', 'git-branch']
+    rest_args = ['step']
+
+    for key, value in args.items():
+        key = key.replace('_', '-')
+
+        if excludes and key in excludes:
+            continue
+
+        if key in base_args and value is not None:
+            result.append('--' + key)
+            result.append(str(value))
+
+        elif key in bool_args and value:
+            result.append('--' + key)
+
+        elif key in extra_args and value:
+            for k,v in value.items():
+                if v:
+                    result.append('--' + key)
+                    result.append('%s:%s' % (str(k), str(v)))
+        elif key in rest_args:
+            result.extend(value)
+    return  result

@@ -12,8 +12,6 @@
 import os
 import sys
 
-from utils.parsing import defaultdict_type
-
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 import argparse
@@ -62,17 +60,20 @@ def parse_args():
                             If set, will generate bash file where it calls itself 
                             once again, but without --generate flag.
                             ''')
-    parser.add_argument('--timeout', '-t', type=int, default=0, help='''R|
+    parser.add_argument('--timeout', '-t', type=int, default=None, help='''R|
                             If --execute is pbs (or any value besides local) will wait for the job to finish.
                             By default there is no timeout. Specify in seconds.
                             ''')
-    parser.add_argument('--check-interval', type=int, default=5, help='''R|
+    parser.add_argument('--check-interval', type=int, default=None, help='''R|
                             If --execute is pbs (or any value besides local) will wait for the job to finish.
                             Interval, in which the script quiries the HPC for the job status.
                             Specify in seconds.
                             ''')
     parser.add_argument('--log-path', type=str, default=None, help='''R|
                             If set, will override standard log file location
+                            ''')
+    parser.add_argument('--log-style', choices=['short', 'long'], default='short', help='''R|
+                            Format style of the logger
                             ''')
     parser.add_argument('-v', '--verbosity', default=0, action='count', help='''R|
                             Increases verbosity of the application.
@@ -93,6 +94,10 @@ def main():
     if args.log_path:
         global_configuration.log_path = args.log_path
 
+    # override log style if set before actually creating logger
+    if args.log_style:
+        global_configuration.log_style = args.log_style
+
     # force tty mode if set
     if args.tty:
         global_configuration.tty = True
@@ -103,6 +108,7 @@ def main():
 
     utils.logging.logger = utils.logging.Logger.init(
         global_configuration.log_path,
+        global_configuration.log_style,
         global_configuration.tty
     )
 
@@ -112,6 +118,9 @@ def main():
     import utils.config as cfgutil
     from utils.logging import logger
     from utils.strings import generate_random_key as rands, pad_lines
+
+    from deamon.service import ArgConstructor, WatchService, CommitBrowser
+    from utils.parsing import defaultdict_type, convert_project_arguments
 
     from proc.project import ProcessProject
     from structures.project import Project
@@ -128,6 +137,7 @@ def main():
 
     # change stream_handler level to info
     logger.set_level('INFO', logger.LOGGER_STREAMHANDLER)
+    logger.set_level('INFO', logger.LOGGER_FILEHANDLER)
     logger.increase_verbosity(args.verbosity)
 
     logger.debug('app args: %s', str(args), skip_format=True)
@@ -171,7 +181,7 @@ def main():
         install_args = [os.path.join(__root__, 'share', 'install.sh')]
         name = 'tmp.entrypoint-%d-%s.sh' % (time.time(), rands(6))
         bash_path = os.path.join(__root__, 'tmp', name)
-        logger.debug('Generating script %s', bash_path)
+        logger.debug('generating script %s', bash_path)
         
         exec_args = [
             sys.executable,
@@ -232,14 +242,14 @@ def main():
         sys.exit(0)
 
     if global_configuration.tty:
-        logger.info('Started ci-hpc in a %s mode',
+        logger.info('started ci-hpc in a %s mode',
                     colorama.Back.BLUE +
                     colorama.Fore.CYAN +
                     colorama.Style.BRIGHT +
                     ' tty '
                     + colorama.Style.RESET_ALL)
     else:
-        logger.info('Started ci-hpc *not* in a tty mode')
+        logger.info('started ci-hpc *not* in a tty mode')
 
     # this file contains only variables which can be used in config.yaml
     variables_path = os.path.join(project_dir, 'variables.yaml')
@@ -276,6 +286,29 @@ def main():
     logger.info('processing project %s, section %s', project_name, args.step)
 
     # -----------------------------------------------------------------
+
+    if 'watch' in args.step:
+        if not global_configuration.project_git:
+            logger.error('no repository provided')
+            exit(0)
+
+        project_commit_format = global_configuration.project_git.commit
+        if not project_commit_format or not str(project_commit_format).strip():
+            logger.error('project repository must be configurable via <arg.commit.foobar> placeholder')
+
+        project_commit_format = str(project_commit_format).strip()
+        if project_commit_format.startswith('<arg.commit.') and project_commit_format.endswith('>'):
+            commit_field = project_commit_format[len('<arg.commit.'):-1]
+            fixed_args = [sys.executable, global_configuration.main_py] \
+                         + convert_project_arguments(args, excludes=['step'])
+
+            args_constructor = ArgConstructor(fixed_args, commit_field)
+            commit_browser = CommitBrowser()
+            service = WatchService(project_name, args_constructor, commit_browser)
+            # service.fork()
+            service.start()
+            # exit tge program just in case fork failed
+            exit(0)
 
     if 'install' in args.step:
         project.process_section(project_definition.install)

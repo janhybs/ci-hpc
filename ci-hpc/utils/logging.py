@@ -6,8 +6,19 @@ import logging
 import sys
 import time
 
-from colorama import Fore, Back, Style
+# from colorama import Fore, Back, Style
 from utils.glob import global_configuration
+
+
+if not global_configuration.tty:
+    class Style:
+        DIM = BRIGHT = RESET_ALL = NORMAL = ''
+    class Fore:
+        CYAN = WHITE = YELLOW = BLUE = GREEN = RED = ''
+    class Back:
+        RED = ''
+else:
+    from colorama import Fore, Back, Style
 
 
 class ColorLevels(object):
@@ -27,9 +38,9 @@ class ColorLevels(object):
 
 
 class ExtendedFormatter(logging.Formatter):
-    simple_fmt = "%(asctime)s %(levelname)+8.8s: %(message)s"
+    simple_fmt = "%(asctime)s %(threadName)+10.10s %(levelname)+4.4s: %(message)s"
 
-    def __init__(self, padding_left=34, max_width=80, fmt=None, dateFmt=None, style='%'):
+    def __init__(self, padding_left=40, max_width=80, fmt=None, dateFmt=None, style='%'):
         self.left_padding = padding_left
         self.max_width = max_width
 
@@ -231,7 +242,7 @@ class Logger(object):
     warning = warn
 
     @classmethod
-    def init(cls, log_path=None, use_tty=None):
+    def init(cls, log_path=None, log_style=None, use_tty=None):
         """
         :rtype: Logger
         """
@@ -240,8 +251,8 @@ class Logger(object):
         file_log = logging.FileHandler(log_path)
         stream_log = logging.StreamHandler(sys.stdout)
         file_formatter = ExtendedFormatter(fmt=ExtendedFormatter.simple_fmt)
-        
-        if sys.stdout.isatty() or use_tty:
+
+        if log_style == 'short':
             stream_formatter = RelativeDateFormatter(''.join([
                     Fore.BLUE + Style.BRIGHT + '>>> ' + Style.RESET_ALL,
                     Style.DIM + '{time} ' + Style.RESET_ALL,
@@ -263,7 +274,7 @@ class Logger(object):
         logger.addHandler(stream_log)
 
         logger = Logger(logger)
-        logger.tty = sys.stdout.isatty() or use_tty
+        logger.tty = getattr(sys.stdout, 'isatty', lambda: False)() or use_tty
         return logger
 
 

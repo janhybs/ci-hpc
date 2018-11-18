@@ -66,7 +66,7 @@ class ProjectStep(object):
         # if git repos were set, the first one is taken as
         # a project main git repository
         if self.git:
-            global_configuration.project_repo = self.git[0].repo
+            global_configuration.project_git = self.git[0]
 
     @property
     def ord_name(self):

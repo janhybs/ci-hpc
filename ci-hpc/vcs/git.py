@@ -1,6 +1,6 @@
 #!/bin/python3
 # author: Jan Hybs
-
+import datetime
 import os
 import sys
 import shutil
@@ -17,9 +17,16 @@ class Git(object):
         self.git = git
         self.dir = os.path.abspath(os.path.join(os.getcwd(), self.git.repo))
         self.execute = create_execute_command(
-            logger_method=logger.debug,
-            stdout=subprocess.DEVNULL,
+            logger_method=getattr(logger, self.git.logging, logger.debug),
+            stdout=None if self.git.stdout is None else getattr(subprocess, self.git.stdout, None),
         )
+        self.execute_check_output = create_execute_command(
+            logger_method=getattr(logger, self.git.logging, logger.debug),
+            stdout=subprocess.PIPE,
+        )
+
+    def fetch(self):
+        self.execute('git fetch', dir=self.dir).wait()
 
     def clone(self):
         if self.git.remove_before_checkout:
@@ -67,3 +74,38 @@ class Git(object):
         logger.debug('Repository currently at:')
         self.execute('git branch -vv', dir=self.dir).wait()
         self.execute('git log -n 10 --graph', '--pretty=format:%h %ar %aN%d %s', dir=self.dir).wait()
+
+    def log(self, limit=50, branch='master'):
+        command = 'git log -n {limit} {format} {branch}'.format(
+            limit=limit,
+            branch=branch,
+            format=Commit.git_log_format
+        )
+        o, e = self.execute_check_output(command, dir=self.dir).communicate(timeout=10)
+        lines = [] if not o else o.decode().splitlines()
+        commits = list()
+        for line in lines:
+            commits.append(Commit(*line.split('|', 7)))
+        return commits
+
+
+class Commit(object):
+    git_log_format = '--format=%H|%h|%an|%ae|%ar|%at|%D|%s'
+
+    def __init__(self, hash, short_hash, author, email, rel_date, timestamp, refs, message):
+        self.hash = hash
+        self.short_hash = short_hash
+        self.author = author
+        self.email = email
+        self.rel_date = rel_date
+        self.timestamp = int(timestamp)
+        self.fs_date = datetime.datetime.fromtimestamp(self.timestamp).strftime('%Y_%m_%d-%H_%M_%S')
+        self.refs = refs.split(', ')
+        self.message = message
+
+    @property
+    def short_format(self):
+        return 'commit({self.short_hash} by {self.author}, {self.rel_date})'.format(self=self)
+
+    def __repr__(self):
+        return 'Commit({self.short_hash} {self.fs_date} by {self.author}, [{self.message}], {self.rel_date})'.format(self=self)

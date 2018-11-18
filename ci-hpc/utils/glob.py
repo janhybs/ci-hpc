@@ -4,6 +4,7 @@
 import os
 import sys
 
+
 __dir__ = os.path.abspath(os.path.dirname(__file__))
 __root__ = os.path.dirname(os.path.dirname(__dir__))
 
@@ -12,13 +13,19 @@ __src__ = os.path.join(__root__, 'ci-hpc')
 
 
 class global_configuration(object):
+    from structures.project_step_git import ProjectStepGit
+
     tty = getattr(sys.stdout, 'isatty', lambda: False)()
     root = __root__
     cfg = __cfg__
     src = __src__
 
-    # default location for the log file
+    # path to the main.py
+    main_py = os.path.join(__src__, 'main.py')
+
+    # default location for the log file abd the format
     log_path = os.path.join(__root__, 'ci-hpc.log')
+    log_style = 'short'
 
     # this file should be PROTECTED, as it may contain passwords and database connection details
     cfg_secret_path = os.path.join(__cfg__, 'secret.yaml')
@@ -33,4 +40,4 @@ class global_configuration(object):
 
     # path to a main repository, from which
     # git information is taken
-    project_repo = None
+    project_git: ProjectStepGit = None

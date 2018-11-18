@@ -34,7 +34,7 @@ class Config(object):
         if not cls._hostname:
             import platform
             cls._hostname = platform.node()
-            logger.info('Determined hostname as "%s"', cls._hostname)
+            logger.info('determined hostname as "%s"', cls._hostname)
         return cls._hostname
 
     @classmethod

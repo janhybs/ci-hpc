@@ -47,9 +47,11 @@ class ProjectStepRepeat(object):
 
         if not items:
             if git_commit:
-                logger.info('no history for the step %s and the commit %s' % (step_name, git_commit))
+                logger.info('no history for the step %s and the commit %s\n'
+                            'will run %d repetitions' % (step_name, git_commit, self.dynamic_value))
             else:
-                logger.info('no history for the step %s' % step_name)
+                logger.info('no history for the step %s\n'
+                            'will run %d repetitions' % (step_name, self.dynamic_value))
 
             # return the minimum values specified
             return self.dynamic_value

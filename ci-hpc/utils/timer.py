@@ -19,7 +19,7 @@ class Timer(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop_time = time.time()
         if self.log:
-            self.log(str(self))
+            self.log(str(self), skip_format=True)
         return False
 
     @staticmethod

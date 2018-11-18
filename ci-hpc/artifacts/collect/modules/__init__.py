@@ -243,8 +243,8 @@ class CIHPCReportGit(dict):
 
     @classmethod
     def current_commit(cls):
-        if global_configuration.project_repo:
-            return cls.get(global_configuration.project_repo).commit
+        if global_configuration.project_git:
+            return cls.get(global_configuration.project_git.repo).commit
         return None
 
     @classmethod
@@ -363,8 +363,8 @@ class CIHPCReport(dotdict):
 
         if path_to_repo:
             cls.global_git = CIHPCReportGit.get(path_to_repo)
-        elif global_configuration.project_repo:
-            cls.global_git = CIHPCReportGit.get(global_configuration.project_repo)
+        elif global_configuration.project_git:
+            cls.global_git = CIHPCReportGit.get(global_configuration.project_git.repo)
         else:
             logger.warning('no git repository set')
 

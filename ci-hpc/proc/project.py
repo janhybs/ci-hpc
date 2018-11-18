@@ -43,7 +43,7 @@ class ProcessProject(object):
         Method will process entire project
         :return:
         """
-        logger.info('processing project %s', self.project.name)
+        logger.info('preparing project %s', self.project.name)
         # remove old configuration
         shutil.rmtree('tmp.%s' % self.project.name, True)
 
@@ -57,7 +57,7 @@ class ProcessProject(object):
         Method will process every step in a section
         :type section:  ProjectSection
         """
-        logger.info('processing section %s', section.name)
+        logger.info('preparing section %s', section.name)
         # define more complex value so it can be accessed
         # in nested method
         timers_total = PoolInt()
@@ -84,7 +84,7 @@ class ProcessProject(object):
         for step in section.steps:
             processes = list()  # type: list[ProcessConfigCrate]
 
-            if step.smart_repeat.is_complex() and global_configuration.project_repo:
+            if step.smart_repeat.is_complex() and global_configuration.project_git:
                 from artifacts.collect.modules import CIHPCReportGit
 
                 logger.info('determining how many repetitions to run from the database')
@@ -96,6 +96,7 @@ class ProcessProject(object):
                     )
 
             with logger:
+                logger.info('preparing step %s with %d repetitions', step.name, step.repeat)
                 for i in range(step.repeat):
                     logger.debug('repetition %02d of %02d', i + 1, step.repeat)
                     if step.repeat > 1:
@@ -218,7 +219,7 @@ class ProcessProject(object):
             logger.debug('step %s is disabled', step.name)
             return
 
-        logger.info('processing step %s (%s)', step.name, indices)
+        logger.debug('processing step %s (%s)', step.name, indices)
 
         if not step.git:
             logger.debug('no repos setup')
@@ -227,7 +228,6 @@ class ProcessProject(object):
 
         if step.variables:
             logger.debug('found %d build matrices', len(step.variables))
-            logger.debug('processing step %s with build matrix', step.name)
 
             len_variables = len(step.variables)
             cur_variables = 0
