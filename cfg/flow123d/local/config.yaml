@@ -1,6 +1,5 @@
 workdir: <flow123d-workdir>
 init-shell: |
-  set -x
   export FLOW123D_HOME=<flow123d-home>
 
 
@@ -8,10 +7,10 @@ install:
   - name: compile-flow123d
     output: stdout
     git:
-      - url: https://github.com/flow123d/bench_data.git
       - url: https://github.com/flow123d/flow123d.git
         commit: <arg.commit.flow123d>   # checkout to this commit
         branch: <arg.branch.flow123d>   # under this branch's name
+      - url: https://github.com/flow123d/bench_data.git
         
     shell: |
       make -C bench_data/benchmarks download
@@ -23,14 +22,21 @@ install:
 
 
 test:
-  - name: benchmarking
-    enabled: true
+  - name: benchmarks
     output: stdout
-    repeat: 3
-    container: docker run --rm -v $(pwd):$(pwd) -w $(pwd) flow123d/flow-libs-dev-dbg:user %s
+    
+    repeat:
+      exactly: 5          # we want to have 5 repetitions by default
+      no-less-than: 5    # but with access to the db, we want to have 15 in total
+    
+    parallell:
+      cpus: all           # we want to use as many cpus as there are on this node
+      prop: <cpu>         # by default each 'worker' will use <cpu> of cpus
+    
+    container: docker run --rm -v $(pwd):$(pwd) -w $(pwd) flow123d/flow-libs-dev-dbg:3.0.0 %s
 
     collect:
-      files: <flow123d-workdir>/bench_data/**/profiler_info*.json
+      files: <flow123d-workdir>/bench_data/**/test_results-<__unique__>/**/profiler_info*.json
       move-to: <flow123d-workdir>/artifacts/<__project__.start.datetime>
       repo: <flow123d-home>
       save-to-db: true
@@ -43,6 +49,7 @@ test:
         strong:     <strong|b>
         cpu:        <cpu|i>
         cl:         local
+        serial:     1
           
     shell: |
       echo "BENCHMARK: <benchmark>, INPUT-DIR: <mesh>, CPU: <cpu>"
@@ -51,23 +58,24 @@ test:
           --cpu <cpu>                        \
           --status-file                      \
           --no-compare                       \
+          --random-output-dir <__unique__>   \
           -a -- --input_dir <mesh>
     
     variables:
       # for testing purposes
       - values:
         - benchmark:  01_square_regular_grid
-        - mesh:       [1_15662_el, 2_31498_el]
-        - weak:       [true, true]
-        - strong:     [false, false]
-        - cpu:        [1, 2]
+        - mesh:       [1_15662_el, 2_31498_el, 2_31498_el, 2_31498_el]
+        - cpu:        [1,          2,          1,          2         ]
+        - weak:       [1,          1,          0,          0         ]
+        - strong:     [0,          0,          1,          1         ]
       
-      - values:
-        - benchmark:  01_square_regular_grid
-        - mesh:       1_15662_el
-        - weak:       true
-        - strong:     false
-        - cpu:        1
+      # - values:
+      #   - benchmark:  01_square_regular_grid
+      #   - mesh:       1_15662_el
+      #   - weak:       true
+      #   - strong:     false
+      #   - cpu:        1
       # ------------------------------------------------------------------------
       
       # # 01_square_regular_grid

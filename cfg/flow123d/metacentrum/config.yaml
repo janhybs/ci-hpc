@@ -17,10 +17,10 @@ install:
   - name: compile-flow123d
     output: stdout
     git:
-      # - url: https://github.com/flow123d/bench_data.git
       - url: https://github.com/flow123d/flow123d.git
         commit: <arg.commit.flow123d>   # checkout to this commit
         branch: <arg.branch.flow123d>   # under this branch's name
+      # - url: https://github.com/flow123d/bench_data.git
 
     shell: |
       make -C bench_data/benchmarks download

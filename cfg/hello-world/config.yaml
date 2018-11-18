@@ -15,8 +15,8 @@ test:
   - name: memory-cache-test
     output: log
     repeat:
-      exactly: 3
-      no-less-than: 30
+      exactly: 5
+      no-less-than: 5
     parallel:
       cpus: 0.51
       prop: <test.cpu>
