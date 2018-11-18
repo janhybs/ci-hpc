@@ -9,6 +9,7 @@ sklearn
 scipy
 maya
 pluck
+python-daemon
 flask
 Flask-Admin
 Flask-Cors
