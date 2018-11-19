@@ -58,22 +58,32 @@ class ProcessProject(object):
         :type section:  ProjectSection
         """
         logger.info('preparing section %s', section.name)
+        process_status_log_type = logger.debug
+        process_collect_log_type = logger.debug
         # define more complex value so it can be accessed
         # in nested method
         timers_total = PoolInt()
 
         def step_on_enter(worker: Worker):
-            logger.info('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
+            process_status_log_type('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
 
         def step_on_exit(worker: Worker):
-            logger.info('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
+            process_status_log_type('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
 
             if worker.crate.collect:
                 project, step, _, format_args = worker.crate.collect
                 process_result = worker.result
-                timers_total.value += process_step_collect(
+                collect_result = process_step_collect(
                     project, step, process_result, format_args
                 )
+                for i in range(len(collect_result.total)):
+                    if collect_result.total[i] > 0:
+                        process_collect_log_type(
+                            'found %d timer(s) in %d file(s)',
+                            collect_result.total[i],
+                            len(collect_result.items[i])
+                        )
+                timers_total.value += sum(collect_result.total)
 
         # clear temp files
         if global_configuration.project_clear_temp:
@@ -109,14 +119,13 @@ class ProcessProject(object):
                         )
             timers_total.value = 0
             with Timer('step execution', log=logger.info) as execution_timer:
-
+                
                 pool = WorkerPool(processes, step.parallel.cpus, process_popen)
                 pool.update_cpu_values(extract_cpus_from_worker)
                 pool.thread_event.on_exit.on(step_on_exit)
                 pool.thread_event.on_enter.on(step_on_enter)
                 # pretty status async logging
-                # # pool.log_statuses()
-
+                pool.log_statuses()
                 # run in serial or parallel
                 if step.parallel:
                     logger.info('%d processes will be now executed in parallel' % len(processes))
@@ -135,6 +144,8 @@ class ProcessProject(object):
                 # repetition we need in order to have minimum result available
                 if section.name == 'test' and processes and len(processes) > 0:
                     from artifacts.collect.modules import CIHPCReport, CIHPCMongo
+                    
+                    logger.info('%d processes finished, found %d documents' % (len(processes), timers_total()))
 
                     stats = dict()
                     stats['git'] = CIHPCReport.global_git.copy()
@@ -145,11 +156,14 @@ class ProcessProject(object):
                     stats['config'] = strings.to_yaml(step.raw_config)
                     stats['duration'] = execution_timer.duration
                     stats['parallel'] = bool(step.parallel)
-                    logger.dump(stats, 'stats')
+                    # logger.dump(stats, 'stats')
 
                     cihpc_mongo = CIHPCMongo.get(self.project.name)
                     insert_result = cihpc_mongo.history.insert_one(stats)
-                    logger.info('DB write acknowledged: %s' % str(insert_result.acknowledged))
+                    logger.debug('DB write acknowledged: %s' % str(insert_result.acknowledged))
+                    if insert_result.acknowledged:
+                        logger.info('saved stat document to build history')
+                    
             except Exception as e:
                 logger.warn_exception(str(e))
 

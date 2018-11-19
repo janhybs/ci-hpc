@@ -7,6 +7,7 @@ import os
 import importlib
 import json
 import yaml
+from collections import namedtuple
 
 from artifacts.collect.modules import CIHPCReport, AbstractCollectModule
 from proc.step.step_collect_parse import process_step_collect_parse
@@ -46,6 +47,7 @@ def process_step_collect(project, step, process_result, format_args=None):
     :type process_result: proc.step.step_shell.ProcessStepResult
     """
     logger.debug('collecting artifacts')
+    result = namedtuple('CollectResult', ['total', 'items'])(total=[], items=[])
 
     module = importlib.import_module(step.collect.module)
     CollectModule = module.CollectModule
@@ -75,29 +77,30 @@ def process_step_collect(project, step, process_result, format_args=None):
         logger.debug('artifacts: found %d reports to process', len(reports))
 
         for report, file in iter_reports(reports, conversion, is_file=False):
-            with logger:
-                try:
-                    collect_result = instance.process(report, file)
-                    timers_total += len(collect_result.items)
-                    timers_info.append((os.path.basename(file), len(collect_result.items)))
-                    results.append(collect_result)
-                except Exception as e:
-                    logger.warning(
-                        'artifact processing failed (parse method) \n'
-                        'module: %s\n'
-                        'report: %s\n'
-                        'file: %s\n', str(CollectModule), str(report), str(file)
-                    )
+            try:
+                collect_result = instance.process(report, file)
+                timers_total += len(collect_result.items)
+                timers_info.append((os.path.basename(file), len(collect_result.items)))
+                results.append(collect_result)
+            except Exception as e:
+                logger.warning(
+                    'artifact processing failed (parse method) \n'
+                    'module: %s\n'
+                    'report: %s\n'
+                    'file: %s\n', str(CollectModule), str(report), str(file)
+                )
                 
-        with logger:
-            for file, timers in timers_info:
-                logger.debug('%20s: %5d timers found', file, timers)
-            logger.info('artifacts: found %d timer(s) in %d file(s)', timers_total, len(reports))
+        for file, timers in timers_info:
+            logger.debug('%20s: %5d timers found', file, timers)
+        logger.debug('artifacts: found %d timer(s) in %d file(s)', timers_total, len(reports))
 
         # insert artifacts into db
         if step.collect.save_to_db:
             instance.save_to_db(results)
-
+    
+    result.total.append(timers_total)
+    result.items.append(timers_info)
+    
     # --------------------------------------------------
 
     results = list()
@@ -110,24 +113,22 @@ def process_step_collect(project, step, process_result, format_args=None):
         logger.debug('artifacts: found %d files to process', len(files))
 
         for report, file in iter_reports(files, conversion, is_file=True):
-            with logger:
-                try:
-                    collect_result = instance.process(report, file)
-                    timers_total += len(collect_result.items)
-                    timers_info.append((os.path.basename(file), len(collect_result.items)))
-                    results.append(collect_result)
-                except Exception as e:
-                    logger.warning(
-                        'artifact processing failed (files method) \n'
-                        'module: %s\n'
-                        'report: %s\n'
-                        'file: %s\n', str(CollectModule), str(report), str(file)
-                    )
+            try:
+                collect_result = instance.process(report, file)
+                timers_total += len(collect_result.items)
+                timers_info.append((os.path.basename(file), len(collect_result.items)))
+                results.append(collect_result)
+            except Exception as e:
+                logger.warning(
+                    'artifact processing failed (files method) \n'
+                    'module: %s\n'
+                    'report: %s\n'
+                    'file: %s\n', str(CollectModule), str(report), str(file)
+                )
 
-        with logger:
-            for file, timers in timers_info:
-                logger.debug('%20s: %5d timers found', file, timers)
-            logger.info('artifacts: found %d timer(s) in %d file(s)', timers_total, len(files))
+        for file, timers in timers_info:
+            logger.debug('%20s: %5d timers found', file, timers)
+        logger.debug('artifacts: found %d timer(s) in %d file(s)', timers_total, len(files))
 
         # insert artifacts into db
         if step.collect.save_to_db:
@@ -158,5 +159,8 @@ def process_step_collect(project, step, process_result, format_args=None):
                     )
                     os.makedirs(move_to, exist_ok=True)
                     os.rename(old_filepath, new_filepath)
+    
+    result.total.append(timers_total)
+    result.items.append(timers_info)
 
-    return timers_total
+    return result

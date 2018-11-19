@@ -43,7 +43,15 @@ class ProjectStep(object):
         self.smart_repeat = ProjectStepRepeat(kwargs.get('repeat', 1))
         self.shell = kwargs.get('shell', None)
         self.parallel = ProjectStepParallel(**kwargs.get('parallel', dict()))
-
+        
+        # available choices are 
+        #   stdout      - live output to the stdout
+        #   log         - redirects to the log file
+        #   log+stdout  - redirect output to temp file, and after the subprocess
+        #                 has ended, print out to stdout and append to file
+        #   stdout+log  - same as above
+        #   null        - redirects to /dev/null, note that in config.yaml
+        #                 the value must be 'null' instead of null
         self.output = kwargs.get(
             'output',
             'stdout' if global_configuration.tty else 'log+stdout'

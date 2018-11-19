@@ -6,6 +6,16 @@ import logging
 import sys
 import time
 
+import locale
+if locale.getpreferredencoding().upper() != 'UTF-8':
+    locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
+
+if str(getattr(sys.stdout, 'encoding', '')).upper() != 'UTF-8':
+    print('stdout encoding is not UTF-8, you should prepand\n'
+          'start command with:\n'
+          '  PYTHONIOENCODING=utf-8 python3 <your-command-here>')
+    sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
+
 # from colorama import Fore, Back, Style
 from utils.glob import global_configuration
 
@@ -248,7 +258,7 @@ class Logger(object):
         """
         logger = logging.getLogger('root')
 
-        file_log = logging.FileHandler(log_path)
+        file_log = logging.FileHandler(log_path, encoding='utf-8')
         stream_log = logging.StreamHandler(sys.stdout)
         file_formatter = ExtendedFormatter(fmt=ExtendedFormatter.simple_fmt)
 

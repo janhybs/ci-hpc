@@ -69,7 +69,8 @@ class WorkerPool(object):
         self.semaphore = ComplexSemaphore(self.processes)
         self.thread_event = EnterExitEvent('thread')
         self.threads = list()
-
+        
+        logger.info('process limit set to %d' % self.processes)
         for item in items:
             self.threads.append(
                 Worker(
@@ -104,12 +105,12 @@ class WorkerPool(object):
 
         return self.result
 
-    def _print_statuses(self, simple_format=True):
+    def _print_statuses(self, format='simple'):
         status_getter = lambda x: x[1]
         statuses = pluck(self.threads, 'crate.name', 'status', 'cpus', 'timer')
         sorted_statuses = sorted(statuses, key=status_getter)
 
-        if simple_format:
+        if format == 'simple':
             msg = 'Worker statuses:\n'
             msgs = list()
             for key, group in itertools.groupby(sorted_statuses, key=status_getter):
@@ -118,26 +119,47 @@ class WorkerPool(object):
                     msgs.append('  %2d x %s %s' % (len(grp), key.name, [x[0] for x in grp]))
                 else:
                     msgs.append('  %2d x %s' % (len(grp), key.name))
-            logger.info(msg + '\n'.join(msgs))
-        else:
+            logger.info(msg + '\n'.join(msgs), skip_format=True)
+        elif format == 'complex':
+            msg = 'Worker statuses:\n'
+            msgs = list()
             for key, group in itertools.groupby(sorted_statuses, key=status_getter):
-                print('%s:' % key.name)
+                msgs.append('%s:' % key.name)
                 for name, status, cpus, timer in group:
                     if timer.duration > 0.0:
-                        print(' - %dx %s [%1.3f sec]' % (cpus, name, timer.duration))
+                        msgs.append(' - %dx %s [%1.3f sec]' % (cpus, name, timer.duration))
                     else:
-                        print(' - %dx %s ' % (cpus, name))
+                        msgs.append(' - %dx %s' % (cpus, name))
+            logger.info(msg + '\n'.join(msgs), skip_format=True)
+        elif format == 'oneline':
+            statuses = sorted([x[0] for x in pluck(self.threads, 'status.name')])
+            msg = ''.join(statuses).upper().replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
+            logger.info(' - ' + msg, skip_format=True)
 
-    def log_statuses(self, log_period=5.0, update_period=0.9, simple_format=True):
+    def log_statuses(self, log_period=None, update_period=0.9, format=None):
+        if format is None:
+            if len(self.threads) > 20:
+                format = 'oneline'
+            elif len(self.threads) > 5:
+                format = 'simple'
+            else:
+                format = 'complex'
+        
+        if log_period is None:
+            if format == 'oneline':
+                log_period = 1.0
+            else:
+                log_period = 5.0
+        
         def target():
-            finished = False
             last_print = 0
-            while not finished:
+            while True:
                 if (time.time() - last_print) > log_period:
-                    self._print_statuses(simple_format)
+                    self._print_statuses(format)
                     last_print = time.time()
 
-                finished = set(pluck(self.threads, 'status')) == {WorkerStatus.FINISHED}
+                if set(pluck(self.threads, 'status')) == {WorkerStatus.FINISHED} or not self.threads:
+                    break
                 time.sleep(update_period)
 
         thread = threading.Thread(target=target)

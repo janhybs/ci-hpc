@@ -77,6 +77,13 @@ class DynamicIO(object):
     if no location is passed, returns None
     :type fp: typing.TextIO
     """
+    
+    # stdout      - live output to the stdout
+    # log         - redirects to the log file
+    # log+stdout  - redirect output to temp file, and after the subprocess
+    #                 has ended, print out to stdout and append to file
+    # stdout+log  - same as above
+    # null        - redirects to /dev/null
     TYPES = {
         'stdout': OpenerStdout,
         'log': OpenerLog,

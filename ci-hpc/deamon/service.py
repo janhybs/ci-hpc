@@ -44,7 +44,7 @@ class CommitBrowser(object):
 
     def load_commits(self):
         # fetch the latest changes
-        self.git.fetch()
+        self.git.checkout()
         # git log the commits
         self.all_commits = self.git.log(self.limit)
 
