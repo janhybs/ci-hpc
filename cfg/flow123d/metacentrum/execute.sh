@@ -47,7 +47,7 @@ module list -t
 set -x
 
 # the following line will be replaced later on
-<ci-hpc-install>
+# <ci-hpc-install>
 
 # the following line will be replaced later on
 /usr/bin/time <ci-hpc-exec>

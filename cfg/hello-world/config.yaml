@@ -3,9 +3,9 @@ init-shell: !sh sh/init.sh
   
 install:
   - name: compilation-phase
-    output: stdout+log
+    output: stdout
     git:
-    - url: git@github.com:janhybs/bench-stat.git
+    - url: https://github.com/janhybs/bench-stat.git
       commit: <arg.commit.hello-world> # checkout to this commit
       branch: <arg.branch.hello-world> # under this branch's name
       
@@ -13,13 +13,15 @@ install:
 
 test:
   - name: memory-cache-test
-    output: log
+    output: 'null'
     repeat:
-      exactly: 5
-      no-less-than: 5
+      exactly: 20
+      no-less-than: 20
+      
     parallel:
       cpus: 0.51
       prop: <test.cpu>
+      
     variables:
       - matrix:
         - test:
@@ -44,6 +46,7 @@ test:
       cut-prefix: null
       save-to-db: true
       extra:
+        parallel:   15
         metric:     foobar      # additional property of the test you want to save
         test-id:    <test.id|i> # accessing current test
         test-name:  <test.name> # accessing current build matric data
