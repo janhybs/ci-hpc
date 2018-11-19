@@ -10,6 +10,7 @@ scipy
 maya
 pluck
 python-daemon
+python-dateutil
 flask
 Flask-Admin
 Flask-Cors
