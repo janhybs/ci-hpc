@@ -5,16 +5,17 @@
 import logging
 import sys
 import time
-
 import locale
+
 if locale.getpreferredencoding().upper() != 'UTF-8':
     locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
 
 if str(getattr(sys.stdout, 'encoding', '')).upper() != 'UTF-8':
-    print('stdout encoding is not UTF-8, you should prepand\n'
-          'start command with:\n'
-          '  PYTHONIOENCODING=utf-8 python3 <your-command-here>')
+    # print('stdout encoding is not UTF-8, you should prepand\n'
+    #       'start command with:\n'
+    #       '  PYTHONIOENCODING=utf-8 python3 <your-command-here>')
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
+
 
 # from colorama import Fore, Back, Style
 from utils.glob import global_configuration

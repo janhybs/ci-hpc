@@ -25,15 +25,15 @@ class ArgConstructor(object):
         return self.fixed_args.copy() + self.commit_lambda(commit)
 
 
-class PickPolicy(enum.Enum):
+class CommitPolicy(enum.Enum):
     EVERY_COMMIT = 'every-commit'
-    LAST_COMMIT_OF_THE_DAY = 'last-commit'
+    COMMIT_PER_DAY = 'commit-per-day'
 
 
 class CommitBrowser(object):
-    def __init__(self, limit=3, pick_policy=PickPolicy.EVERY_COMMIT):
-        self.limit = limit
-        self.pick_policy = pick_policy
+    def __init__(self, limit=None, commit_policy=None):
+        self.limit = limit or 3
+        self.commit_policy = CommitPolicy(commit_policy) if commit_policy else CommitPolicy.EVERY_COMMIT
         self.git = Git(ProjectStepGit(
             url=global_configuration.project_git.url,
             stdout=None,
@@ -64,8 +64,8 @@ class CommitBrowser(object):
             msg = '- commits on %s\n' % key.replace('_', '-')
             picked = False
             for commit in group:
-                if self.pick_policy is PickPolicy.EVERY_COMMIT \
-                        or (self.pick_policy is PickPolicy.LAST_COMMIT_OF_THE_DAY and not picked):
+                if self.commit_policy is CommitPolicy.EVERY_COMMIT \
+                        or (self.commit_policy is CommitPolicy.COMMIT_PER_DAY and not picked):
                     picked = True
                     self.commits.append(commit)
                     msg += '   + %s\n' % commit
