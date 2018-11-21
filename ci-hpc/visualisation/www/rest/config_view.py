@@ -2,7 +2,7 @@
 # author: Jan Hybs
 
 from flask_restful import Resource
-from visualisation.www.plot.cfg.project_config import ProjectConfig
+from visualisation.cfg.project_config import ProjectConfig
 
 
 class ConfigView(Resource):

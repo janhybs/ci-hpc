@@ -7,22 +7,20 @@ import base64
 import itertools
 import json
 
-import time
-
 from bson import objectid
-from flask_restful import Resource
 from artifacts.db.mongo import CIHPCMongo
 
 import pandas as pd
 import numpy as np
-import seaborn as sns
 
+from caching import cached
 from utils import strings
-from utils.datautils import ensure_iterable, dotdict, dropzero, fillna
+from utils import datautils as du
 from utils.logging import logger
 from utils.timer import Timer
-from visualisation.www.plot.cfg.project_config import ProjectConfig, ViewMode
-from visualisation.www.plot.highcharts import highcharts_sparkline_in_time
+
+from visualisation.cfg.project_config import ProjectConfig
+from visualisation.www.rest import ConfigurableView
 
 
 def str2bool(v):
@@ -45,254 +43,169 @@ parser.add_argument('-f', '--ff', action='append', default=[], dest='filters')
 parser.add_argument('-g', '--gg', action='append', default=[], dest='groups')
 
 
-
-
-
-class FrameView(Resource):
+class FrameView(ConfigurableView):
     """
     a view which returns a list of chart configuration with data when called
     if no data matches the query, dict is returned with keys 'error' and 'description'
     """
 
-    def _process_list_args(self, value):
-        result = dict([tuple(v.split('=')) for v in value])
-        for k, v in result.items():
-            if v.lower() == 'true':
-                result[k] = True
-            elif v.lower() == 'false':
-                result[k] = False
-            else:
-                try:
-                    result[k] = int(v)
-                except:
-                    result[k] = v
-        return result
-
-    def _delete_from_dict(self, obj, *values):
-        return {k: v for k, v in obj.items() if v not in values}
-
-    def _join_dict(self, obj, format='{}={}', sep=','):
-        return sep.join([format.format(k, v) for k,v in obj.items()])
-
-    def _join_lists(self, keys, values, format='{}={}', sep=','):
-        keys = ensure_iterable(keys)
-        values = ensure_iterable(values)
-        return sep.join([format.format(keys[i], values[i]) for i in range(len(keys))])
-
-    def _split_groups_and_colors(self, config, options):
-        """
-        Determine which properties will cause separation into individual charts
-        and which will cause new 'line' to appear within the same chart
-
-        Parameters
-        ----------
-        config : ProjectConfig
-        options : dict
-        """
-        group_map = {v: k for k, v in config.test_view.groupby.items()}
-        possible_groups = config.test_view.groupby.values()
-        wanted_groups = options['groups']
-
-        final_groups = [x for x in possible_groups if wanted_groups.get(x, False)]
-        final_groups_names = [group_map[x] for x in final_groups]
-        final_colors = list(set(possible_groups) - set(final_groups))
-        final_colors_names = [group_map[x] for x in final_colors]
-
-        return final_groups, final_groups_names, final_colors, final_colors_names
-
-    def _filter_keys(self, d, required=None, forbidden=None):
-        if required:
-            d = {k: v for k,v in d.items() if v in required}
-        if forbidden:
-            d = {k: v for k, v in d.items() if v not in forbidden}
-        return d
-
-    def _filter_values(self, d, required=None, forbidden=None):
-        if required:
-            d = {k: v for k,v in d.items() if k in required}
-        if forbidden:
-            d = {k: v for k, v in d.items() if k not in forbidden}
-        return d
-
-    def error_empty_df(self, filters):
-        logger.info('empty result')
-        return dict(
-            status=404,
-            error='No results found',
-            description='\n'.join([
-                '<p>This usually means provided filters filtered out everything.</p>',
-                '<p>DEBUG: The following filters were applied:</p>',
-                '<pre><code>%s</code></pre>' % strings.to_json(filters)
-
-            ])
-        )
-
-    def groupby(self, df, groupby):
-        """
-
-        :rtype: list[(list[str], list[str], list[str], pd.DataFrame)]
-        """
-        if not groupby:
-            yield ('', '', '', df)
-        else:
-
-            keys = ensure_iterable(list(groupby.keys()))
-            names = ensure_iterable(list(groupby.values()))
-
-            for group_values, group_data in df.groupby(keys):
-                yield (ensure_iterable(group_values), ensure_iterable(keys), ensure_iterable(names), group_data)
-
     @Timer.decorate('Frameview: get', logger.info)
     def get(self, project, base64data=''):
-        if base64data:
-            options = json.loads(
-                base64.decodebytes(base64data.encode()).decode()
+        return frame_view(project, base64data)
+
+
+# cache the charts
+@cached()
+def frame_view(project, base64data=''):
+    if base64data:
+        options = json.loads(
+            base64.decodebytes(base64data.encode()).decode()
+        )
+    else:
+        options = dict()
+
+    print(
+        strings.to_json(options)
+    )
+
+    config = ProjectConfig.get(project)
+    _ids = [objectid.ObjectId(x) for y in options['_ids'] for x in y]
+
+    field_set = config.fields.required_fields()
+    filter_dict = options['filters']
+
+    projection_list = set(filter_dict.keys()) | field_set
+    projection_list.add(config.frame_view.unwind)
+    db_find_fields = dict(zip(projection_list, itertools.repeat(1)))
+
+    # add _ids to selector
+    db_find_filters = du.filter_keys(
+        filter_dict,
+        forbidden=("", None, "*")
+    )
+    db_find_filters['_id'] = {'$in': _ids}
+
+    with Timer('db find & apply', log=logger.debug):
+        mongo = CIHPCMongo.get(project)
+        data_frame = pd.DataFrame(
+            mongo.aggregate(
+                match=db_find_filters,
+                project=db_find_fields,
+                unwind='$%s' % config.frame_view.unwind
             )
-        else:
-            options = dict()
-
-        print(
-            strings.to_json(options)
         )
 
-        config = ProjectConfig.get(project)
-        _ids = [objectid.ObjectId(x) for y in options['_ids'] for x in y]
+        if data_frame.empty:
+            return FrameView.error_empty_df(db_find_filters)
 
-        field_set = config.fields.required_fields()
-        filter_dict = options['filters']
+        config.fields.apply_to_df(data_frame)
 
-        projection_list = set(filter_dict.keys()) | field_set
-        projection_list.add(config.frame_view.unwind)
-        db_find_fields = dict(zip(projection_list, itertools.repeat(1)))
+    chart_options = du.dotdict(
+        y=config.frame_view.fields.timers.duration.name,
+        x=config.frame_view.fields.timers.name.name,
+        n=config.frame_view.fields.timers.path.name,
+        groupby={},
+        colorby=config.frame_view.groupby,
+    )
+    if not config.frame_view.fields.timers.path:
+        data_frame[config.frame_view.fields.timers.path.name] = config.frame_view.fields.timers.name.name
 
-        # add _ids to selector
-        db_find_filters = self._filter_keys(
-            filter_dict,
-            forbidden=("", None, "*")
-        )
-        db_find_filters['_id'] = {'$in': _ids}
+    print(chart_options)
 
+    charts = list()
+    for group_values, group_keys, group_names, group_data in FrameView.group_by(data_frame, chart_options.groupby):
+        group_title = du.join_lists(group_names, group_values,'{} = <b>{}</b>', '<br />')
+        group_title = du.join_lists(group_names, group_values,'{} = <b>{}</b>', '<br />')
 
-        with Timer('db find & apply', log=logger.debug):
-            mongo = CIHPCMongo.get(project)
-            data_frame = pd.DataFrame(
-                mongo.aggregate(
-                    match=db_find_filters,
-                    project=db_find_fields,
-                    unwind='$%s' % config.frame_view.unwind
+        series = list()
+        colors_iter = iter(config.color_palette.copy() * 5)
+        for color_values, color_keys, color_names, color_data in FrameView.group_by(group_data, chart_options.colorby):
+            color_title = du.join_lists(color_names, color_values, '{} = {}', ', ')
+            color = next(colors_iter)
+
+            print(color_title)
+
+            with Timer('agg ' + color_title, log=logger.info):
+                # color_data = color_data.groupby(chart_options.x).agg({
+                #     chart_options.y: 'mean',
+                #     chart_options.n: 'first'
+                # }).sort_values(by=chart_options.y, ascending=False).head(50)
+
+                small_values = color_data[color_data[chart_options.y] < 0.5]
+                color_data = color_data[color_data[chart_options.y] >= 0.5]
+
+                small_values_grouped = small_values.groupby(chart_options.x).agg({
+                    chart_options.y: 'mean',
+                }).sum()
+
+                color_data = color_data.append({
+                    chart_options.y: small_values_grouped[chart_options.y],
+                    chart_options.x: 'values &lt; 0.5',
+                    chart_options.n: 'sum of the means of the values lesser than 0.5 sec',
+
+                }, ignore_index=True)
+
+                color_data_grouped = color_data.groupby(chart_options.x).agg({
+                    chart_options.y: {
+                        '25%': lambda x: np.percentile(x, 25),
+                        '75%': lambda x: np.percentile(x, 75),
+                    },
+                    chart_options.n: 'first',
+                }).reset_index()
+
+                print(color_data_grouped)
+
+                columnrange = pd.DataFrame()
+                columnrange['y'] = list(color_data_grouped[chart_options.x])
+                columnrange['n'] = list(color_data_grouped[chart_options.n]['first'])
+                columnrange['low'] = list(color_data_grouped[chart_options.y]['25%'])
+                columnrange['high'] = list(color_data_grouped[chart_options.y]['75%'])
+                columnrange = columnrange.sort_values(by='high', ascending=False).reset_index(drop=True)
+
+                a, b = list(columnrange['y']), list(columnrange['n'])
+                columnrange.drop(columns=['n'], inplace=True)
+
+                series.append(dict(
+                    type='columnrange',
+                    extra={
+                        'path': dict(zip(a, b))
+                    },
+                    data=du.dropzero(du.fillna(columnrange.round(3))),
+                    name='Q1-Q3 (%s)' % color_title,
+                    color=color(0.7)),
                 )
-            )
 
-            if data_frame.empty:
-                return self.error_empty_df(db_find_filters)
+                color_data = color_data.reset_index()
+                scatter = pd.DataFrame()
+                scatter['y'] = list(color_data[chart_options.x])
+                scatter['x'] = list(color_data[chart_options.y])
+                scatter['n'] = list(color_data[chart_options.n])
+                scatter = scatter.sort_values(by='x', ascending=False).reset_index(drop=True)
 
-            config.fields.apply_to_df(data_frame)
+                a, b = list(scatter['y']), list(scatter['n'])
 
-
-        chart_options = dotdict(
-            y=config.frame_view.fields.timers.duration.name,
-            x=config.frame_view.fields.timers.name.name,
-            n=config.frame_view.fields.timers.path.name,
-            groupby={},
-            colorby=config.frame_view.groupby,
-        )
-
-        print(chart_options)
-
-        charts = list()
-        for group_values, group_keys, group_names, group_data in self.groupby(data_frame, chart_options.groupby):
-            group_title = self._join_lists(group_names, group_values,'{} = <b>{}</b>', '<br />')
-
-            series = list()
-            colors_iter = iter(config.color_palette.copy() * 5)
-            for color_values, color_keys, color_names, color_data in self.groupby(group_data, chart_options.colorby):
-                color_title = self._join_lists(color_names, color_values, '{} = {}', ', ')
-                color = next(colors_iter)
-
-                print(color_title)
-
-                with Timer('agg ' + color_title, log=logger.info):
-                    # color_data = color_data.groupby(chart_options.x).agg({
-                    #     chart_options.y: 'mean',
-                    #     chart_options.n: 'first'
-                    # }).sort_values(by=chart_options.y, ascending=False).head(50)
-
-                    small_values = color_data[color_data[chart_options.y] < 0.5]
-                    color_data = color_data[color_data[chart_options.y] >= 0.5]
-
-                    small_values_grouped = small_values.groupby(chart_options.x).agg({
-                        chart_options.y: 'mean',
-                    }).sum()
-
-                    color_data = color_data.append({
-                        chart_options.y: small_values_grouped[chart_options.y],
-                        chart_options.x: 'values &lt; 0.5',
-                        chart_options.n: 'sum of the means of the values lesser than 0.5 sec',
-
-                    }, ignore_index=True)
-
-                    color_data_grouped = color_data.groupby(chart_options.x).agg({
-                        chart_options.y: {
-                            '25%': lambda x: np.percentile(x, 25),
-                            '75%': lambda x: np.percentile(x, 75),
-                        },
-                        chart_options.n: 'first',
-                    }).reset_index()
-
-                    print(color_data_grouped)
-
-                    columnrange = pd.DataFrame()
-                    columnrange['y'] = list(color_data_grouped[chart_options.x])
-                    columnrange['n'] = list(color_data_grouped[chart_options.n]['first'])
-                    columnrange['low'] = list(color_data_grouped[chart_options.y]['25%'])
-                    columnrange['high'] = list(color_data_grouped[chart_options.y]['75%'])
-                    columnrange = columnrange.sort_values(by='high', ascending=False).reset_index(drop=True)
-
-                    a, b = list(columnrange['y']), list(columnrange['n'])
-                    columnrange.drop(columns=['n'], inplace=True)
-
-                    series.append(dict(
-                        type='columnrange',
-                        extra={
-                            'path': dict(zip(a, b))
-                        },
-                        data=dropzero(fillna(columnrange.round(3))),
-                        name='Q1-Q3 (%s)' % color_title,
-                        color=color(0.7)),
-                    )
-
-                    color_data = color_data.reset_index()
-                    scatter = pd.DataFrame()
-                    scatter['y'] = list(color_data[chart_options.x])
-                    scatter['x'] = list(color_data[chart_options.y])
-                    scatter['n'] = list(color_data[chart_options.n])
-                    scatter = scatter.sort_values(by='x', ascending=False).reset_index(drop=True)
-
-                    a, b = list(scatter['y']), list(scatter['n'])
-
-                    paths = list(scatter['n'])
-                    scatter.drop(columns=['n'], inplace=True)
+                paths = list(scatter['n'])
+                scatter.drop(columns=['n'], inplace=True)
 
 
-                    series.append(dict(
-                        type='scatter',
-                        extra={
-                            'path': dict(zip(a, b)),
-                        },
-                        data=dropzero(fillna(scatter.round(3))),
-                        name='mean (%s)' % color_title,
-                        color=color(0.7)),
-                    )
+                series.append(dict(
+                    type='scatter',
+                    extra={
+                        'path': dict(zip(a, b)),
+                    },
+                    data=du.dropzero(du.fillna(scatter.round(3))),
+                    name='mean (%s)' % color_title,
+                    color=color(0.7)),
+                )
 
+        charts.append(dict(
+            title=group_title,
+            xAxis=dict(title=dict(text=None)),
+            yAxis=dict(title=dict(text=None)),
+            series=series,
+        ))
 
-            charts.append(dict(
-                title=group_title,
-                xAxis=dict(title=dict(text=None)),
-                yAxis=dict(title=dict(text=None)),
-                series=series,
-            ))
-
-        return dict(
-            status=200,
-            data=charts
-        )
+    return dict(
+        status=200,
+        data=charts
+    )

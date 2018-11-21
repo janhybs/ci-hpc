@@ -27,6 +27,13 @@ class global_configuration(object):
     log_path = os.path.join(__root__, 'ci-hpc.log')
     log_style = 'short'
 
+    # default cache is for 10 entries or 10 minutes
+    cache_type = 'TTLCache'  # or LRUCache or None
+    cache_opts = dict(
+        maxsize=10,
+        ttl=10*60
+    )
+
     # this file should be PROTECTED, as it may contain passwords and database connection details
     cfg_secret_path = os.path.join(__cfg__, 'secret.yaml')
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # author: Jan Hybs
 
-from visualisation.www.plot.cfg.project_config import ProjectConfig
+from visualisation.cfg.project_config import ProjectConfig
 
 import json
 import base64
