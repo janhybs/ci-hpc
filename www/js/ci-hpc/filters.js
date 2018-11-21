@@ -2,7 +2,16 @@ var ConfigureViewFilters = (function () {
     function ConfigureViewFilters() {
     }
     ConfigureViewFilters.filterGroupBy = function (fields) {
-        return [{
+        return [
+            {
+                text: 'test-name',
+                name: fields['problem.test'],
+                style: 'predefined',
+                checked: true,
+                desc: '[auto option] if checked, will split the results into groups' +
+                    'based on test name'
+            },
+            {
                 text: 'commit',
                 name: fields['git.commit'],
                 checked: true,
@@ -25,7 +34,8 @@ var ConfigureViewFilters = (function () {
                 checked: true,
                 desc: '[auto option] if checked, will split the results into groups' +
                     'based on CPU value each group will have its own chart.'
-            }];
+            }
+        ];
     };
     ConfigureViewFilters.filterCommitSqueeze = {
         text: 'Commit squeeze value',
@@ -65,7 +75,7 @@ var ConfigureViewFilters = (function () {
             {
                 text: 'show std',
                 name: 'show-stdbar',
-                checked: true,
+                checked: false,
                 desc: 'If checked, will also include <strong>area</strong> ' +
                     'representing <code>standard deviation</code> of the observation.'
             },
@@ -79,7 +89,7 @@ var ConfigureViewFilters = (function () {
             {
                 text: 'show errorbar',
                 name: 'show-errorbar',
-                checked: false,
+                checked: true,
                 desc: 'If checked, will also include <strong>error bar</strong> ' +
                     'in range of <code>mean &pm; 2.5%</code>.'
             },
