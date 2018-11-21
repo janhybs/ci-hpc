@@ -28,32 +28,33 @@ install:
       cd flow123d
       cp config/config-cihpc-meta.cmake config.cmake
       make -j16
-      bin/flow123d --help
+      bin/flow123d --version
 
 
 test:
   - name: integration
     enabled: true
-    output: stdout
+    output: 'null'
     
     repeat:
-      exactly: 5          # we want to have 5 repetitions by default
-      no-less-than: 15    # but with access to the db, we want to have 15 in total
+      exactly: 15          # we want to have 15 repetitions by default
+      no-less-thann: 15     # but with access to the db, we want to have 15 in total
     
     parallel:
-      cpus: all           # we want to use as many cpus as there are on this node
+      cpus: <cpu-value>   # we want to use as many cpus as there are on this node
       prop: <cpu>         # by default each 'worker' will use <cpu> of cpus
       
     # container: docker run --rm -v $(pwd):$(pwd) -w $(pwd) flow123d/flow-libs-dev-dbg:user %s
 
     collect:
-      files: <flow123d-workdir>/bench_data/**/profiler_info*.json
-      move-to: <flow123d-workdir>/artifacts/<__project__.start.datetime>
-      repo: <flow123d-home>
       save-to-db: true
-      module: artifacts.collect.modules.flow123d_profiler_module
+      files:    <flow123d-workdir>/bench_data/**/test_results-<__unique__>/**/profiler_info*.json
+      move-to:  <flow123d-workdir>/artifacts/<__project__.start.datetime>
+      repo:     <flow123d-home>
+      module:   artifacts.collect.modules.flow123d_profiler_module
 
       extra:
+        cpu-value:  <cpu-value>
         test-name:  <benchmark>
         mesh:       <mesh>
         weak:       <weak|i>
@@ -63,17 +64,13 @@ test:
 
     shell: |
       echo "BENCHMARK: <benchmark>, INPUT-DIR: <mesh>, CPU: <cpu>"
-      # mpiexec -np <cpu> flow123d/build_tree/bin/flow123d \
-      #       -s bench_data/benchmarks/<benchmark>/transport.yaml \
-      #       -i <mesh> &
-
-      # which mpiexec.hydra
       python3 flow123d/bin/python/runtest.py \
           bench_data/benchmarks/<benchmark>/ \
           --cpu <cpu>                        \
           --status-file                      \
           --no-clean                         \
           --no-compare                       \
+          --random-output-dir <__unique__>   \
           -a -- --input_dir <mesh> &
 
       pid=$!
@@ -113,22 +110,22 @@ test:
         - cpu:        [1          ,     2          ,     3         ]
         - weak:       [0          ,     0          ,     0         ]
         - strong:     [1          ,     1          ,     1         ]
-      # ------------------------------------------------------------------------
-      # 02_cube_123d
-      # weak scale
-      - values:
-        - benchmark:  02_cube_123d
-        - mesh:       [1_15786_el,      2_29365_el,      3_47367_el,      4_58803_el ]
-        - cpu:        [1         ,      2         ,      3         ,      4          ]
-        - weak:       [1         ,      1         ,      1         ,      1          ]
-        - strong:     [0         ,      0         ,      0         ,      1          ]
-      # strong scale
-      - values:
-        - benchmark:  02_cube_123d
-        - mesh:       [4_58803_el ,     4_58803_el ,     4_58803_el]
-        - cpu:        [1          ,     2          ,     3         ]
-        - weak:       [0          ,     0          ,     0         ]
-        - strong:     [1          ,     1          ,     1         ]
+      # # ------------------------------------------------------------------------
+      # # 02_cube_123d
+      # # weak scale
+      # - values:
+      #   - benchmark:  02_cube_123d
+      #   - mesh:       [1_15786_el,      2_29365_el,      3_47367_el,      4_58803_el ]
+      #   - cpu:        [1         ,      2         ,      3         ,      4          ]
+      #   - weak:       [1         ,      1         ,      1         ,      1          ]
+      #   - strong:     [0         ,      0         ,      0         ,      1          ]
+      # # strong scale
+      # - values:
+      #   - benchmark:  02_cube_123d
+      #   - mesh:       [4_58803_el ,     4_58803_el ,     4_58803_el]
+      #   - cpu:        [1          ,     2          ,     3         ]
+      #   - weak:       [0          ,     0          ,     0         ]
+      #   - strong:     [1          ,     1          ,     1         ]
       # ------------------------------------------------------------------------
       # 03_mesh_read
       # weak scale
