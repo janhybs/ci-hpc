@@ -2,10 +2,11 @@
 # author: Jan Hybs
 
 import os
-from copy import deepcopy
+from copy import deepcopy, copy
 
 import yaml
 import re
+import itertools
 
 from utils.logging import logger
 
@@ -142,10 +143,25 @@ def load_config(path, replace=True, hostname_conditions=True):
 
 def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):
     content = read_file(path)
+    iterable_keys = list()
+    iterable_vals = list()
+    rest = dict()
     for k, v in variables.items():
-        content = content.replace('%s%s%s' % (start, k, stop), v)
+        if isinstance(v, list):
+            iterable_keys.append(k)
+            iterable_vals.append(v)
+        else:
+            rest[k] = v
+    
+    for g in itertools.product(*iterable_vals):
+        single_config = rest.copy()
+        single_config.update(dict(zip(iterable_keys, g)))
+        
+        single_content = copy(content)
+        for k, v in single_config.items():
+            single_content = single_content.replace('%s%s%s' % (start, k, stop), str(v))
 
-    return convert(content)
+        yield convert(single_content)
 
 
 def configure_string(string, vars):

@@ -3,7 +3,7 @@
 
 # value which can be considered as plentiful cpus available
 
-PLENTY_OF_CPUS = 16
+PLENTY_OF_CPUS = 64  # turn off for now
 
 
 def extract_cpus_from_worker(worker):

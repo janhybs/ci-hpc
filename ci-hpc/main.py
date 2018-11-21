@@ -75,6 +75,20 @@ def parse_args():
     parser.add_argument('--log-style', choices=['short', 'long'], default='short', help='''R|
                             Format style of the logger
                             ''')
+                            
+    parser.add_argument('--watch-commit-limit', type=int, default=None, help='''R|
+                            When in 'watch' mode, represents number of commits to load
+                            from git log. Bigger number can cause git log to take longer.
+                            Smaller number may cause lower resolution, not catching
+                            all the changes made.
+                            ''')
+    parser.add_argument('--watch-commit-policy', choices=['every-commit', 'commit-per-day'], default=None, help='''R|
+                            When in 'watch' mode, represents number of commits to load
+                            from git log. Bigger number can cause git log to take longer.
+                            Smaller number may cause lower resolution, not catching
+                            all the changes made.
+                            ''')
+                            
     parser.add_argument('-v', '--verbosity', default=0, action='count', help='''R|
                             Increases verbosity of the application.
                             ''')
@@ -263,58 +277,63 @@ def main():
     global_configuration.project_name = project_name
     global_configuration.project_cfg_dir = project_dir
     global_configuration.project_cfg = config_path
-
-    # load config
-    project_config = cfgutil.configure_file(config_path, variables)
-    logger.debug('yaml configuration: \n%s', pad_lines(utils.strings.to_yaml(project_config)), skip_format=True)
-
-    # specify some useful global arguments which will be available in the config file
-    global_args_extra = {
-        'project-name': project_name,
-        'project-dir': project_dir,
-        'arg': dict(
-            branch=defaultdict(lambda: 'master', **dict(args.git_branch)),
-            commit=defaultdict(lambda: '', **dict(args.git_commit)),
-        )
-    }
-
-    # parse config
-    project_definition = Project(project_name, **project_config)
-    project_definition.update_global_args(global_args_extra)
-
-    project = ProcessProject(project_definition)
-    logger.info('processing project %s, section %s', project_name, args.step)
-
+    
     # -----------------------------------------------------------------
 
-    if 'watch' in args.step:
-        if not global_configuration.project_git:
-            logger.error('no repository provided')
-            exit(0)
+    # otherwise load configs
+    project_configs = cfgutil.configure_file(config_path, variables)
+    for project_config in project_configs:
+        logger.debug('yaml configuration: \n%s', pad_lines(utils.strings.to_yaml(project_config)), skip_format=True)
 
-        project_commit_format = global_configuration.project_git.commit
-        if not project_commit_format or not str(project_commit_format).strip():
-            logger.error('project repository must be configurable via <arg.commit.foobar> placeholder')
+        # specify some useful global arguments which will be available in the config file
+        global_args_extra = {
+            'project-name': project_name,
+            'project-dir': project_dir,
+            'arg': dict(
+                branch=defaultdict(lambda: 'master', **dict(args.git_branch)),
+                commit=defaultdict(lambda: '', **dict(args.git_commit)),
+            )
+        }
 
-        project_commit_format = str(project_commit_format).strip()
-        if project_commit_format.startswith('<arg.commit.') and project_commit_format.endswith('>'):
-            commit_field = project_commit_format[len('<arg.commit.'):-1]
-            fixed_args = [sys.executable, global_configuration.main_py] \
-                         + convert_project_arguments(args, excludes=['step'])
+        # parse config
+        project_definition = Project(project_name, **project_config)
+        project_definition.update_global_args(global_args_extra)
 
-            args_constructor = ArgConstructor(fixed_args, commit_field)
-            commit_browser = CommitBrowser()
-            service = WatchService(project_name, args_constructor, commit_browser)
-            # service.fork()
-            service.start()
-            # exit tge program just in case fork failed
-            exit(0)
+        project = ProcessProject(project_definition)
+        logger.info('processing project %s, section %s', project_name, args.step)
+        
+        if 'watch' in args.step:
+            if not global_configuration.project_git:
+                logger.error('no repository provided')
+                exit(0)
 
-    if 'install' in args.step:
-        project.process_section(project_definition.install)
+            project_commit_format = global_configuration.project_git.commit
+            if not project_commit_format or not str(project_commit_format).strip():
+                logger.error('project repository must be configurable via <arg.commit.foobar> placeholder')
 
-    if 'test' in args.step:
-        project.process_section(project_definition.test)
+            project_commit_format = str(project_commit_format).strip()
+            if project_commit_format.startswith('<arg.commit.') and project_commit_format.endswith('>'):
+                commit_field = project_commit_format[len('<arg.commit.'):-1]
+                fixed_args = [sys.executable, global_configuration.main_py] \
+                             + convert_project_arguments(args, excludes=['step'])
+
+                args_constructor = ArgConstructor(fixed_args, commit_field)
+                commit_browser = CommitBrowser(
+                    limit=args.watch_commit_limit,
+                    commit_policy=args.watch_commit_policy,
+                )
+                logger.info('analyzing last %d commit, commit pick policy: %s' % (commit_browser.limit, commit_browser.commit_policy))
+                service = WatchService(project_name, args_constructor, commit_browser)
+                # service.fork()
+                service.start()
+                # exit the program just in case fork failed
+                exit(0)
+
+        if 'install' in args.step:
+            project.process_section(project_definition.install)
+
+        if 'test' in args.step:
+            project.process_section(project_definition.test)
 
 
 if __name__ == '__main__':
