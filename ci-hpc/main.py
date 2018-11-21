@@ -277,28 +277,7 @@ def main():
     global_configuration.project_name = project_name
     global_configuration.project_cfg_dir = project_dir
     global_configuration.project_cfg = config_path
-
-    # load config
-    project_config = cfgutil.configure_file(config_path, variables)
-    logger.debug('yaml configuration: \n%s', pad_lines(utils.strings.to_yaml(project_config)), skip_format=True)
-
-    # specify some useful global arguments which will be available in the config file
-    global_args_extra = {
-        'project-name': project_name,
-        'project-dir': project_dir,
-        'arg': dict(
-            branch=defaultdict(lambda: 'master', **dict(args.git_branch)),
-            commit=defaultdict(lambda: '', **dict(args.git_commit)),
-        )
-    }
-
-    # parse config
-    project_definition = Project(project_name, **project_config)
-    project_definition.update_global_args(global_args_extra)
-
-    project = ProcessProject(project_definition)
-    logger.info('processing project %s, section %s', project_name, args.step)
-
+    
     # -----------------------------------------------------------------
 
     if 'watch' in args.step:

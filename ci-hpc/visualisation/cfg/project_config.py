@@ -217,6 +217,7 @@ class FieldExpression(object):
     def __repr__(self):
         return '<%s>' % self.name
 
+
 class ProjectConfigFields(object):
     _result = namedtuple('Result', ['duration', 'returncode'])
     _git = namedtuple('Git', ['datetime', 'commit', 'branch'])

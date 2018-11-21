@@ -3,80 +3,148 @@ desc:                 A simple benchmark visualisation demonstrating HPC-CI fram
 date-format:          long                                    # long or short or null
 git-url:              https://github.com/janhybs/bench-stat   # url of the git repo
 
-# main view showing duration in time
-test-view:
-  y-property:             result.duration   # what will be on y-axis
-  x-property:             git.datetime      # what will be on x-axis
-  commit-property:        git.commit        # what is the field name of the commit
-  id-property:            _id               # what is a unique identificator for this document
+fields:
+  result.duration:          result.duration
+  result.returncode:        null
   
-  groupby:                          # how can the results be separated
-    test-name: problem.test-name    # for now only groups test-name and case-name are supported
-    case-name: problem.case-name    # they can be set to null if they are not present in the project DB
-    
-  colorby:
-    case-cpus: problem.cpus
+  git.datetime:             git.datetime
+  git.commit:               git.commit
+  git.branch:               git.branch
   
-  smooth:     false         # should the line be smoothed
+  problem.test:             problem.test-name
+  problem.case:             null
+  problem.subcase:          null
+  problem.cpu:              null
+  problem.parallel:         problem.parallel
   
   extra:
-    - from:   system.metric # extra values which should be extracted as well,
-      to:     foobar        # they will be available under this name 
-        
+    - problem.parallel
+
+# main view showing duration in time
+test-view:
+  # key is the field name and value is human readable value
+  groupby:
+    problem.parallel:  parallel
+    # git.branch:        branch
 
 # secondary view showing frame break down
 frame-view:
-  unwind:
-    from:             timers          # will take fields 'timers' (which must be a array)
-    to:               timer           # and will put individual items to seperate document
-  
+  unwind: timers                      # will take fields 'timers' (which must be a array)
+                                      # and will put individual items to seperate document
+  fields:
+    timers.duration: timers.duration
+    timers.name:     timers.name
+    # timers.path:     timers.name
+
   groupby:                            # how can the benchmark frames be separated
-    date:     git.datetime
-    cpus:     problem.cpus 
-  
-  id-property:        _id
-  y-property:         timer.duration  # after unwinding, properties which were in array, will
-  x-property:         timer.name      # be accesible via names joined by a dot
-                                      # before:
-                                      #   {
-                                      #     duration: 1.0
-                                      #     timers: [
-                                      #       {
-                                      #         name: foo
-                                      #         duration: 0.8
-                                      #       }
-                                      #       {
-                                      #         name: bar
-                                      #         duration: 0.2
-                                      #       }
-                                      #     ]
-                                      #   }
-                                      # 
-                                      # after unwind:
-                                      #   {
-                                      #     duration: 1.0
-                                      #     timer.name: foo
-                                      #     timer.duration: 0.8
-                                      #   }
-                                      # and second document:
-                                      #   {
-                                      #     duration: 1.0
-                                      #     timer.name: bar
-                                      #     timer.duration: 0.2
-                                      #   }
+    git.commit:        commit
+    problem.parallel:  parallel
 
 # test structure which will be displayed
 # name is mandatory
 tests:
-    - name:           memory
-      desc:           A set of memory related benchmarks
-      tests:
-        - name:       cache
-          desc:       A test which deals with a level 1, level 2 and level 3 cache size.
-        - name:       io
-          desc:       A test which deals with various input file sizes
-    - name:           cpu
-      desc:           A set of CPU related benchmarks
-      tests:
-        - name:       frequency
-          desc:       A test evaluates a CPU frequency
+  - name:               all
+    level:              null
+    mode:               time-series
+    
+    tests:
+      - name:           memory-cache-test-l1
+        level:          problem.test-name
+        
+      - name:           memory-cache-test-l2
+        level:          problem.test-name
+        
+      - name:           memory-cache-test-l3
+        level:          problem.test-name
+        
+      - name:           memory-cache-test-all
+        level:          problem.test-name
+  #   tests:
+  #     - name:       cache
+  #       desc:       A test which deals with a level 1, level 2 and level 3 cache size.
+  #     - name:       io
+  #       desc:       A test which deals with various input file sizes
+  # - name:           cpu
+  #   desc:           A set of CPU related benchmarks
+  #   tests:
+  #     - name:       frequency
+  #       desc:       A test evaluates a CPU frequency
+  
+# 
+# # main view showing duration in time
+# test-view:
+#   y-property:             result.duration   # what will be on y-axis
+#   x-property:             git.datetime      # what will be on x-axis
+#   commit-property:        git.commit        # what is the field name of the commit
+#   id-property:            _id               # what is a unique identificator for this document
+# 
+#   groupby:                          # how can the results be separated
+#     test-name: problem.test-name    # for now only groups test-name and case-name are supported
+#     case-name: problem.case-name    # they can be set to null if they are not present in the project DB
+# 
+#   colorby:
+#     case-cpus: problem.cpus
+# 
+#   smooth:     false         # should the line be smoothed
+# 
+#   extra:
+#     - from:   system.metric # extra values which should be extracted as well,
+#       to:     foobar        # they will be available under this name 
+# 
+# 
+# # secondary view showing frame break down
+# frame-view:
+#   unwind:
+#     from:             timers          # will take fields 'timers' (which must be a array)
+#     to:               timer           # and will put individual items to seperate document
+# 
+#   groupby:                            # how can the benchmark frames be separated
+#     date:     git.datetime
+#     cpus:     problem.cpus 
+# 
+#   id-property:        _id
+#   y-property:         timer.duration  # after unwinding, properties which were in array, will
+#   x-property:         timer.name      # be accesible via names joined by a dot
+#                                       # before:
+#                                       #   {
+#                                       #     duration: 1.0
+#                                       #     timers: [
+#                                       #       {
+#                                       #         name: foo
+#                                       #         duration: 0.8
+#                                       #       }
+#                                       #       {
+#                                       #         name: bar
+#                                       #         duration: 0.2
+#                                       #       }
+#                                       #     ]
+#                                       #   }
+#                                       # 
+#                                       # after unwind:
+#                                       #   {
+#                                       #     duration: 1.0
+#                                       #     timer.name: foo
+#                                       #     timer.duration: 0.8
+#                                       #   }
+#                                       # and second document:
+#                                       #   {
+#                                       #     duration: 1.0
+#                                       #     timer.name: bar
+#                                       #     timer.duration: 0.2
+#                                       #   }
+# 
+# # test structure which will be displayed
+# # name is mandatory
+# tests:
+#     - name:           memory
+#       desc:           A set of memory related benchmarks
+#       tests:
+#         - name:       cache
+#           desc:       A test which deals with a level 1, level 2 and level 3 cache size.
+#         - name:       io
+#           desc:       A test which deals with various input file sizes
+#     - name:           cpu
+#       desc:           A set of CPU related benchmarks
+#       tests:
+#         - name:       frequency
+#           desc:       A test evaluates a CPU frequency

@@ -545,4 +545,11 @@ table.table th {
   font-weight: 700;
 }
 
+.error-image {
+  background: #d04746 url("../imgs/500-error.png");
+  background-size: 50% !important;
+  background-repeat: no-repeat;
+  background-position: bottom right !important;
+}
+
 /*# sourceMappingURL=main.css.map */

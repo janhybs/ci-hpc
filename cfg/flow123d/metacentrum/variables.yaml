@@ -1,6 +1,7 @@
 
 flow123d-workdir: /storage/praha1/home/jan-hybs/projects/ci-hpc/projects/flow123d
 flow123d-home:    /storage/praha1/home/jan-hybs/projects/ci-hpc/projects/flow123d/flow123d
+cpu-value: [20, 10, 5, 2, 1]
 
 hybs:
   flow123d-workdir: /home/jan-hybs/projects/ci-hpc/projects/flow123d
