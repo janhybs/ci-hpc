@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 import tempfile
 import os
 import subprocess

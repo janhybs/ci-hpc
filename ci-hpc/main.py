@@ -19,7 +19,6 @@ import time
 import subprocess
 from collections import defaultdict
 
-from utils.glob import global_configuration
 
 
 def parse_args():
@@ -103,6 +102,8 @@ def parse_args():
 
 
 def main():
+    from cfg.config import global_configuration
+
     args = parse_args()
     # override log_path if set before actually creating logger
     if args.log_path:
@@ -129,14 +130,14 @@ def main():
     # -------------------------------------------------------
 
     # now import other packages
-    import utils.config as cfgutil
+    import cfg.cfgutil as cfgutil
     from utils.logging import logger
     from utils.strings import generate_random_key as rands, pad_lines
 
-    from deamon.service import ArgConstructor, WatchService, CommitBrowser
+    from processing.deamon.service import ArgConstructor, WatchService, CommitBrowser
     from utils.parsing import defaultdict_type, convert_project_arguments
 
-    from proc.project import ProcessProject
+    from processing.project import ProcessProject
     from structures.project import Project
     import colorama
 

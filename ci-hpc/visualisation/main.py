@@ -1,8 +1,72 @@
 #!/usr/bin/python3
 # author: Jan Hybs
+# from functools import lru_cache
+# import time
+#
+#
+# class A(object):
+#     def __init__(self, a=None):
+#         self.a = a
+#
+#     def __key(self):
+#         return (self.a, )
+#
+#     def __hash__(self):
+#         return hash(self.__key())
+#
+#     def __eq__(self, other):
+#         return isinstance(self, type(other)) and self.__key() == other.__key()
+#
+#
+# class B(object):
+#     @lru_cache(maxsize=100)
+#     def sparkline_view(self, *args, **kwargs):
+#         print(time.time())
+#         return None
+#
+# @lru_cache(maxsize=100)
+# def sparkline_view(*args, **kwargs):
+#     print(time.time())
+#     return None
+#
+# a1= A(1)
+# a2 = A(1)
+# b = B()
+#
+# b.sparkline_view(a1)
+# b.sparkline_view(a2)
+# b.sparkline_view(3)
+#
+# print(b.sparkline_view.cache_info())
+#
+#
+#
+# exit(0)
+
+import utils.logging
+from cfg.config import global_configuration
+
+utils.logging.logger = utils.logging.Logger.init(
+    global_configuration.log_path,
+    global_configuration.log_style,
+    global_configuration.tty
+)
+
+from artifacts.db.mongo import CIHPCMongo
+mongo = CIHPCMongo.get('flow123d')
+for item in mongo.reports.find():
+    p = item['problem']
+    if p.get('cpu') != int(p.get('cpus')):
+        print(item)
+        break
+
+print(mongo)
+exit(0)
+
 
 import os
 import sys
+import argparse
 
 sys.path.append(
     os.path.abspath(
@@ -14,9 +78,16 @@ sys.path.append(
 )
 
 
-from utils.logging import logger
+from cfg.config import global_configuration
+import utils.logging
 
-import argparse
+utils.logging.logger = utils.logging.Logger.init(
+    global_configuration.log_path,
+    global_configuration.log_style,
+    global_configuration.tty
+)
+
+from utils.logging import logger
 
 
 def parse_args():

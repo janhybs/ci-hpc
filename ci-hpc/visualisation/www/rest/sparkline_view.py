@@ -13,7 +13,7 @@ import json
 from collections import namedtuple
 
 from visualisation.www.rest import ConfigurableView
-from caching import cached
+from utils.caching import cached
 from artifacts.db.mongo import CIHPCMongo
 
 

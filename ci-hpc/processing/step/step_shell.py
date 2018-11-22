@@ -6,12 +6,12 @@ import subprocess as sp
 from time import time
 import yaml
 
-from files.temp_file import TempFile
-from proc import merge_dict
+from utils.files.temp_file import TempFile
+from utils.datautils import merge_dict
 from utils.events import EnterExitEvent
-from utils.dynamicio import DynamicIO
+from utils.files.dynamic_io import DynamicIO
 from utils.logging import logger
-from utils.config import configure_string
+from cfg.cfgutil import configure_string
 from utils.parallels import parse_cpu_property
 
 
@@ -167,6 +167,8 @@ def process_step_shell(project, section, step, vars, shell_processing, indices):
 
 class ProcessConfigCrate(object):
     def __init__(self, args, output, container, name=None, collect=None, vars=None):
+        from structures.project_step_container import ProjectStepContainer
+
         self.args = args                # type. list[str]
         self.output = output            # type: str
         self.container = container      # type: ProjectStepContainer
@@ -192,9 +194,11 @@ def process_popen(worker):
         result.process = process
         with result:
             result.returncode = process.wait()
-            logger.info('ok [%d] ended with %d' % (process.pid, result.returncode))
+            if result.returncode == 0:
+                logger.debug('ok [%d] ended with %d' % (process.pid, result.returncode))
+            else:
+                logger.warn('process [%d] ended with %d' % (process.pid, result.returncode))
 
     # try to grab output
     result.output = getattr(io.opener, 'output', None)
-    logger.error('returning result')
     return result

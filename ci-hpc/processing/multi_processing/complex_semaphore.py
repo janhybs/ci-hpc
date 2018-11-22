@@ -1,5 +1,6 @@
 #!/bin/python3
 # author: Jan Hybs
+
 import threading
 from time import monotonic as _time
 
@@ -22,6 +23,14 @@ class ComplexSemaphore(object):
         self._cond = threading.Condition(threading.Lock())
         self._value = value
         self._limit = value
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def limit(self):
+        return self._limit
 
     def acquire(self, blocking=True, timeout=None, value=1):
         """Acquire a semaphore, decrementing the internal counter by one.

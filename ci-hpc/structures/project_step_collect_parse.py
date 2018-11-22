@@ -2,9 +2,6 @@
 # author: Jan Hybs
 
 
-import os
-
-
 class ProjectStepContainerParse(object):
     """
     Helper class which holds information about singularity/docker

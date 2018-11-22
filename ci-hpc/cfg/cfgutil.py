@@ -25,7 +25,7 @@ class Config(object):
     @classmethod
     def get(cls, *args, **kwargs):
         if not cls._instance:
-            from utils.glob import global_configuration
+            from cfg.config import global_configuration
             cls.init(global_configuration.cfg_secret_path)
 
         return cls._instance._get(*args, **kwargs)

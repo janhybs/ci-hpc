@@ -13,7 +13,7 @@ from artifacts.db.mongo import CIHPCMongo
 import pandas as pd
 import numpy as np
 
-from caching import cached
+from utils.caching import cached
 from utils import strings
 from utils import datautils as du
 from utils.logging import logger

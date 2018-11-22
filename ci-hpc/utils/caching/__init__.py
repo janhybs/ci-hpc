@@ -1,7 +1,7 @@
 #!/bin/python3
 # author: Jan Hybs
 
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 try:
     import cachetools
 

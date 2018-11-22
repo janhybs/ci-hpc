@@ -9,7 +9,7 @@ from structures.project_step_container import ProjectStepContainer
 from structures.project_step_collect import ProjectStepCollect
 from structures.project_step_parallel import ProjectStepParallel
 from structures.project_step_repeat import ProjectStepRepeat
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 
 
 class ProjectStep(object):

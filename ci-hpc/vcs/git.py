@@ -2,16 +2,11 @@
 # author: Jan Hybs
 import datetime
 import os
-import sys
 import shutil
 import subprocess
-from unidecode import unidecode
-from proc.execution import create_execute_command
+from processing.execution import create_execute_command
 from utils.logging import logger
 
-
-def remove_non_ascii(text):
-    return unidecode(str(text))
 
 class Git(object):
     """
@@ -109,7 +104,7 @@ class Commit(object):
 
     @property
     def short_format(self):
-        return remove_non_ascii('commit({self.short_hash} by {self.author}, {self.rel_date})'.format(self=self))
+        return 'commit({self.short_hash} by {self.author}, {self.rel_date})'.format(self=self)
 
     def __repr__(self):
-        return remove_non_ascii('Commit({self.short_hash} {self.fs_date} by {self.author}, [{self.message}], {self.rel_date})'.format(self=self))
+        return 'Commit({self.short_hash} {self.fs_date} by {self.author}, [{self.message}], {self.rel_date})'.format(self=self)

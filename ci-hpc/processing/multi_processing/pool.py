@@ -3,7 +3,7 @@
 
 
 import multiprocessing
-from proc.step.step_shell import ProcessConfigCrate
+from processing.step.step_shell import ProcessConfigCrate
 from utils.events import EnterExitEvent
 
 
@@ -36,7 +36,7 @@ class ActivePool(object):
 
 
 def worker(item, process_event, semaphore: multiprocessing.Semaphore, pool, queue, worker, lock):
-    from proc.step.step_shell import process_popen
+    from processing.step.step_shell import process_popen
 
     name = multiprocessing.current_process().name
 
@@ -142,7 +142,7 @@ class WorkerPool(object):
 #
 # class WorkerPool(object):
 #     """
-#     :type items:    list[proc.step.step_shell.ProcessConfigCrate]
+#     :type items:    list[processing.step.step_shell.ProcessConfigCrate]
 #     :type pool:     ThreadPool
 #     """
 #
@@ -156,7 +156,7 @@ class WorkerPool(object):
 #         self.items = items
 #
 #     def start(self):
-#         from proc.step.step_shell import process_popen
+#         from processing.step.step_shell import process_popen
 #         result = self.pool.map(process_popen, self.items)
 #         print(result)
 #

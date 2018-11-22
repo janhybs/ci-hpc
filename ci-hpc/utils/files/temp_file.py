@@ -1,7 +1,28 @@
+#!/bin/python3
+# author: Jan Hybs
+
 import os
 
 
 def divider(name=None, start='# ', end=' #', char='-', len=60):
+    """
+    Creates a formatted section with given length padded with given chars
+
+    Parameters
+    ----------
+    name : str or None
+        name of the section
+    start : str
+    end : str
+    char: str
+    len: int
+
+    Returns
+    -------
+    str
+        formatted string
+
+    """
     fmt = '%s{:%s^%ds}%s' % (start, char, len, end)
     if name:
         return fmt.format(' %s ' % name)
@@ -9,7 +30,11 @@ def divider(name=None, start='# ', end=' #', char='-', len=60):
 
 
 class TempFile(object):
+    """
+    A simple class which creates a shell executable file
+    using python 'with' syntax
 
+    """
     def __init__(self, path, verbose=False):
         self.path = path
         self.lines = []
@@ -33,10 +58,14 @@ class TempFile(object):
         if new_line:
             self.lines.append('\n')
 
+    def remove(self):
+        return os.unlink(self.path)
+
     def write_section(self, section_name, s='', new_line=True):
         self.write(divider(section_name, char='='))
         self.write(s)
         self.write(divider(section_name, char='-'), new_line=new_line)
+        divider()
 
     def __enter__(self):
         self.lines = []

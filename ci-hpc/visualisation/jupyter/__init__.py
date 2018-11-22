@@ -1,10 +1,9 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
-from utils import strings
 from utils.logging import logger
-from utils.glob import global_configuration
-from utils.config import Config as cfg
+from cfg.config import global_configuration
+from cfg.cfgutil import Config as cfg
 
 cfg.init(global_configuration.cfg_secret_path)
 
@@ -30,9 +29,7 @@ from artifacts.db import mongo
 from artifacts.collect.modules import unwind_report, unwind_reports
 
 from visualisation.jupyter.data_manipulation import normalise_vector, load_data, add_metrics, normalise_matrix
-from utils.datautils import ensure_iterable
-from visualisation.jupyter.plotting import dual_plot, facetgrid_opts, plot_data, plot_mean, plot_mean_with_area, tsplot
-
+from visualisation.jupyter.plotting import dual_plot, facetgrid_opts, plot_data, plot_mean, plot_mean_with_area
 
 __all__ = [
     'np', 'pd', 'sns', 'plt', 'sc', 'widgets', 'logger', 'mongo', 'normalise_vector', 'normalise_matrix',

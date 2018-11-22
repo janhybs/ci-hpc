@@ -7,11 +7,10 @@ import multiprocessing
 import threading
 import time
 from pluck import pluck
-import random
 import itertools
 
-from multiproc.complex_semaphore import ComplexSemaphore
-from proc.step.step_shell import ProcessConfigCrate
+from processing.multi_processing.complex_semaphore import ComplexSemaphore
+from processing.step.step_shell import ProcessConfigCrate, ProcessStepResult
 from utils.events import EnterExitEvent
 from utils.logging import logger
 from utils.timer import Timer
@@ -29,9 +28,16 @@ class WorkerStatus(enum.IntEnum):
     CREATED = 0
     RUNNING = 1
     WAITING = 2
-    FINISHED = 3
-    RELEASED = 4
-    EXITED = 5
+    EXITING = 3
+    FINISHED = 4
+
+
+class LogStatusFormat(enum.Enum):
+    AUTO = None
+    SIMPLE = 'simple'
+    COMPLEX = 'complex'
+    ONELINE = 'oneline'
+    ONELINE_GROUPED = 'oneline-grouped'
 
 
 class Worker(threading.Thread):
@@ -43,7 +49,6 @@ class Worker(threading.Thread):
         self.target = target                # type: callable
         self.crate = crate                  # type: ProcessConfigCrate
         self.result = None                  # type: ProcessStepResult or any
-        self.cpus = cpus
         self._status = None
         self.status = WorkerStatus.CREATED  # random.choice(list(WorkerStatus))
         self.timer = Timer(self.name)
@@ -69,9 +74,8 @@ class Worker(threading.Thread):
         with self.timer:
             self._run()
 
-        self.status = WorkerStatus.FINISHED
         self.semaphore.release(value=self.cpus)
-        self.status = WorkerStatus.RELEASED
+        self.status = WorkerStatus.EXITING
 
     def __repr__(self):
         return '{self.name}({self.cpus}x, [{self.status}])'.format(self=self)
@@ -109,7 +113,7 @@ class WorkerPool(object):
         for thread in self.threads:
             thread.start()
             thread.join()
-            thread.status = WorkerStatus.EXITED
+            thread.status = WorkerStatus.FINISHED
             self.thread_event.on_exit(thread)
 
     def start_parallel(self):
@@ -120,7 +124,7 @@ class WorkerPool(object):
         # wait
         for thread in self.threads:
             thread.join()
-            thread.status = WorkerStatus.EXITED
+            thread.status = WorkerStatus.FINISHED
             
         # fire on_exit
         for thread in self.threads:
@@ -128,12 +132,12 @@ class WorkerPool(object):
 
         return self.result
 
-    def _print_statuses(self, format='simple'):
+    def _print_statuses(self, format):
         status_getter = lambda x: x[1]
         statuses = pluck(self.threads, 'crate.name', 'status', 'cpus', 'timer')
         sorted_statuses = sorted(statuses, key=status_getter)
 
-        if format == 'simple':
+        if format is LogStatusFormat.SIMPLE:
             msg = 'Worker statuses:\n'
             msgs = list()
             for key, group in itertools.groupby(sorted_statuses, key=status_getter):
@@ -143,7 +147,8 @@ class WorkerPool(object):
                 else:
                     msgs.append('  %2d x %s' % (len(grp), key.name))
             logger.info(msg + '\n'.join(msgs), skip_format=True)
-        elif format == 'complex':
+
+        elif format is LogStatusFormat.COMPLEX:
             msg = 'Worker statuses:\n'
             msgs = list()
             for key, group in itertools.groupby(sorted_statuses, key=status_getter):
@@ -154,23 +159,38 @@ class WorkerPool(object):
                     else:
                         msgs.append(' - %dx %s' % (cpus, name))
             logger.info(msg + '\n'.join(msgs), skip_format=True)
-        elif format == 'oneline':
+
+        elif format is LogStatusFormat.ONELINE:
             statuses = sorted([x[0] for x in pluck(self.threads, 'status.name')])
             msg = ''.join(statuses).upper()  #.replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
             logger.info(' - ' + msg, skip_format=True)
 
-    def log_statuses(self, log_period=None, update_period=0.9, format=None):
+        elif format is LogStatusFormat.ONELINE_GROUPED:
+            statuses = sorted([x for x in pluck(self.threads, 'status')])
+            msg = list()
+            for g, d in itertools.groupby(statuses):
+                msg.append('[%d x %s]' % (len(list(d)), g.name))
+            logger.info(' - ' + ' > '.join(msg), skip_format=True)
+
+    def log_statuses(self, log_period=None, update_period=0.9, format=LogStatusFormat.AUTO):
         if format is None:
-            if len(self.threads) > 20:
-                format = 'oneline'
+            if len(self.threads) > 40:
+                format = LogStatusFormat.ONELINE_GROUPED
+            elif len(self.threads) > 20:
+                format = LogStatusFormat.ONELINE
             elif len(self.threads) > 5:
-                format = 'simple'
+                format = LogStatusFormat.SIMPLE
             else:
-                format = 'complex'
+                format = LogStatusFormat.COMPLEX
+
+        if isinstance(format, str):
+            format = LogStatusFormat(format)
         
         if log_period is None:
-            if format == 'oneline':
-                log_period = 1.0
+            if format is LogStatusFormat.ONELINE:
+                log_period = 2.0
+            elif format is LogStatusFormat.ONELINE_GROUPED:
+                log_period = 5.0
             else:
                 log_period = 5.0
         
@@ -186,7 +206,7 @@ class WorkerPool(object):
                     self._print_statuses(format)
                     last_print = time.time()
                 
-                if set(pluck(self.threads, 'status')) == {WorkerStatus.EXITED}:
+                if set(pluck(self.threads, 'status')) == {WorkerStatus.FINISHED}:
                     break
                 time.sleep(update_period)
 

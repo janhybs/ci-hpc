@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
-
-import sys
 import os
 import subprocess
-from utils.logging import logger
+import sys
 
 
 def construct(start, *rest, shell=False):

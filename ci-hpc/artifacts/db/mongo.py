@@ -4,9 +4,9 @@
 
 
 from utils import strings, datautils
-from utils.config import Config as cfg
+from cfg.cfgutil import Config as cfg
 from utils.logging import logger
-from defaults import artifacts_default_configuration, aggregation_default_configuration
+from defaults import artifacts_default_configuration
 from collections import defaultdict
 from pymongo import MongoClient
 

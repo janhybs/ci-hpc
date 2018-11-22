@@ -50,7 +50,8 @@ class Flow123dProfiler(ICollectTool):
         """
         return datetime.datetime.strptime(s, '%m/%d/%y %H:%M:%S').timestamp()
 
-    def try2extract_from_dummy(self, dir_name, status):
+    @staticmethod
+    def try2extract_from_dummy(dir_name, status):
         pcs = dir_name.split('.')
         if len(pcs) == 3:
             name, cpu, el = pcs

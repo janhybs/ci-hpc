@@ -10,10 +10,10 @@ import yaml
 from collections import namedtuple
 
 from artifacts.collect.modules import CIHPCReport, AbstractCollectModule
-from proc.step.step_collect_parse import process_step_collect_parse
-from utils.config import configure_object
+from processing.step.step_collect_parse import process_step_collect_parse
+from cfg.cfgutil import configure_object
 from utils.logging import logger
-from utils.config import configure_string
+from cfg.cfgutil import configure_string
 
 
 def convert_method(type):

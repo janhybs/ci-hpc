@@ -1,14 +1,14 @@
 #!/bin/python3
 # author: Jan Hybs
+
 import enum
 import itertools
-import time
 import subprocess
 import daemon
 import lockfile
 
 from structures.project_step_git import ProjectStepGit
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 from utils.logging import logger
 from utils.timer import Timer
 from vcs.git import Git, Commit

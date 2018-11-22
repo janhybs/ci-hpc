@@ -23,7 +23,7 @@ def str_presenter(dumper, data):
 
 
 def shell_file(loader, node):
-    from utils.glob import global_configuration
+    from cfg.config import global_configuration
     cwd = global_configuration.project_cfg_dir
     path = node.value
 

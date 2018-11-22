@@ -5,14 +5,13 @@ import os
 
 import itertools
 from collections import namedtuple
-import re
 from enum import Enum
 
 import yaml
 
 from utils import dateutils
 from utils.colors import configurable_html_color
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 from utils.logging import logger
 
 sns_color_palette = [

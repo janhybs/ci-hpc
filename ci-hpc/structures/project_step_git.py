@@ -20,7 +20,7 @@ class ProjectStepGit(object):
 
         # optionally mark this repo as main
         if kwargs.get('is-main', False):
-            from utils.glob import global_configuration
+            from cfg.config import global_configuration
             global_configuration.project_git = self
 
     def __repr__(self):

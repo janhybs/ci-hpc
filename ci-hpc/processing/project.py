@@ -6,9 +6,8 @@ import itertools
 import shutil
 
 from utils import strings
-from utils.config import configure_string
 from utils.logging import logger
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 
 import os
 
@@ -16,16 +15,15 @@ from structures.project_step import ProjectStep
 from structures.project_section import ProjectSection
 from structures.project import Project
 
-from proc import merge_dict, iter_over
-from proc.step.step_git import process_step_git
-from proc.step.step_shell import process_step_shell, ShellProcessing, ProcessConfigCrate, process_popen
-from proc.step.step_collect import process_step_collect
-from proc.step.step_measure import process_step_measure
+from utils.datautils import merge_dict, iter_over
+from processing.step.step_git import process_step_git
+from processing.step.step_shell import process_step_shell, ShellProcessing, ProcessConfigCrate, process_popen
+from processing.step.step_collect import process_step_collect
 from utils.parallels import extract_cpus_from_worker
 from utils.timer import Timer
 
-# from multiproc.pool import WorkerPool, Worker, PoolInt
-from multiproc.thread_pool import WorkerPool, Worker, PoolInt
+# from multi_processing.pool import WorkerPool, Worker, PoolInt
+from processing.multi_processing.thread_pool import WorkerPool, Worker, PoolInt
 
 
 class ProcessProject(object):
@@ -92,7 +90,7 @@ class ProcessProject(object):
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
         for step in section.steps:
-            processes = list()  # type: list[ProcessConfigCrate]
+            processes: list[ProcessConfigCrate] = list()
 
             if step.smart_repeat.is_complex() and global_configuration.project_git:
                 from artifacts.collect.modules import CIHPCReportGit
@@ -125,7 +123,7 @@ class ProcessProject(object):
                 pool.thread_event.on_exit.on(step_on_exit)
                 pool.thread_event.on_enter.on(step_on_enter)
                 # pretty status async logging
-                status_thread = pool.log_statuses(format='oneline')
+                status_thread = pool.log_statuses(format='oneline-grouped')
                 # run in serial or parallel
                 if step.parallel:
                     logger.info('%d processes will be now executed in parallel' % len(processes))
@@ -187,7 +185,8 @@ class ProcessProject(object):
 
             return process_step_shell(self.project, section, step, vars, shell_processing, indices)
 
-    def expand_variables(self, section):
+    @staticmethod
+    def expand_variables(section):
         def extract_first(iterator):
             return next(iter(iterator))
 

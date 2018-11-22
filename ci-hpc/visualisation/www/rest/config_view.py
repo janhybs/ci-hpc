@@ -7,7 +7,7 @@ from visualisation.cfg.project_config import ProjectConfig
 
 class ConfigView(Resource):
     """
-    a view which returns project configuration fro the given project name
+    a view which returns project configuration for the given project name
 
     """
 

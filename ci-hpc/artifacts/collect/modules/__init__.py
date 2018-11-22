@@ -11,7 +11,7 @@ from artifacts.db.mongo import CIHPCMongo
 from utils import datautils, strings
 from utils.datautils import dotdict
 from utils.logging import logger
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 
 
 class ICollectTool(object):

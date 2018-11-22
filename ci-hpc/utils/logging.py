@@ -18,7 +18,7 @@ if str(getattr(sys.stdout, 'encoding', '')).upper() != 'UTF-8':
 
 
 # from colorama import Fore, Back, Style
-from utils.glob import global_configuration
+from cfg.config import global_configuration
 
 
 if not global_configuration.tty:
@@ -86,8 +86,8 @@ class AdditiveDateFormatter(ExtendedFormatter):
     Simple Formatter which returns time relative to the last command
     output example
         ```
-            >>> 0.0368    INFO: Processing project hello-world
-            >>> 0.0001    INFO: processing section test
+            $ >>> 0.0368    INFO: Processing project hello-world
+            $ >>> 0.0001    INFO: processing section test
         ```
     """
     start_time = time.time()

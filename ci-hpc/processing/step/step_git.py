@@ -2,7 +2,7 @@
 # author: Jan Hybs
 
 from utils.logging import logger
-from utils.config import configure_string
+from cfg.cfgutil import configure_string
 from vcs.git import Git
 
 
