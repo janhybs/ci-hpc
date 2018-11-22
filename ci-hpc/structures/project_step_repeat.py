@@ -37,7 +37,7 @@ class ProjectStepRepeat(object):
 
     def load_stats(self, project_name, step_name, git_commit=None):
         if not self.is_complex():
-            raise Exception('no point to load db stats on with fixed repetition value')
+            raise NotImplementedError('no point to load db stats on with fixed repetition value')
 
         if not self._connection:
             from artifacts.db.mongo import CIHPCMongo

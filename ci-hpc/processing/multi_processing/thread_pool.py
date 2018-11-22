@@ -59,7 +59,7 @@ class Worker(threading.Thread):
 
     @status.setter
     def status(self, value):
-        logger.debug('[%s]%s -> %s' % (str(self), str(self._status), str(value)))
+        # logger.debug('[%s]%s -> %s' % (str(self), str(self._status), str(value)))
         self._status = value
 
     def _run(self):
@@ -117,6 +117,9 @@ class WorkerPool(object):
             self.thread_event.on_exit(thread)
 
     def start_parallel(self):
+        if self.processes == 1:
+            return self.start_serial()
+
         # start
         for thread in self.threads:
             thread.start()

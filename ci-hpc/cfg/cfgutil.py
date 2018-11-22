@@ -63,7 +63,8 @@ class Config(object):
 
         cls._instance = Config()
         try:
-            cls._cfg = yaml.load(open(config_file, 'r').read()) or dict()
+            with open(config_file, 'r') as fp:
+                cls._cfg = yaml.load(fp.read()) or dict()
         except Exception as e:
             logger.warn_exception('Failed to load/parse %s configuration file, will use empty dict', config_file)
             logger.warn('You may want to create this file in order to use database connection')
@@ -120,13 +121,13 @@ def read_file(path, default=''):
         return default
 
 
-def load_config(path, replace=True, hostname_conditions=True):
+def load_config(path, replace=True, hostname_conditions=True, hostname=None):
     if not hostname_conditions:
         return yaml_load(read_file(path, default='{}'))
     obj = yaml_load(read_file(path, default='{}'))
 
     # grab hostname
-    hostname = Config.hostname()
+    host = hostname or Config.hostname()
 
     result = dict()
     simple_ones = {k: v for k, v in obj.items() if not isinstance(v, dict)}
@@ -136,11 +137,11 @@ def load_config(path, replace=True, hostname_conditions=True):
     result.update(simple_ones)
 
     for k, other_dict in complex_ones.items():
-        regex = k.replace('.', '\.').replace('*', '.*')
+        regex = k.replace('.', '\\.').replace('*', '.*')
 
         # we found our hostname match
-        if re.match(regex, hostname):
-            logger.debug('setting conditional variables (hostname %s matches definition %s)', hostname, k)
+        if re.match(regex, host):
+            logger.debug('setting conditional variables (hostname %s matches definition %s)', host, k)
             result.update(other_dict)
             return result
     return result

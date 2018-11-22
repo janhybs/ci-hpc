@@ -133,6 +133,9 @@ class RelativeDateFormatter(ExtendedFormatter):
             time=self.formatTime(record, self.datefmt),
             levelname=ColorLevels.get(record.levelname),
         )
+        # TODO how did this happened?
+        if not 'message' in record.__dict__:
+            record.__dict__['message'] = record.__dict__['msg']
         return self._pad_newlines(result % record.__dict__)
 
     def formatTime(self, record, datefmt=None):
@@ -171,7 +174,7 @@ class Logger(object):
 
         self.debug_exception = self._exception('debug')
         self.info_exception = self._exception('info')
-        self.warn_exception = self._exception('warn')
+        self.warn_exception = self._exception('warning')
         self.error_exception = self._exception('error')
 
         self.exception = self.warn_exception
@@ -194,12 +197,15 @@ class Logger(object):
 
         level = level if type(level) is int else getattr(logging, level.upper())
         for l in loggers:
-            l.setLevel(level)
+            if l:
+                l.setLevel(level)
         return self.logger.handlers
 
     def increase_verbosity(self, amount):
-        if amount:
+        if amount > 0:
             self.set_level('DEBUG', logger.LOGGER_ALL_HANDLERS)
+        elif amount < 0:
+            self.set_level('WARNING', logger.LOGGER_ALL_HANDLERS)
 
     @property
     def indent(self):
@@ -253,7 +259,7 @@ class Logger(object):
         else:
             self.logger.error(self.indent + msg.format(**kwargs), *args)
 
-    def _exception(self, method='warn'):
+    def _exception(self, method='warning'):
         def exc(msg, *args, **kwargs):
             return getattr(self.logger, method)(msg, *args, exc_info=True, **kwargs)
 
@@ -281,6 +287,7 @@ class Logger(object):
         :rtype: Logger
         """
         logger = logging.getLogger('root')
+        logger.handlers = list()
 
         file_log = logging.FileHandler(log_path, encoding='utf-8') if log_path else None
         stream_log = logging.StreamHandler(sys.stdout)

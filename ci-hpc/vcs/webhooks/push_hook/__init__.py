@@ -642,7 +642,7 @@ class PushWebhook:
         self.forced = forced
         self.base_ref = base_ref
         self.compare = compare
-        self.commits = commits
+        self.commits: list[Commit] = commits
         self.head_commit = head_commit
         self.repository = repository
         self.pusher = pusher

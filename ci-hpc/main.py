@@ -21,7 +21,7 @@ import subprocess
 from collections import defaultdict
 
 
-def parse_args():
+def parse_args(cmd_args=None):
     from utils.parsing import RawFormatter
 
     # create parser
@@ -74,6 +74,9 @@ def parse_args():
     parser.add_argument('--log-style', choices=['short', 'long'], default='short', help='''R|
                             Format style of the logger
                             ''')
+    parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='info', help='''R|
+                            Level of the logger
+                            ''')
 
     parser.add_argument('--watch-commit-limit', type=int, default=None, help='''R|
                             When in 'watch' mode, represents number of commits to load
@@ -88,23 +91,20 @@ def parse_args():
                             all the changes made.
                             ''')
 
-    parser.add_argument('-v', '--verbosity', default=0, action='count', help='''R|
-                            Increases verbosity of the application.
-                            ''')
     parser.add_argument('--tty', default=False, action='store_true', help='''R|
                             If set, will force tty human readable mode
                             ''')
     parser.add_argument('step', type=str, nargs='*', default=['install', 'test'])
 
     # parse given arguments
-    args = parser.parse_args()
+    args = parser.parse_args(cmd_args)
     return args
 
 
-def main():
+def main(cmd_args=None):
     from cfg.config import global_configuration
 
-    args = parse_args()
+    args = parse_args(cmd_args)
     # override log_path if set before actually creating logger
     if args.log_path:
         global_configuration.log_path = args.log_path
@@ -151,9 +151,7 @@ def main():
     project_name = args.project
 
     # change stream_handler level to info
-    logger.set_level('INFO', logger.LOGGER_STREAMHANDLER)
-    logger.set_level('INFO', logger.LOGGER_FILEHANDLER)
-    logger.increase_verbosity(args.verbosity)
+    logger.set_level(args.log_level.upper())
 
     logger.debug('app args: %s', str(args), skip_format=True)
 
