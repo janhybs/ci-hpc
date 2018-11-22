@@ -118,8 +118,8 @@ class RelativeDateFormatter(ExtendedFormatter):
     Simple Formatter which returns time relative since the start of the logger
     output example
         ```
-            >>> 0.0368    INFO: Processing project hello-world
-            >>> 0.0369    INFO: processing section test
+            $ >>> 0.0368    INFO: Processing project hello-world
+            $ >>> 0.0369    INFO: processing section test
         ```
     """
     start_time = time.time()
@@ -155,13 +155,19 @@ class Logger(object):
     LEVEL_WARN = 'warn'
     LEVEL_ERROR = 'error'
 
-    def __init__(self, logger):
+    def __init__(self, logger, file_handler, stream_handler):
+        """
+        Parameters
+        ----------
+        logger: logging.Logger
+        file_handler: logging.FileHandler or None
+        stream_handler: logging.StreamHandler or None
+        """
         self._indent = 0
         self.logger = logger
         self.tty = None
-        self.file_handler = self.logger.handlers[0]
-        self.stream_handler = self.logger.handlers[1]
-        self.log_file = self.file_handler.baseFilename
+        self.file_handler = file_handler
+        self.stream_handler = stream_handler
 
         self.debug_exception = self._exception('debug')
         self.info_exception = self._exception('info')
@@ -170,15 +176,25 @@ class Logger(object):
 
         self.exception = self.warn_exception
 
+    @property
+    def log_file(self):
+        if self.file_handler:
+            return self.file_handler.baseFilename
+        return None
+
     def set_level(self, level, logger=-1):
         if logger == self.LOGGER_ALL_HANDLERS:
-            loggers = [0, 1]
+            loggers = [self.file_handler, self.stream_handler]
+        elif logger == self.LOGGER_FILEHANDLER:
+            loggers = [self.file_handler]
+        elif logger == self.LOGGER_STREAMHANDLER:
+            loggers = [self.stream_handler]
         else:
-            loggers = [logger]
+            return self.logger.handlers
 
         level = level if type(level) is int else getattr(logging, level.upper())
         for l in loggers:
-            self.logger.handlers[l].setLevel(level)
+            l.setLevel(level)
         return self.logger.handlers
 
     def increase_verbosity(self, amount):
@@ -266,7 +282,7 @@ class Logger(object):
         """
         logger = logging.getLogger('root')
 
-        file_log = logging.FileHandler(log_path, encoding='utf-8')
+        file_log = logging.FileHandler(log_path, encoding='utf-8') if log_path else None
         stream_log = logging.StreamHandler(sys.stdout)
         file_formatter = ExtendedFormatter(fmt=ExtendedFormatter.simple_fmt)
 
@@ -282,19 +298,20 @@ class Logger(object):
             stream_formatter = ExtendedFormatter(fmt=ExtendedFormatter.simple_fmt)
 
         logger.setLevel(logging.DEBUG)
-        file_log.setLevel(logging.DEBUG)
+
+        if file_log:
+            file_log.setLevel(logging.DEBUG)
+            file_log.setFormatter(file_formatter)
+            logger.addHandler(file_log)
+
         stream_log.setLevel(logging.DEBUG)
-
-        file_log.setFormatter(file_formatter)
         stream_log.setFormatter(stream_formatter)
-
-        logger.addHandler(file_log)
         logger.addHandler(stream_log)
 
-        logger = Logger(logger)
+        logger = Logger(logger, file_log, stream_log)
         logger.tty = getattr(sys.stdout, 'isatty', lambda: False)() or use_tty
         return logger
 
 
-logger = None  # type: Logger
+logger = Logger.init()
 # logger.info('\n' + '-' * 80)
