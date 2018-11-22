@@ -64,3 +64,11 @@ class TestProjectStepRepeat(TestCase):
         data = {'no-less-than': 15}
         repeat = ProjectStepRepeat(data)
         self.assertTrue(repeat.is_complex())
+
+    def test_load_stats(self):
+        repeat = ProjectStepRepeat(None)
+
+        with self.assertRaises(NotImplementedError):
+            repeat.load_stats('foo', 'bar')
+
+        # cannot really test the rest without DB and repository

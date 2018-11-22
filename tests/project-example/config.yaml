@@ -1,0 +1,13 @@
+install:
+  - name: install-step
+
+    foo: <foo>
+    bar-foo: <bar.foo>
+
+    shell: |
+      echo foo
+
+test:
+  - name: test-step
+    shell: |
+      echo bar
