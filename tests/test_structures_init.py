@@ -7,6 +7,7 @@ from structures import new, pick
 
 
 class TestNew(TestCase):
+
     def test_new(self):
         class A(object):
             def __init__(self, a, b=1, **kwargs):
@@ -32,6 +33,7 @@ class TestNew(TestCase):
 
 
 class TestPick(TestCase):
+
     def test_pick(self):
         data = dict(a=5, b=6, c=7)
         self.assertEqual(pick(data, None, 'a'), 5)

@@ -8,6 +8,7 @@ from utils.files.temp_file import TempFile
 
 
 class TestTempFile(TestCase):
+
     def test_write_shebang(self):
         temp_file = TempFile('foo.sh')
 

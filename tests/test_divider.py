@@ -7,6 +7,7 @@ from utils.files.temp_file import divider
 
 
 class TestDivider(TestCase):
+
     def test_divider(self):
         value = divider('FOO', '#', '!', '=', 20)
         self.assertEqual(value, '#======= FOO ========!')
