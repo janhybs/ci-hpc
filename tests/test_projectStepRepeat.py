@@ -1,8 +1,9 @@
 #!/bin/python3
 # author: Jan Hybs
 
-from unittest import TestCase
+import tests
 
+from unittest import TestCase
 from structures.project_step_repeat import ProjectStepRepeat
 
 
