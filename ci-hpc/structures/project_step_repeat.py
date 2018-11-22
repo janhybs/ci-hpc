@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # author: Jan Hybs
+
 from utils.datautils import recursive_get
 from utils.logging import logger
 
@@ -16,7 +17,8 @@ class ProjectStepRepeat(object):
         if kwargs is None:
             self.fixed_value = 1
             self.dynamic_value = None
-        elif isinstance(kwargs, int):
+
+        elif type(kwargs) is int:
             self.fixed_value = kwargs
             self.dynamic_value = None
 

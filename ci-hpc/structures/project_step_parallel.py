@@ -12,8 +12,8 @@ class ProjectStepParallel(object):
     :type prop: any
     """
 
-    def __init__(self, **kwargs):
-        if kwargs in (None, False):
+    def __init__(self, kwargs=False):
+        if not kwargs or kwargs in (None, False):
             kwargs = dict()
 
         if kwargs is True:

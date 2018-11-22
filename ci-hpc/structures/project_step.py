@@ -43,7 +43,7 @@ class ProjectStep(object):
         self.container = structures_init.new(kwargs, 'container', ProjectStepContainer)
         self.smart_repeat = ProjectStepRepeat(kwargs.get('repeat', 1))
         self.shell = kwargs.get('shell', None)
-        self.parallel = ProjectStepParallel(**kwargs.get('parallel', dict()))
+        self.parallel = ProjectStepParallel(kwargs.get('parallel', dict()))
 
         # available choices are 
         #   stdout      - live output to the stdout
