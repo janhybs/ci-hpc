@@ -1,0 +1,16 @@
+language: python
+python:
+  - "3.6"
+  - "3.7-dev"
+
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls pytest-cov
+
+# command to run tests
+script:
+  - py.test --cov=ci-hpc tests/
+
+after_success:
+  - coveralls
