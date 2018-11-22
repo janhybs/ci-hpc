@@ -6,6 +6,18 @@ together with a minimalistic set of Python scripts.
 The results can be visualised in form of static Jupyter notebook or in an interactive web page.
 
 
+## Features
+ - automatically run benchmarks of your project
+ - inspect performance and scalability of your project
+ - create complex configurations with travis syntax build matrix capabilities
+ - use entire computing node with parallel test processing
+ - automatically browse a commit history and run the benchmarks
+ - automatically determine which tests to run based on results in your database
+
+## Coming soon
+ - simplify entire structure with a github push webhook
+ - run extra tests when suspecting significant performance change
+ - easily create web visualisation configuration from analyzing records in database
 
 ## CI-HPC showcase
 

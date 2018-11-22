@@ -106,6 +106,9 @@ venv.bak/
 /queue
 /visualisation
 ci-hpc.log
+*back*.json
+/cont-imgs
+/bakcup-ci-hpc
 
 
 # Docs
