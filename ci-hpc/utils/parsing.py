@@ -73,10 +73,10 @@ def convert_project_arguments(namespace, excludes=None):
             result.append('--' + key)
 
         elif key in extra_args and value:
-            for k,v in value.items():
+            for k, v in value.items():
                 if v:
                     result.append('--' + key)
                     result.append('%s:%s' % (str(k), str(v)))
         elif key in rest_args:
             result.extend(value)
-    return  result
+    return result

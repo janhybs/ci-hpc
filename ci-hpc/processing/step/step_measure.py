@@ -71,12 +71,12 @@ def process_step_measure(step, measure, shell_processing):
             os.unlink(instrument_output)
             with open('%s.json' % instrument_output, 'w') as fp:
                 json.dump({
-                    'duration': result.shell_duration,
+                    'duration'          : result.shell_duration,
                     'container-duration': result.duration,
                 }, fp)
 
         except:
-                result.shell_duration = None
+            result.shell_duration = None
 
     shell_processing.shell.on_enter += before_shell,
     shell_processing.shell.on_exit += after_shell,

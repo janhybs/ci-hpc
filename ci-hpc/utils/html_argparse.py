@@ -51,7 +51,6 @@ def dict_type(autoconvert=True):
 
 
 class HTMLArgparse(argparse.ArgumentParser):
-
     ACTION_DICT = dict_type(autoconvert=True)
 
     @staticmethod

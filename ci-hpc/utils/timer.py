@@ -29,7 +29,9 @@ class Timer(object):
                 with Timer(name, log):
                     result = function(*args, **kwargs)
                 return result
+
             return wrapper
+
         return real_decorator
 
     @property

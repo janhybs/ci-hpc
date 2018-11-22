@@ -24,20 +24,20 @@ def iter_reports(reports, conversion, is_file):
     index = 0
     for report in reports:
         index += 1
-        
+
         if is_file:
             with open(report, 'r') as fp:
                 try:
                     yield conversion(fp.read()), report
                 except Exception as e:
                     continue
-                
+
         else:
             try:
                 yield conversion(report), 'parse-result-%02d' % index
             except Exception as e:
                 continue
-            
+
 
 def process_step_collect(project, step, process_result, format_args=None):
     """
@@ -89,7 +89,7 @@ def process_step_collect(project, step, process_result, format_args=None):
                     'report: %s\n'
                     'file: %s\n', str(CollectModule), str(report), str(file)
                 )
-                
+
         for file, timers in timers_info:
             logger.debug('%20s: %5d timers found', file, timers)
         logger.debug('artifacts: found %d timer(s) in %d file(s)', timers_total, len(reports))
@@ -97,10 +97,10 @@ def process_step_collect(project, step, process_result, format_args=None):
         # insert artifacts into db
         if step.collect.save_to_db:
             instance.save_to_db(results)
-    
+
     result.total.append(timers_total)
     result.items.append(timers_info)
-    
+
     # --------------------------------------------------
 
     results = list()
@@ -159,7 +159,7 @@ def process_step_collect(project, step, process_result, format_args=None):
                     )
                     os.makedirs(move_to, exist_ok=True)
                     os.rename(old_filepath, new_filepath)
-    
+
     result.total.append(timers_total)
     result.items.append(timers_info)
 

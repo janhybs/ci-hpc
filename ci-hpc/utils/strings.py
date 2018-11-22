@@ -6,9 +6,9 @@ import random
 import json
 import yaml
 
-
 from utils import dateutils as dateutils
 import utils.extend_yaml
+
 
 utils.extend_yaml.extend()
 
@@ -76,7 +76,7 @@ def to_yaml(obj, default_flow_style=False, width=120, **kwargs):
 def pick_random_item(items, input):
     return items[
         hash(str(input)) % len(items)
-    ]
+        ]
 
 
 def str2bool(v):

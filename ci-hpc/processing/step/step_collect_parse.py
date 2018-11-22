@@ -43,6 +43,6 @@ def process_step_collect_parse(project, step, process_result, format_args=None):
 
         index = e + le + 1
         # try to parse the data or skip it
-        reports.append(output[s+ls:e].strip())
+        reports.append(output[s + ls:e].strip())
 
     return reports

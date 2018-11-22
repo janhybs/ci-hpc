@@ -46,6 +46,7 @@
 import utils.logging
 from cfg.config import global_configuration
 
+
 utils.logging.logger = utils.logging.Logger.init(
     global_configuration.log_path,
     global_configuration.log_style,
@@ -53,6 +54,8 @@ utils.logging.logger = utils.logging.Logger.init(
 )
 
 from artifacts.db.mongo import CIHPCMongo
+
+
 mongo = CIHPCMongo.get('flow123d')
 for item in mongo.reports.find():
     p = item['problem']
@@ -63,10 +66,10 @@ for item in mongo.reports.find():
 print(mongo)
 exit(0)
 
-
 import os
 import sys
 import argparse
+
 
 sys.path.append(
     os.path.abspath(
@@ -77,9 +80,9 @@ sys.path.append(
     )
 )
 
-
 from cfg.config import global_configuration
 import utils.logging
+
 
 utils.logging.logger = utils.logging.Logger.init(
     global_configuration.log_path,
@@ -114,15 +117,15 @@ def parse_args():
 
 def main():
     args = parse_args()
-    
+
     from visualisation.www import init_flask_server
     from visualisation.www.rest.sparkline_view import SparklineView
     from visualisation.www.rest.frame_view import FrameView
     from visualisation.www.rest.config_view import ConfigView
     from visualisation.www.rest.commit_history_view import CommitHistoryView
     from flask import redirect
-    api, app = init_flask_server()
 
+    api, app = init_flask_server()
 
     api.add_resource(
         SparklineView,
@@ -161,9 +164,10 @@ def main():
     if not args.debug:
         logger.set_level('info')
     logger.set_level('info')
-    
+
     logger.info('running server (debug: %s, host: %s, port: %d)', args.debug, args.host, args.port)
     app.run(debug=args.debug, host=args.host, port=args.port)
+
 
 if __name__ == '__main__':
     main()

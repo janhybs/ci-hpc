@@ -71,8 +71,8 @@ class ChartErrorBar(AChart):
     def _compute(self, df):
         result = pd.DataFrame()
         result['x'] = list(df.index)
-        result['low'] = list(df[self.opts.y][self.metric] * (1 + self.interval/2))
-        result['high'] = list(df[self.opts.y][self.metric] * (1 - self.interval/2))
+        result['low'] = list(df[self.opts.y][self.metric] * (1 + self.interval / 2))
+        result['high'] = list(df[self.opts.y][self.metric] * (1 - self.interval / 2))
         return result
 
 
@@ -85,13 +85,13 @@ class ChartErrorColumn(AChart):
         super(ChartErrorColumn, self).__init__(opts, enabled)
         self.interval = interval
         self.metric = metric
-        self.chart_name = self._chart_name.format(metric, (interval*100))
+        self.chart_name = self._chart_name.format(metric, (interval * 100))
 
     def _compute(self, df):
         result = pd.DataFrame()
         result['x'] = list(df.index)
-        result['low'] = list(df[self.opts.y][self.metric] * (1 + self.interval/2))
-        result['high'] = list(df[self.opts.y][self.metric] * (1 - self.interval/2))
+        result['low'] = list(df[self.opts.y][self.metric] * (1 + self.interval / 2))
+        result['high'] = list(df[self.opts.y][self.metric] * (1 - self.interval / 2))
         return result
 
 
@@ -159,15 +159,15 @@ class ChartMedian(AChart):
 
 class ChartGroup(object):
     y_metrics_default = {
-        'mean': np.mean,
+        'mean'  : np.mean,
         'median': np.median,
-        'min': np.min,
-        'max': np.max,
-        'std': np.std,
-        '25%': lambda x: np.percentile(x, 25),
-        '50%': np.median,
-        '75%': lambda x: np.percentile(x, 75),
-        'ci': du.mean_confidence_interval,
+        'min'   : np.min,
+        'max'   : np.max,
+        'std'   : np.std,
+        '25%'   : lambda x: np.percentile(x, 25),
+        '50%'   : np.median,
+        '75%'   : lambda x: np.percentile(x, 75),
+        'ci'    : du.mean_confidence_interval,
     }
 
     def __init__(self, chart_options, options):

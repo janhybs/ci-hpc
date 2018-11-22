@@ -11,6 +11,7 @@ class ProjectStepParallel(object):
     :type cpus: int
     :type prop: any
     """
+
     def __init__(self, **kwargs):
         if kwargs in (None, False):
             kwargs = dict()

@@ -14,6 +14,7 @@ from utils.colors import configurable_html_color
 from cfg.config import global_configuration
 from utils.logging import logger
 
+
 sns_color_palette = [
     [
         0.12156862745098039,
@@ -69,7 +70,6 @@ sns_color_palette = [
 
 
 class ProjectConfig(object):
-
     _instances = dict()
 
     @classmethod
@@ -130,7 +130,7 @@ class ProjectConfig(object):
         self.tests = [ProjectConfigTest(x) for x in config.get('tests', [])]
 
         self.date_format = None
-        self.color_palette = [configurable_html_color([int(y*255) for y in x]) for x in sns_color_palette.copy()]
+        self.color_palette = [configurable_html_color([int(y * 255) for y in x]) for x in sns_color_palette.copy()]
 
         date_format = config.get('date-format', 'long')
         if date_format == 'long':
@@ -153,12 +153,12 @@ class ProjectConfig(object):
         agg = dict()
         agg.update(({
             self.test_view.git_hash_prop: 'first',
-            self.test_view.id_prop: 'first',
+            self.test_view.id_prop      : 'first',
         }))
         renames = dict()
         renames.update(({
             self.test_view.git_hash_prop: 'commit',
-            self.test_view.id_prop: 'id',
+            self.test_view.id_prop      : 'id',
         }))
 
         for extra in self.test_view.extra.vars:
@@ -272,7 +272,7 @@ class ProjectConfigScaleView(ProjectConfigView):
             a piece of configuration for the view
         """
         self.groupby = config.get('groupby', dict())
-        self.series =  config.get('series', list())
+        self.series = config.get('series', list())
 
         self.x_prop = config.get('x-property', 'git.datetime')
         self.y_prop = config.get('y-property', 'result.duration')
@@ -378,6 +378,7 @@ class ProjectConfigViewExtra(object):
     vars : list[bool]
         a list of extra variables
     """
+
     def __init__(self, config):
         """
         Parameters
@@ -416,6 +417,5 @@ class ProjectConfigViewExtraVariable(object):
             self.map_via = lambda x: list(x)
         else:
             import numpy as np
+
             self.map_via = getattr(np, map_via)
-
-

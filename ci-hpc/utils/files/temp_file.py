@@ -35,6 +35,7 @@ class TempFile(object):
     using python 'with' syntax
 
     """
+
     def __init__(self, path, verbose=False):
         self.path = path
         self.lines = []

@@ -11,7 +11,6 @@ from artifacts.collect.modules import CollectResult, AbstractCollectModule, CIHP
 
 
 class CollectModule(AbstractCollectModule):
-
     _children = 'children'
 
     def process(self, object, from_file=None):
@@ -57,15 +56,15 @@ class CollectModule(AbstractCollectModule):
                 result=result,
                 timers=timers,
             ))
-        
+
         return CollectResult([report])
 
     @classmethod
     def _normalise_tag_name(cls, tag: str):
         return re.sub('[_-]+', '-',
-                      re.sub("([a-z])([A-Z])", "\g<1>-\g<2>", tag)\
-                        .replace('::', '-')\
-                        .replace(' ', '-').lower()
+                      re.sub("([a-z])([A-Z])", "\g<1>-\g<2>", tag) \
+                      .replace('::', '-') \
+                      .replace(' ', '-').lower()
                       )
 
     def _traverse(self, root, result, path=''):
@@ -85,15 +84,15 @@ class CollectModule(AbstractCollectModule):
     @classmethod
     def _extract_important(cls, child, cpus=1.0):
         sums = {
-            'duration': 'cumul-time-sum',
-            'executed': 'call-count-sum',
-            'cnt-alloc': 'memory-alloc-called-sum',
+            'duration'   : 'cumul-time-sum',
+            'executed'   : 'call-count-sum',
+            'cnt-alloc'  : 'memory-alloc-called-sum',
             'cnt-dealloc': 'memory-dealloc-called-sum',
-            'mem-alloc': 'memory-alloc-sum',
+            'mem-alloc'  : 'memory-alloc-sum',
             'mem-dealloc': 'memory-dealloc-sum',
         }
         result = dict()
-        result.update({k: float(child[v])/cpus for k, v in sums.items()})
+        result.update({k: float(child[v]) / cpus for k, v in sums.items()})
         result.update({k: child[k] for k in ['file-path', 'function']})
 
         result['name'] = cls._normalise_tag_name(child['tag'])

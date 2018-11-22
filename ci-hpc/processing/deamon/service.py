@@ -14,8 +14,6 @@ from utils.timer import Timer
 from vcs.git import Git, Commit
 
 
-
-
 class ArgConstructor(object):
     def __init__(self, fixed_args, commit_field):
         self.fixed_args: list = fixed_args
@@ -76,17 +74,17 @@ class CommitBrowser(object):
 
 class WatchService(object):
     def __init__(self, project, args_constructor, commit_browser):
-        self.args_constructor:ArgConstructor = args_constructor
-        self.commit_browser:CommitBrowser = commit_browser
-        self.project:str = project
+        self.args_constructor: ArgConstructor = args_constructor
+        self.commit_browser: CommitBrowser = commit_browser
+        self.project: str = project
 
     def fork(self):
         logger.info('forking the application')
         log_file = open(logger.log_file, 'a')
         with daemon.DaemonContext(
-            stderr=log_file,
-            working_directory=global_configuration.src,
-            pidfile=lockfile.FileLock('/tmp/ci-hpc-%s.pid' % self.project)):
+                stderr=log_file,
+                working_directory=global_configuration.src,
+                pidfile=lockfile.FileLock('/tmp/ci-hpc-%s.pid' % self.project)):
             # set stream to the log file is opened again
             logger.file_handler.stream = None
             self.start()

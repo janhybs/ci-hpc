@@ -137,12 +137,12 @@ class CIHPCMongo(Mongo):
             filter = dict()
 
         logger.info('db.getCollection("%s").find(\n'
-                     '%s\n'
-                     ',\n%s\n)',
-                     str(self.reports.name),
-                     strings.pad_lines(strings.to_json(filter)),
-                     strings.pad_lines(strings.to_json(projection)),
-                     )
+                    '%s\n'
+                    ',\n%s\n)',
+                    str(self.reports.name),
+                    strings.pad_lines(strings.to_json(filter)),
+                    strings.pad_lines(strings.to_json(projection)),
+                    )
 
         with Timer('db find: db-stuff', log=logger.debug):
 
@@ -224,11 +224,11 @@ class CIHPCMongo(Mongo):
         pipeline = [
             {
                 '$group': {
-                    '_id': {
+                    '_id'    : {
                         'hash': '$git.commit',
                         'date': {
-                            '$dateToString':{
-                                'date': '$git.datetime',
+                            '$dateToString': {
+                                'date'  : '$git.datetime',
                                 'format': '%Y-%m-%d %H:%M:%S'
                             }
                         }
@@ -237,7 +237,7 @@ class CIHPCMongo(Mongo):
                     'dur_avg': {'$avg': '$result.duration'},
                     'dur_max': {'$max': '$result.duration'},
                     'dur_min': {'$min': '$result.duration'},
-                    'items':   {'$sum': 1},
+                    'items'  : {'$sum': 1},
                 }
             },
             {

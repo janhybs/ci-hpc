@@ -102,7 +102,10 @@ class Commit:
     removed: Optional[List[Any]]
     modified: Optional[List[str]]
 
-    def __init__(self, id: Optional[str], tree_id: Optional[str], distinct: Optional[bool], message: Optional[str], timestamp: Optional[datetime], url: Optional[str], author: Optional[Author], committer: Optional[Author], added: Optional[List[Any]], removed: Optional[List[Any]], modified: Optional[List[str]]) -> None:
+    def __init__(self, id: Optional[str], tree_id: Optional[str], distinct: Optional[bool], message: Optional[str],
+                 timestamp: Optional[datetime], url: Optional[str], author: Optional[Author],
+                 committer: Optional[Author], added: Optional[List[Any]], removed: Optional[List[Any]],
+                 modified: Optional[List[str]]) -> None:
         self.id = id
         self.tree_id = tree_id
         self.distinct = distinct
@@ -191,7 +194,12 @@ class Sender:
     type: Optional[str]
     site_admin: Optional[bool]
 
-    def __init__(self, name: Optional[str], email: Optional[str], login: Optional[str], id: Optional[int], node_id: Optional[str], avatar_url: Optional[str], gravatar_id: Optional[str], url: Optional[str], html_url: Optional[str], followers_url: Optional[str], following_url: Optional[str], gists_url: Optional[str], starred_url: Optional[str], subscriptions_url: Optional[str], organizations_url: Optional[str], repos_url: Optional[str], events_url: Optional[str], received_events_url: Optional[str], type: Optional[str], site_admin: Optional[bool]) -> None:
+    def __init__(self, name: Optional[str], email: Optional[str], login: Optional[str], id: Optional[int],
+                 node_id: Optional[str], avatar_url: Optional[str], gravatar_id: Optional[str], url: Optional[str],
+                 html_url: Optional[str], followers_url: Optional[str], following_url: Optional[str],
+                 gists_url: Optional[str], starred_url: Optional[str], subscriptions_url: Optional[str],
+                 organizations_url: Optional[str], repos_url: Optional[str], events_url: Optional[str],
+                 received_events_url: Optional[str], type: Optional[str], site_admin: Optional[bool]) -> None:
         self.name = name
         self.email = email
         self.login = login
@@ -236,7 +244,9 @@ class Sender:
         received_events_url = from_union([from_str, from_none], obj.get("received_events_url"))
         type = from_union([from_str, from_none], obj.get("type"))
         site_admin = from_union([from_bool, from_none], obj.get("site_admin"))
-        return Sender(name, email, login, id, node_id, avatar_url, gravatar_id, url, html_url, followers_url, following_url, gists_url, starred_url, subscriptions_url, organizations_url, repos_url, events_url, received_events_url, type, site_admin)
+        return Sender(name, email, login, id, node_id, avatar_url, gravatar_id, url, html_url, followers_url,
+                      following_url, gists_url, starred_url, subscriptions_url, organizations_url, repos_url,
+                      events_url, received_events_url, type, site_admin)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -339,7 +349,29 @@ class Repository:
     stargazers: Optional[int]
     master_branch: Optional[str]
 
-    def __init__(self, id: Optional[int], node_id: Optional[str], name: Optional[str], full_name: Optional[str], private: Optional[bool], owner: Optional[Sender], html_url: Optional[str], description: Optional[str], fork: Optional[bool], url: Optional[str], forks_url: Optional[str], keys_url: Optional[str], collaborators_url: Optional[str], teams_url: Optional[str], hooks_url: Optional[str], issue_events_url: Optional[str], events_url: Optional[str], assignees_url: Optional[str], branches_url: Optional[str], tags_url: Optional[str], blobs_url: Optional[str], git_tags_url: Optional[str], git_refs_url: Optional[str], trees_url: Optional[str], statuses_url: Optional[str], languages_url: Optional[str], stargazers_url: Optional[str], contributors_url: Optional[str], subscribers_url: Optional[str], subscription_url: Optional[str], commits_url: Optional[str], git_commits_url: Optional[str], comments_url: Optional[str], issue_comment_url: Optional[str], contents_url: Optional[str], compare_url: Optional[str], merges_url: Optional[str], archive_url: Optional[str], downloads_url: Optional[str], issues_url: Optional[str], pulls_url: Optional[str], milestones_url: Optional[str], notifications_url: Optional[str], labels_url: Optional[str], releases_url: Optional[str], deployments_url: Optional[str], created_at: Optional[int], updated_at: Optional[datetime], pushed_at: Optional[int], git_url: Optional[str], ssh_url: Optional[str], clone_url: Optional[str], svn_url: Optional[str], homepage: None, size: Optional[int], stargazers_count: Optional[int], watchers_count: Optional[int], language: Optional[str], has_issues: Optional[bool], has_projects: Optional[bool], has_downloads: Optional[bool], has_wiki: Optional[bool], has_pages: Optional[bool], forks_count: Optional[int], mirror_url: None, archived: Optional[bool], open_issues_count: Optional[int], license: None, forks: Optional[int], open_issues: Optional[int], watchers: Optional[int], default_branch: Optional[str], stargazers: Optional[int], master_branch: Optional[str]) -> None:
+    def __init__(self, id: Optional[int], node_id: Optional[str], name: Optional[str], full_name: Optional[str],
+                 private: Optional[bool], owner: Optional[Sender], html_url: Optional[str], description: Optional[str],
+                 fork: Optional[bool], url: Optional[str], forks_url: Optional[str], keys_url: Optional[str],
+                 collaborators_url: Optional[str], teams_url: Optional[str], hooks_url: Optional[str],
+                 issue_events_url: Optional[str], events_url: Optional[str], assignees_url: Optional[str],
+                 branches_url: Optional[str], tags_url: Optional[str], blobs_url: Optional[str],
+                 git_tags_url: Optional[str], git_refs_url: Optional[str], trees_url: Optional[str],
+                 statuses_url: Optional[str], languages_url: Optional[str], stargazers_url: Optional[str],
+                 contributors_url: Optional[str], subscribers_url: Optional[str], subscription_url: Optional[str],
+                 commits_url: Optional[str], git_commits_url: Optional[str], comments_url: Optional[str],
+                 issue_comment_url: Optional[str], contents_url: Optional[str], compare_url: Optional[str],
+                 merges_url: Optional[str], archive_url: Optional[str], downloads_url: Optional[str],
+                 issues_url: Optional[str], pulls_url: Optional[str], milestones_url: Optional[str],
+                 notifications_url: Optional[str], labels_url: Optional[str], releases_url: Optional[str],
+                 deployments_url: Optional[str], created_at: Optional[int], updated_at: Optional[datetime],
+                 pushed_at: Optional[int], git_url: Optional[str], ssh_url: Optional[str], clone_url: Optional[str],
+                 svn_url: Optional[str], homepage: None, size: Optional[int], stargazers_count: Optional[int],
+                 watchers_count: Optional[int], language: Optional[str], has_issues: Optional[bool],
+                 has_projects: Optional[bool], has_downloads: Optional[bool], has_wiki: Optional[bool],
+                 has_pages: Optional[bool], forks_count: Optional[int], mirror_url: None, archived: Optional[bool],
+                 open_issues_count: Optional[int], license: None, forks: Optional[int], open_issues: Optional[int],
+                 watchers: Optional[int], default_branch: Optional[str], stargazers: Optional[int],
+                 master_branch: Optional[str]) -> None:
         self.id = id
         self.node_id = node_id
         self.name = name
@@ -492,7 +524,17 @@ class Repository:
         default_branch = from_union([from_str, from_none], obj.get("default_branch"))
         stargazers = from_union([from_int, from_none], obj.get("stargazers"))
         master_branch = from_union([from_str, from_none], obj.get("master_branch"))
-        return Repository(id, node_id, name, full_name, private, owner, html_url, description, fork, url, forks_url, keys_url, collaborators_url, teams_url, hooks_url, issue_events_url, events_url, assignees_url, branches_url, tags_url, blobs_url, git_tags_url, git_refs_url, trees_url, statuses_url, languages_url, stargazers_url, contributors_url, subscribers_url, subscription_url, commits_url, git_commits_url, comments_url, issue_comment_url, contents_url, compare_url, merges_url, archive_url, downloads_url, issues_url, pulls_url, milestones_url, notifications_url, labels_url, releases_url, deployments_url, created_at, updated_at, pushed_at, git_url, ssh_url, clone_url, svn_url, homepage, size, stargazers_count, watchers_count, language, has_issues, has_projects, has_downloads, has_wiki, has_pages, forks_count, mirror_url, archived, open_issues_count, license, forks, open_issues, watchers, default_branch, stargazers, master_branch)
+        return Repository(id, node_id, name, full_name, private, owner, html_url, description, fork, url, forks_url,
+                          keys_url, collaborators_url, teams_url, hooks_url, issue_events_url, events_url,
+                          assignees_url, branches_url, tags_url, blobs_url, git_tags_url, git_refs_url, trees_url,
+                          statuses_url, languages_url, stargazers_url, contributors_url, subscribers_url,
+                          subscription_url, commits_url, git_commits_url, comments_url, issue_comment_url, contents_url,
+                          compare_url, merges_url, archive_url, downloads_url, issues_url, pulls_url, milestones_url,
+                          notifications_url, labels_url, releases_url, deployments_url, created_at, updated_at,
+                          pushed_at, git_url, ssh_url, clone_url, svn_url, homepage, size, stargazers_count,
+                          watchers_count, language, has_issues, has_projects, has_downloads, has_wiki, has_pages,
+                          forks_count, mirror_url, archived, open_issues_count, license, forks, open_issues, watchers,
+                          default_branch, stargazers, master_branch)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -588,7 +630,10 @@ class PushWebhook:
     pusher: Optional[Pusher]
     sender: Optional[Sender]
 
-    def __init__(self, ref: Optional[str], before: Optional[str], after: Optional[str], created: Optional[bool], deleted: Optional[bool], forced: Optional[bool], base_ref: None, compare: Optional[str], commits: Optional[List[Commit]], head_commit: Optional[Commit], repository: Optional[Repository], pusher: Optional[Pusher], sender: Optional[Sender]) -> None:
+    def __init__(self, ref: Optional[str], before: Optional[str], after: Optional[str], created: Optional[bool],
+                 deleted: Optional[bool], forced: Optional[bool], base_ref: None, compare: Optional[str],
+                 commits: Optional[List[Commit]], head_commit: Optional[Commit], repository: Optional[Repository],
+                 pusher: Optional[Pusher], sender: Optional[Sender]) -> None:
         self.ref = ref
         self.before = before
         self.after = after
@@ -619,7 +664,8 @@ class PushWebhook:
         repository = from_union([Repository.from_dict, from_none], obj.get("repository"))
         pusher = from_union([Pusher.from_dict, from_none], obj.get("pusher"))
         sender = from_union([Sender.from_dict, from_none], obj.get("sender"))
-        return PushWebhook(ref, before, after, created, deleted, forced, base_ref, compare, commits, head_commit, repository, pusher, sender)
+        return PushWebhook(ref, before, after, created, deleted, forced, base_ref, compare, commits, head_commit,
+                           repository, pusher, sender)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -645,6 +691,7 @@ def push_webhook_from_dict(s: Any) -> PushWebhook:
 
 def push_webhook_to_dict(x: PushWebhook) -> Any:
     return to_class(PushWebhook, x)
+
 
 # export only these two functions by default
 __all__ = [

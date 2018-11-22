@@ -26,7 +26,8 @@ def main(args=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--timeout', '-t', type=int, default=None)
     parser.add_argument('--check-interval', type=int, default=10)
-    parser.add_argument('--live-log', type=str, default=None, help='If set, will also print lines from the live log file')
+    parser.add_argument('--live-log', type=str, default=None,
+                        help='If set, will also print lines from the live log file')
     parser.add_argument('--quiet', default=False, action='store_true', help='If set, suppresses qsub output')
     parser.add_argument('pbs_job_id')
     parser_args = parser.parse_args()
@@ -66,7 +67,7 @@ def main(args=None):
         for i in range(check_interval):
             time.sleep(1)
             if timeout and timeout > 0:
-                if (time.time()-start_time) > timeout:
+                if (time.time() - start_time) > timeout:
                     print('!' * 80)
                     print('Timeout! Job is still running, but timeout was set to %d seconds' % timeout)
                     print('Using following command to kill the job %s status' % jid)
@@ -86,6 +87,7 @@ class CountPrint(object):
     """
     Simple class which can print formatter lines and keep track of the no of lines
     """
+
     def __init__(self, format='[%4d]    %s', counter=1):
         self.format = format
         self.counter = counter

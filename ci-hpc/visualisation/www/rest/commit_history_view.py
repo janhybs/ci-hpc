@@ -18,8 +18,8 @@ class CommitHistoryView(Resource):
     def __init__(self):
         super(CommitHistoryView, self).__init__()
         self.options = dict()
-        self.config = None   # type: ProjectConfig
-        self.mongo = None    # type: CIHPCMongo
+        self.config = None  # type: ProjectConfig
+        self.mongo = None  # type: CIHPCMongo
 
     def prepare(self, project, base64data=None):
         if base64data:

@@ -32,6 +32,7 @@ class ProjectStep(object):
     :type collect:          ProjectStepCollect
     :type parallel:         ProjectStepParallel
     """
+
     def __init__(self, section, **kwargs):
         self.name = kwargs['name']
 
@@ -43,7 +44,7 @@ class ProjectStep(object):
         self.smart_repeat = ProjectStepRepeat(kwargs.get('repeat', 1))
         self.shell = kwargs.get('shell', None)
         self.parallel = ProjectStepParallel(**kwargs.get('parallel', dict()))
-        
+
         # available choices are 
         #   stdout      - live output to the stdout
         #   log         - redirects to the log file

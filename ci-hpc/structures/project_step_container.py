@@ -9,6 +9,7 @@ class ProjectStepContainer(object):
     """
     Helper class which holds information about singularity/docker
     """
+
     def __init__(self, value):
         """
         Parameters

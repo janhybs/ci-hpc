@@ -2,8 +2,11 @@
 # author: Jan Hybs
 
 from cfg.config import global_configuration
+
+
 try:
     import cachetools
+
 
     def cached():
         return cachetools.cached(**cache_configuration())
@@ -23,5 +26,7 @@ except ImportError:
         def decorator(func):
             def wrapper(*args, **kwargs):
                 return func(*args, **kwargs)
+
             return wrapper
+
         return decorator

@@ -10,6 +10,7 @@ class ProjectSection(object):
     Simple class holding steps together
     :type steps: list[ProjectStep]
     """
+
     def __init__(self, name, items):
         """
         :type items: list[dict]

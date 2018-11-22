@@ -77,7 +77,7 @@ class DynamicIO(object):
     if no location is passed, returns None
     :type fp: typing.TextIO
     """
-    
+
     # stdout      - live output to the stdout
     # log         - redirects to the log file
     # log+stdout  - redirect output to temp file, and after the subprocess
@@ -85,11 +85,11 @@ class DynamicIO(object):
     # stdout+log  - same as above
     # null        - redirects to /dev/null
     TYPES = {
-        'stdout': OpenerStdout,
-        'log': OpenerLog,
+        'stdout'    : OpenerStdout,
+        'log'       : OpenerLog,
         'log+stdout': OpenerBoth,
         'stdout+log': OpenerBoth,
-        'null': OpenerNull,
+        'null'      : OpenerNull,
     }
 
     def __init__(self, location, mode='a'):
@@ -105,4 +105,3 @@ class DynamicIO(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.opener.close()
         return False
-

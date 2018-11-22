@@ -10,6 +10,7 @@ class ProjectStepRepeat(object):
     :type fixed_value: int
     :type dynamic_value: int
     """
+
     def __init__(self, kwargs):
 
         if kwargs is None:
@@ -38,6 +39,7 @@ class ProjectStepRepeat(object):
 
         if not self._connection:
             from artifacts.db.mongo import CIHPCMongo
+
             self._connection = CIHPCMongo.get(project_name)
 
         filters = dict(name=step_name)
@@ -77,7 +79,7 @@ class ProjectStepRepeat(object):
                 duration_total = duration_per_repetition * self._remains
                 # TODO ugly code
                 estimated_duration = '\nestimated duration is %d secs (ie. %1.1f mins or %1.2f hours)' % (
-                    int(duration_total), float(duration_total/60), float(duration_total/3600)
+                    int(duration_total), float(duration_total / 60), float(duration_total / 3600)
                 )
             logger.info('found total of %d results\n'
                         'need to run %d more repetitions%s', total, self._remains, estimated_duration)

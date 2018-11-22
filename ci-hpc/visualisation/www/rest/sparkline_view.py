@@ -16,7 +16,6 @@ from visualisation.www.rest import ConfigurableView
 from utils.caching import cached
 from artifacts.db.mongo import CIHPCMongo
 
-
 from utils import strings, dateutils
 from utils import datautils as du
 from utils.logging import logger
@@ -185,7 +184,8 @@ def sparkline_view(project, base64data=''):
         series = list()
         extra = dict(size=list())
         colors_iter = iter(config.color_palette.copy() * 5)
-        for color_values, color_keys, color_names, color_data in SparklineView.group_by(group_data, chart_options.colorby):
+        for color_values, color_keys, color_names, color_data in SparklineView.group_by(group_data,
+                                                                                        chart_options.colorby):
             color_title = du.join_lists(color_names, color_values, '<small>{}</small> <b>{}</b>', ', ')
             if color_title == ' = ':
                 color_title = '*'
@@ -207,7 +207,7 @@ def sparkline_view(project, base64data=''):
                         if isinstance(b, datetime.datetime):
                             duration = dateutils.human_interval(b, e)
                             merge_map[merge_unique[i]] = 'group %s (%d items, period of %s)' % (
-                            chr(65 + s), cnt, duration)
+                                chr(65 + s), cnt, duration)
                         else:
                             merge_map[merge_unique[i]] = 'group %s (%d items, %s - %s)' % (chr(65 + s), cnt, b, e)
 
@@ -220,7 +220,7 @@ def sparkline_view(project, base64data=''):
                 cd_group = color_data.groupby(chart_options.x, sort=True).aggregate({
                     chart_options.c: lambda x: list(set(x)),
                     chart_options.y: chart_group.y_metrics.items(),
-                    '_id': lambda x: list(set(x)),
+                    '_id'          : lambda x: list(set(x)),
                 })
 
             if chart_group.boxplot_chart:
@@ -264,7 +264,7 @@ def sparkline_view(project, base64data=''):
 
             if series:
                 series[-1]['extra'] = {
-                    '_id': cd_group['_id'],
+                    '_id'    : cd_group['_id'],
                     'commits': cd_group[chart_options.c],
                 }
 
@@ -282,4 +282,3 @@ def sparkline_view(project, base64data=''):
         status=200,
         data=charts
     )
-

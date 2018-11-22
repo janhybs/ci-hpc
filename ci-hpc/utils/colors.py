@@ -42,7 +42,6 @@ def configurable_html_color(rgb):
     """
     return lambda x: rgb2html(rgb, '%1.2f') % x
 
-
 # import argparse
 # parser = argparse.ArgumentParser()
 # parser.add_argument('--failed', type=str2bool, default=False)

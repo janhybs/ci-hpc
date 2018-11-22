@@ -64,4 +64,5 @@ class ConfigurableView(Resource):
             names = du.ensure_iterable(list(groupby.values()))
 
             for group_values, group_data in df.groupby(keys):
-                yield (du.ensure_iterable(group_values), du.ensure_iterable(keys), du.ensure_iterable(names), group_data)
+                yield (
+                    du.ensure_iterable(group_values), du.ensure_iterable(keys), du.ensure_iterable(names), group_data)

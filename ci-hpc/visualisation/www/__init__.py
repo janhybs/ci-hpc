@@ -9,7 +9,6 @@ from utils.strings import JSONEncoder
 
 
 def init_flask_server():
-
     app = Flask(__name__)
     app.config['RESTFUL_JSON'] = dict(
         cls=JSONEncoder

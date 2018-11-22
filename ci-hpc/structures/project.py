@@ -15,21 +15,22 @@ class Counter(object):
     """
     Dummy class which simply counts on demand
     """
+
     def __init__(self, value=0):
         self.value = value
 
     @property
     def current(self):
         return self.current
-        
+
     @property
     def next(self):
         self.value += 1
         return self.value - 1
-    
+
     def __deepcopy__(self, memo):
         return Counter(self.value)
-    
+
     def __getattr__(self, attr):
         prefix = 'next-'
         if attr.startswith(prefix):
@@ -48,7 +49,6 @@ class Project(object):
     """
 
     def __init__(self, name, **kwargs):
-
         # globals
         self.name = name
         self.workdir = os.path.abspath(kwargs.get('workdir', '.'))
@@ -74,6 +74,7 @@ class Project(object):
 
     def unique(self):
         import uuid
+
         return uuid.uuid4().hex
 
     def update_global_args(self, o):

@@ -12,6 +12,7 @@ class Git(object):
     """
     :type git: structures.project_step_git.ProjectStepGit
     """
+
     def __init__(self, git):
         self.git = git
         self.dir = os.path.abspath(os.path.join(os.getcwd(), self.git.repo))
@@ -44,8 +45,9 @@ class Git(object):
         if branch:
             branch = branch.replace('origin/', '')
 
-        logger.info('Git checkout repo={self.git.repo} to branch={self.git.branch}, commit={self.git.commit}'.format(self=self))
-        self.execute("git config core.pager", "", dir=self.dir) # turn of less pager
+        logger.info(
+            'Git checkout repo={self.git.repo} to branch={self.git.branch}, commit={self.git.commit}'.format(self=self))
+        self.execute("git config core.pager", "", dir=self.dir)  # turn of less pager
         self.execute('pwd', dir=self.dir).wait()
         self.execute('git branch -vv', dir=self.dir).wait()
         self.execute('git fetch', dir=self.dir).wait()
@@ -107,4 +109,5 @@ class Commit(object):
         return 'commit({self.short_hash} by {self.author}, {self.rel_date})'.format(self=self)
 
     def __repr__(self):
-        return 'Commit({self.short_hash} {self.fs_date} by {self.author}, [{self.message}], {self.rel_date})'.format(self=self)
+        return 'Commit({self.short_hash} {self.fs_date} by {self.author}, [{self.message}], {self.rel_date})'.format(
+            self=self)

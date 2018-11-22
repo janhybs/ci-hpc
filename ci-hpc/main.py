@@ -12,13 +12,13 @@
 import os
 import sys
 
+
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 import argparse
 import time
 import subprocess
 from collections import defaultdict
-
 
 
 def parse_args():
@@ -74,7 +74,7 @@ def parse_args():
     parser.add_argument('--log-style', choices=['short', 'long'], default='short', help='''R|
                             Format style of the logger
                             ''')
-                            
+
     parser.add_argument('--watch-commit-limit', type=int, default=None, help='''R|
                             When in 'watch' mode, represents number of commits to load
                             from git log. Bigger number can cause git log to take longer.
@@ -87,7 +87,7 @@ def parse_args():
                             Smaller number may cause lower resolution, not catching
                             all the changes made.
                             ''')
-                            
+
     parser.add_argument('-v', '--verbosity', default=0, action='count', help='''R|
                             Increases verbosity of the application.
                             ''')
@@ -171,7 +171,7 @@ def main():
             logger.warning('invalid config location given: %s', project_dir)
             project_dir = os.path.join(__cfg__, project_name)
             logger.warning('will try to use %s instead', project_dir)
-            
+
     if not os.path.exists(project_dir):
         logger.error('no valid configuration found for the project %s', project_name)
         sys.exit(1)
@@ -197,7 +197,7 @@ def main():
         name = 'tmp.entrypoint-%d-%s.sh' % (time.time(), rands(6))
         bash_path = os.path.join(__root__, 'tmp', name)
         logger.debug('generating script %s', bash_path)
-        
+
         exec_args = [
             sys.executable,
             os.path.join(__src__, 'main.py'),
@@ -211,19 +211,19 @@ def main():
             value = getattr(args, arg)
             for k, v in value.items():
                 exec_args.append('--%s=%s:%s' % (arg.replace('_', '-'), k, v))
-        
+
         # generate script content
         script_content = cfgutil.configure_string(project_execute_script, {
-            'ci-hpc-exec': ' '.join(exec_args),
-            'ci-hpc-install': ' '.join(install_args),
+            'ci-hpc-exec'             : ' '.join(exec_args),
+            'ci-hpc-install'          : ' '.join(install_args),
             'ci-hpc-exec-no-interpret': ' '.join(exec_args[1:]),
         })
-        
+
         logger.debug('script_content: \n%s', script_content, skip_format=True)
-        
+
         with open(bash_path, 'w') as fp:
             fp.write(script_content)
-        
+
         os.chmod(bash_path, 0o777)
         logger.debug('ci-hpc-exec set to %s', ' '.join(exec_args), skip_format=True)
         # execute on demand using specific system (local/pbs for now)
@@ -240,7 +240,7 @@ def main():
 
         elif args.execute == 'pbs':
             logger.debug('running cmd: %s', str(['qsub', bash_path]), skip_format=True)
-            
+
             qsub_output = str(subprocess.check_output(['qsub', bash_path]).decode()).strip()
             cmd = [
                 sys.executable,
@@ -270,7 +270,7 @@ def main():
     variables_path = os.path.join(project_dir, 'variables.yaml')
     # this file contains all the sections and steps for installation and testing
     config_path = os.path.join(project_dir, 'config.yaml')
-    
+
     # update cpu count
     variables = cfgutil.load_config(variables_path)
     # variables['cpu-count'] = args.cpu_count
@@ -278,7 +278,7 @@ def main():
     global_configuration.project_name = project_name
     global_configuration.project_cfg_dir = project_dir
     global_configuration.project_cfg = config_path
-    
+
     # -----------------------------------------------------------------
 
     # otherwise load configs
@@ -289,8 +289,8 @@ def main():
         # specify some useful global arguments which will be available in the config file
         global_args_extra = {
             'project-name': project_name,
-            'project-dir': project_dir,
-            'arg': dict(
+            'project-dir' : project_dir,
+            'arg'         : dict(
                 branch=defaultdict(lambda: 'master', **dict(args.git_branch)),
                 commit=defaultdict(lambda: '', **dict(args.git_commit)),
             )
@@ -302,7 +302,7 @@ def main():
 
         project = ProcessProject(project_definition)
         logger.info('processing project %s, section %s', project_name, args.step)
-        
+
         if 'watch' in args.step:
             if not global_configuration.project_git:
                 logger.error('no repository provided')
@@ -323,7 +323,8 @@ def main():
                     limit=args.watch_commit_limit,
                     commit_policy=args.watch_commit_policy,
                 )
-                logger.info('analyzing last %d commits, commit pick policy: %s' % (commit_browser.limit, commit_browser.commit_policy))
+                logger.info('analyzing last %d commits, commit pick policy: %s' % (
+                    commit_browser.limit, commit_browser.commit_policy))
                 service = WatchService(project_name, args_constructor, commit_browser)
                 # service.fork()
                 service.start()

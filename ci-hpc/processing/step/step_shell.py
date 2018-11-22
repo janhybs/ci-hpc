@@ -27,6 +27,7 @@ class ProcessStepResult(object):
     :type process: subprocess.Popen
     :type output:  str
     """
+
     def __init__(self):
         self.process = None
         self.duration = None
@@ -46,7 +47,7 @@ class ProcessStepResult(object):
         self.end_time = time()
         self.duration = self.end_time - self.start_time
         return False
-    
+
     def __repr__(self):
         return 'ProcessStepResult({self.process}, {self.duration})'.format(self=self)
 
@@ -169,12 +170,12 @@ class ProcessConfigCrate(object):
     def __init__(self, args, output, container, name=None, collect=None, vars=None):
         from structures.project_step_container import ProjectStepContainer
 
-        self.args = args                # type. list[str]
-        self.output = output            # type: str
-        self.container = container      # type: ProjectStepContainer
-        self.name = name or str(args)   # type: str
-        self.collect = collect          # type: list
-        self.vars = vars                # type: dict
+        self.args = args  # type. list[str]
+        self.output = output  # type: str
+        self.container = container  # type: ProjectStepContainer
+        self.name = name or str(args)  # type: str
+        self.collect = collect  # type: list
+        self.vars = vars  # type: dict
 
     def __repr__(self):
         return 'Crate<{self.name}>'.format(self=self)

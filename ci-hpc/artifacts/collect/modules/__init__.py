@@ -189,7 +189,6 @@ def parse_output(out, line=None):
 
 
 class CIHPCReportGit(dict):
-
     instances = dict()
 
     @staticmethod

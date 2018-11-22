@@ -10,8 +10,9 @@ import itertools
 
 from utils.logging import logger
 
+
 _configure_object_regex = re.compile('<([a-zA-Z0-9_\.-]+)(\|[a-zA-Z_]+)?>')
-_configure_object_dict = dict(s=str,i=int,f=float,b=bool)
+_configure_object_dict = dict(s=str, i=int, f=float, b=bool)
 
 
 class Config(object):
@@ -26,6 +27,7 @@ class Config(object):
     def get(cls, *args, **kwargs):
         if not cls._instance:
             from cfg.config import global_configuration
+
             cls.init(global_configuration.cfg_secret_path)
 
         return cls._instance._get(*args, **kwargs)
@@ -34,6 +36,7 @@ class Config(object):
     def hostname(cls):
         if not cls._hostname:
             import platform
+
             cls._hostname = platform.node()
             logger.info('determined hostname as "%s"', cls._hostname)
         return cls._hostname
@@ -98,8 +101,10 @@ class Config(object):
 
     def __repr__(self):
         cfg = self.__class__._cfg.copy()
-        try:    cfg['pymongo']['password'] = '---HIDDEN---'
-        except: pass
+        try:
+            cfg['pymongo']['password'] = '---HIDDEN---'
+        except:
+            pass
         return yaml.dump(cfg, indent=4)
 
 
@@ -124,8 +129,8 @@ def load_config(path, replace=True, hostname_conditions=True):
     hostname = Config.hostname()
 
     result = dict()
-    simple_ones = {k: v for k,v in obj.items() if not isinstance(v, dict)}
-    complex_ones = {k: v for k,v in obj.items() if isinstance(v, dict)}
+    simple_ones = {k: v for k, v in obj.items() if not isinstance(v, dict)}
+    complex_ones = {k: v for k, v in obj.items() if isinstance(v, dict)}
 
     # add simple variables
     result.update(simple_ones)
@@ -152,11 +157,11 @@ def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):
             iterable_vals.append(v)
         else:
             rest[k] = v
-    
+
     for g in itertools.product(*iterable_vals):
         single_config = rest.copy()
         single_config.update(dict(zip(iterable_keys, g)))
-        
+
         single_content = copy(content)
         for k, v in single_config.items():
             single_content = single_content.replace('%s%s%s' % (start, k, stop), str(v))

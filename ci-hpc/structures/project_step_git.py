@@ -9,6 +9,7 @@ class ProjectStepGit(object):
     """
     Simple class holding git specification
     """
+
     def __init__(self, **kwargs):
         self.url = kwargs['url']
         self.repo = str(os.path.basename(self.url).split('.')[0])
@@ -21,6 +22,7 @@ class ProjectStepGit(object):
         # optionally mark this repo as main
         if kwargs.get('is-main', False):
             from cfg.config import global_configuration
+
             global_configuration.project_git = self
 
     def __repr__(self):

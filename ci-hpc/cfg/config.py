@@ -31,7 +31,7 @@ class global_configuration(object):
     cache_type = 'TTLCache'  # or LRUCache or None
     cache_opts = dict(
         maxsize=10,
-        ttl=10*60
+        ttl=10 * 60
     )
 
     # this file should be PROTECTED, as it may contain passwords and database connection details

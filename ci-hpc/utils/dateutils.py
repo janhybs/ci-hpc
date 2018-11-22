@@ -13,8 +13,8 @@ def to_seconds(datetime):
 
 
 to_minutes = lambda x: to_seconds(x) / 60
-to_hours   = lambda x: to_seconds(x) / (60 * 60)
-to_days    = lambda x: to_seconds(x) / (60 * 60 * 24)
+to_hours = lambda x: to_seconds(x) / (60 * 60)
+to_days = lambda x: to_seconds(x) / (60 * 60 * 24)
 
 
 def now():

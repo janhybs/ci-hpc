@@ -44,7 +44,7 @@ def determine_cpus(hint=None):
 
     # when we desire half
     # we take 'bigger' half
-    elif hint in (1/2, 'half'):
+    elif hint in (1 / 2, 'half'):
         cpus = math.ceil(cpu_count / 2)
 
     # percent format

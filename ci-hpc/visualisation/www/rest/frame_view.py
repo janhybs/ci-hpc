@@ -114,8 +114,8 @@ def frame_view(project, base64data=''):
 
     charts = list()
     for group_values, group_keys, group_names, group_data in FrameView.group_by(data_frame, chart_options.groupby):
-        group_title = du.join_lists(group_names, group_values,'{} = <b>{}</b>', '<br />')
-        group_title = du.join_lists(group_names, group_values,'{} = <b>{}</b>', '<br />')
+        group_title = du.join_lists(group_names, group_values, '{} = <b>{}</b>', '<br />')
+        group_title = du.join_lists(group_names, group_values, '{} = <b>{}</b>', '<br />')
 
         series = list()
         colors_iter = iter(config.color_palette.copy() * 5)
@@ -186,7 +186,6 @@ def frame_view(project, base64data=''):
 
                 paths = list(scatter['n'])
                 scatter.drop(columns=['n'], inplace=True)
-
 
                 series.append(dict(
                     type='scatter',

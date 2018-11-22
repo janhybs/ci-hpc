@@ -14,8 +14,8 @@ class ProjectStepMeasure(object):
     """
 
     class Type(enum.Enum):
-        TYPE_INSTRUMENT_SHELL   = 'instrument-shell'
-        TYPE_MEASURE_SCRIPT     = 'measure-script'
+        TYPE_INSTRUMENT_SHELL = 'instrument-shell'
+        TYPE_MEASURE_SCRIPT = 'measure-script'
 
     def __init__(self, **kwargs):
         self.format = kwargs.get('format', 'json')

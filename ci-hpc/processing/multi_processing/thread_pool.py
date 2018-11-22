@@ -43,20 +43,20 @@ class LogStatusFormat(enum.Enum):
 class Worker(threading.Thread):
     def __init__(self, crate, semaphore, thread_event, target, cpus=1):
         super(Worker, self).__init__()
-        self.cpus = cpus                    # type: int
-        self.semaphore = semaphore          # type: ComplexSemaphore
-        self.thread_event = thread_event    # type: EnterExitEvent
-        self.target = target                # type: callable
-        self.crate = crate                  # type: ProcessConfigCrate
-        self.result = None                  # type: ProcessStepResult or any
+        self.cpus = cpus  # type: int
+        self.semaphore = semaphore  # type: ComplexSemaphore
+        self.thread_event = thread_event  # type: EnterExitEvent
+        self.target = target  # type: callable
+        self.crate = crate  # type: ProcessConfigCrate
+        self.result = None  # type: ProcessStepResult or any
         self._status = None
         self.status = WorkerStatus.CREATED  # random.choice(list(WorkerStatus))
         self.timer = Timer(self.name)
-    
+
     @property
     def status(self):
         return self._status
-    
+
     @status.setter
     def status(self, value):
         logger.debug('[%s]%s -> %s' % (str(self), str(self._status), str(value)))
@@ -88,7 +88,7 @@ class WorkerPool(object):
         self.semaphore = ComplexSemaphore(self.processes)
         self.thread_event = EnterExitEvent('thread')
         self.threads = list()
-        
+
         logger.info('process limit set to %d' % self.processes)
         for item in items:
             self.threads.append(
@@ -120,12 +120,12 @@ class WorkerPool(object):
         # start
         for thread in self.threads:
             thread.start()
-            
+
         # wait
         for thread in self.threads:
             thread.join()
             thread.status = WorkerStatus.FINISHED
-            
+
         # fire on_exit
         for thread in self.threads:
             self.thread_event.on_exit(thread)
@@ -162,7 +162,7 @@ class WorkerPool(object):
 
         elif format is LogStatusFormat.ONELINE:
             statuses = sorted([x[0] for x in pluck(self.threads, 'status.name')])
-            msg = ''.join(statuses).upper()  #.replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
+            msg = ''.join(statuses).upper()  # .replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
             logger.info(' - ' + msg, skip_format=True)
 
         elif format is LogStatusFormat.ONELINE_GROUPED:
@@ -185,7 +185,7 @@ class WorkerPool(object):
 
         if isinstance(format, str):
             format = LogStatusFormat(format)
-        
+
         if log_period is None:
             if format is LogStatusFormat.ONELINE:
                 log_period = 2.0
@@ -193,19 +193,19 @@ class WorkerPool(object):
                 log_period = 5.0
             else:
                 log_period = 5.0
-        
+
         def target():
             # no work to be done? just finish up here
             # and return the thread
             if not self.threads:
                 return
-            
+
             last_print = 0
             while True:
                 if (time.time() - last_print) > log_period:
                     self._print_statuses(format)
                     last_print = time.time()
-                
+
                 if set(pluck(self.threads, 'status')) == {WorkerStatus.FINISHED}:
                     break
                 time.sleep(update_period)

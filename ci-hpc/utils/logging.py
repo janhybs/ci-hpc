@@ -7,6 +7,7 @@ import sys
 import time
 import locale
 
+
 if locale.getpreferredencoding().upper() != 'UTF-8':
     locale.setlocale(locale.LC_ALL, 'en_GB.UTF-8')
 
@@ -16,7 +17,6 @@ if str(getattr(sys.stdout, 'encoding', '')).upper() != 'UTF-8':
     #       '  PYTHONIOENCODING=utf-8 python3 <your-command-here>')
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
 
-
 # from colorama import Fore, Back, Style
 from cfg.config import global_configuration
 
@@ -24,8 +24,12 @@ from cfg.config import global_configuration
 if not global_configuration.tty:
     class Style:
         DIM = BRIGHT = RESET_ALL = NORMAL = ''
+
+
     class Fore:
         CYAN = WHITE = YELLOW = BLUE = GREEN = RED = ''
+
+
     class Back:
         RED = ''
 else:
@@ -34,13 +38,13 @@ else:
 
 class ColorLevels(object):
     color_map = {
-        'INFO':       Style.DIM + Fore.CYAN + 'INFO' + Style.RESET_ALL,
-        'WARNING':    Style.NORMAL + Fore.YELLOW + 'WARN' + Style.RESET_ALL,
-        'ERROR':      Style.BRIGHT + Back.RED + Fore.WHITE + 'ERROR' + Style.RESET_ALL,
-        'FATAL':      Style.BRIGHT + Back.RED + Fore.WHITE + 'FATAL' + Style.RESET_ALL,
-        'CRITICAL':   Style.BRIGHT + Back.RED + Fore.WHITE + 'CRIT' + Style.RESET_ALL,
+        'INFO'    : Style.DIM + Fore.CYAN + 'INFO' + Style.RESET_ALL,
+        'WARNING' : Style.NORMAL + Fore.YELLOW + 'WARN' + Style.RESET_ALL,
+        'ERROR'   : Style.BRIGHT + Back.RED + Fore.WHITE + 'ERROR' + Style.RESET_ALL,
+        'FATAL'   : Style.BRIGHT + Back.RED + Fore.WHITE + 'FATAL' + Style.RESET_ALL,
+        'CRITICAL': Style.BRIGHT + Back.RED + Fore.WHITE + 'CRIT' + Style.RESET_ALL,
     }
-    
+
     @classmethod
     def get(cls, levelname):
         if global_configuration.tty:
@@ -91,10 +95,10 @@ class AdditiveDateFormatter(ExtendedFormatter):
         ```
     """
     start_time = time.time()
-    
+
     def __init__(self, fmt, datefmt=5):
         super(AdditiveDateFormatter, self).__init__(20, 80, fmt, datefmt)
-    
+
     def format(self, record):
         result = self._fmt
         result = result.format(
@@ -102,11 +106,11 @@ class AdditiveDateFormatter(ExtendedFormatter):
             levelname=ColorLevels.get(record.levelname),
         )
         return self._pad_newlines(result % record.__dict__)
-    
+
     def formatTime(self, record, datefmt=None):
         result = '%1.9f' % (time.time() - self.start_time)
         self.start_time = time.time()
-        return result[:datefmt+1]
+        return result[:datefmt + 1]
 
 
 class RelativeDateFormatter(ExtendedFormatter):
@@ -119,10 +123,10 @@ class RelativeDateFormatter(ExtendedFormatter):
         ```
     """
     start_time = time.time()
-    
+
     def __init__(self, fmt, datefmt=6):
         super(RelativeDateFormatter, self).__init__(17, 80, fmt, datefmt)
-    
+
     def format(self, record):
         result = self._fmt
         result = result.format(
@@ -130,7 +134,7 @@ class RelativeDateFormatter(ExtendedFormatter):
             levelname=ColorLevels.get(record.levelname),
         )
         return self._pad_newlines(result % record.__dict__)
-    
+
     def formatTime(self, record, datefmt=None):
         result = '%1.9f' % (time.time() - self.start_time)
         return result[:datefmt]
@@ -141,7 +145,7 @@ class Logger(object):
     Singleton class for logging
     :type logger: utils.Logger
     """
-    
+
     LOGGER_FILEHANDLER = 0
     LOGGER_STREAMHANDLER = 1
     LOGGER_ALL_HANDLERS = -1
@@ -165,13 +169,13 @@ class Logger(object):
         self.error_exception = self._exception('error')
 
         self.exception = self.warn_exception
-    
+
     def set_level(self, level, logger=-1):
         if logger == self.LOGGER_ALL_HANDLERS:
             loggers = [0, 1]
         else:
             loggers = [logger]
-        
+
         level = level if type(level) is int else getattr(logging, level.upper())
         for l in loggers:
             self.logger.handlers[l].setLevel(level)
@@ -192,11 +196,13 @@ class Logger(object):
             header = 'dumping %s: \n' % name
         try:
             import json, yaml
+
             obj = json.loads(json.dumps(obj))
             msg = header + yaml.dump(obj, default_flow_style=False)
         except Exception as e:
             try:
                 import json, yaml
+
                 obj = yaml.dump(obj, default_flow_style=False)
                 msg = header + obj
             except:
@@ -213,7 +219,7 @@ class Logger(object):
         else:
             self.logger.info(self.indent + msg.format(**kwargs), *args)
 
-    def debug(self, msg, *args,skip_format=False,  **kwargs):
+    def debug(self, msg, *args, skip_format=False, **kwargs):
         if skip_format:
             self.logger.debug(self.indent + msg, *args)
         else:
@@ -234,6 +240,7 @@ class Logger(object):
     def _exception(self, method='warn'):
         def exc(msg, *args, **kwargs):
             return getattr(self.logger, method)(msg, *args, exc_info=True, **kwargs)
+
         return exc
 
     def open(self):
@@ -249,7 +256,7 @@ class Logger(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.exit()
         return False
-    
+
     warning = warn
 
     @classmethod
@@ -265,11 +272,11 @@ class Logger(object):
 
         if log_style == 'short':
             stream_formatter = RelativeDateFormatter(''.join([
-                    Fore.BLUE + Style.BRIGHT + '>>> ' + Style.RESET_ALL,
-                    Style.DIM + '{time} ' + Style.RESET_ALL,
-                    '{levelname}',
-                    ": %(message)s"
-                ])
+                Fore.BLUE + Style.BRIGHT + '>>> ' + Style.RESET_ALL,
+                Style.DIM + '{time} ' + Style.RESET_ALL,
+                '{levelname}',
+                ": %(message)s"
+            ])
             )
         else:
             stream_formatter = ExtendedFormatter(fmt=ExtendedFormatter.simple_fmt)

@@ -24,4 +24,5 @@ def create_execute_command(logger_method, stdout):
             return subprocess.Popen(command, **kwargs, cwd=cwd, stdout=stdout, stderr=subprocess.STDOUT)
         else:
             return subprocess.Popen(command, **kwargs, stdout=stdout, stderr=subprocess.STDOUT)
+
     return execute

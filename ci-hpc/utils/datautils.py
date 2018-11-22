@@ -7,7 +7,7 @@ from collections import defaultdict
 
 
 olist = lambda x: sorted(list(set(x)))
-set_if_none = lambda x,y: y if x is None else x
+set_if_none = lambda x, y: y if x is None else x
 
 
 def recursive_get(d, attr, default=None, sep='.'):
@@ -65,7 +65,7 @@ def flatten(d, parent_key='', sep='-'):
 def gmean(a):
     import numpy as np
 
-    return np.array(a).prod()**(1.0/len(a))
+    return np.array(a).prod()**(1.0 / len(a))
 
 
 def ensure_iterable(inst):
@@ -99,7 +99,7 @@ def dropzero(df):
 
 def filter_keys(d, required=None, forbidden=None):
     if required:
-        d = {k: v for k,v in d.items() if v in required}
+        d = {k: v for k, v in d.items() if v in required}
     if forbidden:
         d = {k: v for k, v in d.items() if v not in forbidden}
     return d
@@ -107,7 +107,7 @@ def filter_keys(d, required=None, forbidden=None):
 
 def filter_values(d, required=None, forbidden=None):
     if required:
-        d = {k: v for k,v in d.items() if k in required}
+        d = {k: v for k, v in d.items() if k in required}
     if forbidden:
         d = {k: v for k, v in d.items() if k not in forbidden}
     return d
@@ -126,9 +126,9 @@ def mean_confidence_interval(data, confidence=0.95, return_intervals=False):
     a = 1.0 * np.array(data)
     n = len(a)
     m, se = np.mean(a), st.sem(a)
-    h = se * st.t.ppf((1 + confidence) / 2., n-1)
+    h = se * st.t.ppf((1 + confidence) / 2., n - 1)
     if return_intervals:
-        return m, m-h, m+h
+        return m, m - h, m + h
     return h
 
 

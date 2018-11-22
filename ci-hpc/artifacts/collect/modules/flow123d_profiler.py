@@ -18,7 +18,6 @@ class Flow123dProfiler(ICollectTool):
     This module processes json profiler data and runtest.status.json files
     """
 
-
     include = 'profiler_info_*.log.json'
     exclude = None
 
@@ -65,9 +64,9 @@ class Flow123dProfiler(ICollectTool):
             cpu = 0
             el = 0
         return {
-            'task-size': el,
+            'task-size'        : el,
             'run-process-count': int(cpu),
-            'children': [
+            'children'         : [
                 {
                     'tag': 'Whole Program'
                 }
@@ -99,7 +98,7 @@ class Flow123dProfiler(ICollectTool):
             status['commit']['date'] = datetime.datetime.fromtimestamp(status['commit']['date'])
 
         # convert fields to ints and floats
-        self._convert_fields(obj, self._ints,   int)
+        self._convert_fields(obj, self._ints, int)
         self._convert_fields(obj, self._floats, float)
         self._convert_fields(obj, self._dates, self._parse_date)
 
@@ -146,7 +145,7 @@ class Flow123dProfiler(ICollectTool):
         # empty obj
         if not obj:
             return result
-            
+
         item = obj.copy()
         if self._children in item:
             del item[self._children]
