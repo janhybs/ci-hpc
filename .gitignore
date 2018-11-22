@@ -112,6 +112,8 @@ ci-hpc.log
 .coveralls.yml
 tests/*.log
 tests/tmp.*
+tmp.*
+foo.log
 
 
 # Docs
