@@ -46,6 +46,9 @@ class ProcessStepResult(object):
         self.end_time = time()
         self.duration = self.end_time - self.start_time
         return False
+    
+    def __repr__(self):
+        return 'ProcessStepResult({self.process}, {self.duration})'.format(self=self)
 
     def to_json(self):
         return dict(
@@ -189,8 +192,9 @@ def process_popen(worker):
         result.process = process
         with result:
             result.returncode = process.wait()
+            logger.info('ok [%d] ended with %d' % (process.pid, result.returncode))
 
     # try to grab output
     result.output = getattr(io.opener, 'output', None)
-
+    logger.error('returning result')
     return result

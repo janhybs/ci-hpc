@@ -118,14 +118,14 @@ class ProcessProject(object):
                             self.process_step(step, section, indices=[])
                         )
             timers_total.value = 0
+            
             with Timer('step execution', log=logger.info) as execution_timer:
-                
                 pool = WorkerPool(processes, step.parallel.cpus, process_popen)
                 pool.update_cpu_values(extract_cpus_from_worker)
                 pool.thread_event.on_exit.on(step_on_exit)
                 pool.thread_event.on_enter.on(step_on_enter)
                 # pretty status async logging
-                pool.log_statuses()
+                status_thread = pool.log_statuses(format='oneline')
                 # run in serial or parallel
                 if step.parallel:
                     logger.info('%d processes will be now executed in parallel' % len(processes))
@@ -133,7 +133,8 @@ class ProcessProject(object):
                 else:
                     logger.info('%d processes will be now executed in serial' % len(processes))
                     pool.start_serial()
-
+                status_thread.join()
+            
             try:
                 # here we will store additional info to the DB
                 # such as how many result we have for each commit

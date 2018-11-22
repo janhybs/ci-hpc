@@ -26,9 +26,12 @@ class PoolInt(object):
 
 
 class WorkerStatus(enum.IntEnum):
+    CREATED = 0
     RUNNING = 1
     WAITING = 2
     FINISHED = 3
+    RELEASED = 4
+    EXITED = 5
 
 
 class Worker(threading.Thread):
@@ -39,15 +42,26 @@ class Worker(threading.Thread):
         self.thread_event = thread_event    # type: EnterExitEvent
         self.target = target                # type: callable
         self.crate = crate                  # type: ProcessConfigCrate
-        self.result = None
+        self.result = None                  # type: ProcessStepResult or any
         self.cpus = cpus
-        self.status = WorkerStatus.WAITING  # random.choice(list(WorkerStatus))
+        self._status = None
+        self.status = WorkerStatus.CREATED  # random.choice(list(WorkerStatus))
         self.timer = Timer(self.name)
+    
+    @property
+    def status(self):
+        return self._status
+    
+    @status.setter
+    def status(self, value):
+        logger.debug('[%s]%s -> %s' % (str(self), str(self._status), str(value)))
+        self._status = value
 
     def _run(self):
         self.result = self.target(self)
 
     def run(self):
+        self.status = WorkerStatus.WAITING
         self.semaphore.acquire(value=self.cpus)
         self.status = WorkerStatus.RUNNING
         self.thread_event.on_enter(self)
@@ -57,6 +71,7 @@ class Worker(threading.Thread):
 
         self.status = WorkerStatus.FINISHED
         self.semaphore.release(value=self.cpus)
+        self.status = WorkerStatus.RELEASED
 
     def __repr__(self):
         return '{self.name}({self.cpus}x, [{self.status}])'.format(self=self)
@@ -90,17 +105,25 @@ class WorkerPool(object):
         return pluck(self.threads, 'result')
 
     def start_serial(self):
+        # in serial mode, we start the thread, wait for finish and fire on_exit
         for thread in self.threads:
             thread.start()
             thread.join()
+            thread.status = WorkerStatus.EXITED
             self.thread_event.on_exit(thread)
 
     def start_parallel(self):
+        # start
         for thread in self.threads:
             thread.start()
-
+            
+        # wait
         for thread in self.threads:
             thread.join()
+            thread.status = WorkerStatus.EXITED
+            
+        # fire on_exit
+        for thread in self.threads:
             self.thread_event.on_exit(thread)
 
         return self.result
@@ -133,7 +156,7 @@ class WorkerPool(object):
             logger.info(msg + '\n'.join(msgs), skip_format=True)
         elif format == 'oneline':
             statuses = sorted([x[0] for x in pluck(self.threads, 'status.name')])
-            msg = ''.join(statuses).upper().replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
+            msg = ''.join(statuses).upper()  #.replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
             logger.info(' - ' + msg, skip_format=True)
 
     def log_statuses(self, log_period=None, update_period=0.9, format=None):
@@ -152,15 +175,21 @@ class WorkerPool(object):
                 log_period = 5.0
         
         def target():
+            # no work to be done? just finish up here
+            # and return the thread
+            if not self.threads:
+                return
+            
             last_print = 0
             while True:
                 if (time.time() - last_print) > log_period:
                     self._print_statuses(format)
                     last_print = time.time()
-
-                if set(pluck(self.threads, 'status')) == {WorkerStatus.FINISHED} or not self.threads:
+                
+                if set(pluck(self.threads, 'status')) == {WorkerStatus.EXITED}:
                     break
                 time.sleep(update_period)
 
         thread = threading.Thread(target=target)
         thread.start()
+        return thread
