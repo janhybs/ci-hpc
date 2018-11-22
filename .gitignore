@@ -110,7 +110,8 @@ ci-hpc.log
 /cont-imgs
 /bakcup-ci-hpc
 .coveralls.yml
-
+tests/*.log
+tests/tmp.*
 
 
 # Docs
