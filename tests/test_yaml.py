@@ -6,8 +6,8 @@ import tests
 import yaml
 from unittest import TestCase
 
-from cfg.config import global_configuration
-from utils import extend_yaml
+from cihpc.cfg.config import global_configuration
+from cihpc.utils import extend_yaml
 
 repeat_yaml = '''
 foo: !repeat a 5

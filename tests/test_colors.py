@@ -4,7 +4,7 @@
 import tests
 
 from unittest import TestCase
-from utils import colors
+from cihpc.utils import colors
 
 
 class TestColors(TestCase):

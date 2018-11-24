@@ -6,7 +6,7 @@ import tests
 from os.path import join
 
 from unittest import TestCase
-from main import parse_args, main
+from cihpc.main import parse_args, main
 
 project_dir = join(tests.__dir__, 'project-example')
 

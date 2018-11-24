@@ -4,7 +4,7 @@
 import tests
 
 from unittest import TestCase
-from utils import strings
+from cihpc.utils import strings
 
 
 class TestStrings(TestCase):

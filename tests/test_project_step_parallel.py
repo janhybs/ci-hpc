@@ -5,7 +5,7 @@ import tests
 
 import multiprocessing
 from unittest import TestCase
-from structures.project_step_parallel import ProjectStepParallel
+from cihpc.structures.project_step_parallel import ProjectStepParallel
 
 
 class TestProjectStepParallel(TestCase):

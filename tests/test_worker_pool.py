@@ -5,13 +5,13 @@ import tests
 
 import time
 
-import utils.logging
-utils.logging.logger.set_level('WARNING')
+import cihpc.utils.logging
+cihpc.utils.logging.logger.set_level('WARNING')
 
 
 import multiprocessing
 from unittest import TestCase
-from processing.multi_processing.thread_pool import (
+from cihpc.processing.multi_processing.thread_pool import (
     WorkerPool, Worker, LogStatusFormat
 )
 
@@ -22,7 +22,7 @@ cpu_count = multiprocessing.cpu_count()
 class TestWorkerPool(TestCase):
 
     def test_start_serial(self):
-        utils.logging.logger.set_level('WARNING')
+        cihpc.utils.logging.logger.set_level('WARNING')
 
         items = [dict(foo=123), dict(foo=456)]
         processes = 1
@@ -38,7 +38,7 @@ class TestWorkerPool(TestCase):
         self.assertListEqual(pool.result, [[1, 123], [2, 456]])
 
     def test_start_parallel(self):
-        utils.logging.logger.set_level('WARNING')
+        cihpc.utils.logging.logger.set_level('WARNING')
 
         class A:
             def __init__(self, name):

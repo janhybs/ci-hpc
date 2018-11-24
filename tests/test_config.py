@@ -7,7 +7,7 @@ import random
 from os.path import join
 
 from unittest import TestCase
-from cfg import cfgutil
+from cihpc.cfg import cfgutil
 
 
 project_dir = join(tests.__dir__, 'project-example')

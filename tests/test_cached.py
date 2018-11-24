@@ -5,7 +5,7 @@ import tests
 
 from unittest import TestCase
 
-from cfg.config import global_configuration
+from cihpc.cfg.config import global_configuration
 
 
 class TestCached(TestCase):
@@ -17,7 +17,7 @@ class TestCached(TestCase):
             ttl=10 * 60,
         )
 
-        from utils.caching import cached
+        from cihpc.utils.caching import cached
 
         foo_i = dict(i=0)
 
@@ -30,7 +30,6 @@ class TestCached(TestCase):
         self.assertEqual(foo(1), 1)
         for i in range(12): foo(i)
         self.assertEqual(foo(1), 13)
-
 
         global_configuration.cache_type = None
         bar_i = dict(i=0)

@@ -4,7 +4,7 @@
 import tests
 import random
 from unittest import TestCase
-from utils.files.temp_file import TempFile
+from cihpc.utils.files.temp_file import TempFile
 
 
 class TestTempFile(TestCase):

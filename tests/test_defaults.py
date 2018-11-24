@@ -3,7 +3,10 @@
 
 import tests
 from unittest import TestCase
-from defaults import aggregation_default_configuration, artifacts_default_configuration
+from cihpc.defaults import (
+    aggregation_default_configuration,
+    artifacts_default_configuration,
+)
 
 
 class TestAggregation_default_configuration(TestCase):

@@ -3,7 +3,7 @@
 
 import tests
 from unittest import TestCase
-from utils.files.temp_file import divider
+from cihpc.utils.files.temp_file import divider
 
 
 class TestDivider(TestCase):

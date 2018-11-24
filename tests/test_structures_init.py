@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 
-from structures import new, pick
+from cihpc.structures import new, pick
 
 
 class TestNew(TestCase):

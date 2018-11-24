@@ -8,9 +8,9 @@ import tests
 
 from unittest import TestCase
 
-from utils.files import StdoutType
-from structures.project_step_git import ProjectStepGit
-from vcs.git import Git
+from cihpc.utils.files import StdoutType
+from cihpc.structures.project_step_git import ProjectStepGit
+from cihpc.vcs.git import Git
 
 
 class TestGit(TestCase):

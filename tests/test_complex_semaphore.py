@@ -3,7 +3,7 @@
 
 import tests
 from unittest import TestCase
-from processing.multi_processing.complex_semaphore import ComplexSemaphore
+from cihpc.processing.multi_processing.complex_semaphore import ComplexSemaphore
 
 
 class TestComplexSemaphore(TestCase):

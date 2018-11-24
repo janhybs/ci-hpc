@@ -4,7 +4,7 @@
 import tests
 
 from unittest import TestCase
-from structures.project_step_repeat import ProjectStepRepeat
+from cihpc.structures.project_step_repeat import ProjectStepRepeat
 
 
 class TestProjectStepRepeat(TestCase):
