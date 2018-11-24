@@ -3,6 +3,8 @@
 
 
 import os
+from utils.logging import Logger
+from utils.files import StdoutType
 
 
 class ProjectStepGit(object):
@@ -10,14 +12,21 @@ class ProjectStepGit(object):
     Simple class holding git specification
     """
 
-    def __init__(self, **kwargs):
-        self.url = kwargs['url']
-        self.repo = str(os.path.basename(self.url).split('.')[0])
+    def __init__(self, url,
+                 branch='master',
+                 commit='',
+                 logging=Logger.LEVEL_DEBUG,
+                 stdout=StdoutType.DEVNULL,
+                 **kwargs):
+
+        self.url = url
+        self.branch = branch
+        self.commit = commit
+        self.logging = logging
+        self.stdout = stdout.value
         self.remove_before_checkout = kwargs.get('remove-before-checkout', False)
-        self.branch = kwargs.get('branch', 'master')
-        self.commit = kwargs.get('commit', '')
-        self.logging = kwargs.get('logging', 'debug')
-        self.stdout = kwargs.get('stdout', 'DEVNULL')
+
+        self.repo = str(os.path.basename(self.url).split('.')[0])
 
         # optionally mark this repo as main
         if kwargs.get('is-main', False):

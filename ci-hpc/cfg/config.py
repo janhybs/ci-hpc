@@ -13,8 +13,9 @@ __src__ = os.path.join(__root__, 'ci-hpc')
 
 
 class global_configuration(object):
-    from structures.project_step_git import ProjectStepGit
-
+    """
+    :type project_git: structures.project_step_git.ProjectStepGit
+    """
     tty = getattr(sys.stdout, 'isatty', lambda: False)()
     root = __root__
     cfg = __cfg__
@@ -47,4 +48,4 @@ class global_configuration(object):
 
     # path to a main repository, from which
     # git information is taken
-    project_git: ProjectStepGit = None
+    project_git = None

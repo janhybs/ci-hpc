@@ -17,7 +17,7 @@ if str(getattr(sys.stdout, 'encoding', '')).upper() != 'UTF-8':
     #       '  PYTHONIOENCODING=utf-8 python3 <your-command-here>')
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
 
-# from colorama import Fore, Back, Style
+
 from cfg.config import global_configuration
 
 

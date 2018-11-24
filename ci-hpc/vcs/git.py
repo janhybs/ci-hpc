@@ -6,7 +6,7 @@ import shutil
 import subprocess
 from processing.execution import create_execute_command
 from utils.logging import logger
-
+from utils.files import StdoutType
 
 class Git(object):
     """
@@ -18,11 +18,11 @@ class Git(object):
         self.dir = os.path.abspath(os.path.join(os.getcwd(), self.git.repo))
         self.execute = create_execute_command(
             logger_method=getattr(logger, self.git.logging, logger.debug),
-            stdout=None if self.git.stdout is None else getattr(subprocess, self.git.stdout, None),
+            stdout=self.git.stdout,
         )
         self.execute_check_output = create_execute_command(
             logger_method=getattr(logger, self.git.logging, logger.debug),
-            stdout=subprocess.PIPE,
+            stdout=StdoutType.PIPE.value,
         )
 
     def fetch(self):
