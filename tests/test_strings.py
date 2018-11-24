@@ -30,7 +30,7 @@ class TestStrings(TestCase):
             strings.to_json(datetime.datetime(2018, 4, 22, 12, 00, 35)),
             '"2018/04/22-12:00:35"'
         )
-        
+
     def test_to_yaml(self):
         self.assertEqual(strings.to_yaml(dict(a=None)), 'a: null\n')
         self.assertEqual(strings.to_yaml(dict()), '{}\n')
