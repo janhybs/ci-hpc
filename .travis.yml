@@ -10,7 +10,7 @@ install:
 
 # command to run tests
 script:
-  - py.test --cov=ci-hpc tests/
+  - py.test --cov=cihpc tests/
 
 after_success:
   - coveralls
