@@ -22,8 +22,8 @@ class ProjectStepCollect(object):
 
     def __init__(self, **kwargs):
         self.files = kwargs.get('files', None)
-        self.parse = structures.new(kwargs, 'parse', ProjectStepContainerParse)
-        self.module = kwargs.get('module', 'artifacts.collect.modules.generic_module')
+        self.parse = cihpc.structures.new(kwargs, 'parse', ProjectStepContainerParse)
+        self.module = kwargs.get('module', 'cihpc.artifacts.collect.modules.generic_module')
         self.move_to = kwargs.get('move-to', None)
         self.cut_prefix = kwargs.get('cut-prefix', None)
         self.extra = kwargs.get('extra', dict())
