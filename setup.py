@@ -9,6 +9,9 @@ __root__ = os.path.dirname(__file__)
 with open(os.path.join(__root__, 'README.md'), 'r') as fp:
     long_description = fp.read()
 
+with open(os.path.join(__root__, 'version'), 'r') as fp:
+    VERSION = fp.read().strip()
+
 
 try:
     long_description = long_description[0:long_description.find('## CI-HPC showcase')].strip()
@@ -56,7 +59,7 @@ CLASSIFIERS = [
 
 setuptools.setup(
     name='cihpc',
-    version='0.1.0',
+    version=VERSION,
 
     packages=PACKAGES,
     classifiers=CLASSIFIERS,
