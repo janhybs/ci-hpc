@@ -3,6 +3,13 @@ python:
   - "3.6"
   - "3.7-dev"
 
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+
 # command to install dependencies
 install:
   - pip install -r requirements.txt
@@ -21,4 +28,4 @@ deploy:
   provider: pypi
   user: janhybs
   password:
-    secure: a20amCl0pXJP1UpMR6JV0p0Rg/Nk6T/LbIuZbjjeMEFBtnQGCDgYcfJ1pj2loqp6OJ3VnVXcAEqVK3NaWKD1Rbe/UBzDGXH85U1xXanijYX+KA+6AbefSTOVZuKvhcwfpY5lNWk2daCfbJO02jqgWDEz7RPVcRYGErlGwEbz9ystach70gCajeaGiy0L+ebPQqdBSZ15B2RGF0YgDwSET4OfGG972BqLxqU0211KtshWoSnRmgRY7thuIteuNXNphaoSglAkFl0zI+QDUSbzYAl67AqFmATlDUSxCbyrFK0IalROuwxO40GlVjQtSs9FG2T9U0+Pn64StEQLO17GZk+ui8igg2XjZJ3+D+BXMJL5lAOB0ubf7JNT+vVXUKGbn86/mkKAx72WmGpphgYzN1sEVNRpI1XsFcxnAM08n3Us1KnNzM1m1SKImiZIpkaLKY7zFlEPcVtkySAxz74CGuiWU7oq98l7gfZP5tAVDXbMW4AL1pvcGJsIzcnO+jey0TyU5caVOD7WCjT31uo9r6YrNl023bZjOm5emDoiVxQmbPhO3QYAwx9KSeiOMqPeClu0p/J5fBJIwc9ghmLSlh6SdFw889Ggq9cZcsgMAXTu+1D6VOKeTBzT1e6y6dc8H6u82SQQi8HwZv0ipGdGTnneE1ZUAv/vCfEIlepC50o=
+    secure: RMb5335GyFRNRNEUyDn9ra9sGmbLVUFq09d07+Cf4e0gkxDloLppcW54BztrDsMcIrjCZOMXkMRRUTETPJsscoSQH/rHiUyyvLkZyAnExQDIjqPWYQDwdFJr2wPp4IFHpXSis7fQJjr+gaQS6AplUlE8lo8NZGb9N2OpDKh1lcoEt7SsHIX4QwwyqrJsdqpi6Zmfzkfr3SZrOOEdxwQTLe1ArW9VKM8FU0yHWy0chOMrRPoHxo9RIaMQgYkf6Vb3WPe71TCLyx1wMke6bP6Jexh7212rHAcrIA6G0JwGREn7LgLV1/xr8JSfUgXXNg0h0hwoBLaxqzgQPFwaVltMsTz5dc+h6GMldkgZ6HpAexj4s1DBgxQ27paGjB+q5AQ5J7F/2xyVenzs2oM5GRr1Vk9s9Q/dUnf5H4lZQ7nHBkuZsws+xgVSt2LdJ6qAeHW9XewFoMyi18vxmfuQzyf/nMAhlAawOjZPo6asiptnifbSng3beVh3CaOF6AnvlbptCSt5F5mhn+HUlqTDldA1szDiN0cRHOqmzmDYtyNI5TKzQSPvLX6i56YIwjL0dL13jgvH3LN/ePPY3o2iSIWBBIJQ8FxST5oF+ttewvAqGJt1FELkpDfEeW7Fq7Uf0R9tZIUD+5fR06Fn8Hs/iCZK1ZdVCpKh9BHinvfDztfDLnE=
