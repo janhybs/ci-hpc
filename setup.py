@@ -15,7 +15,7 @@ try:
 except:
     long_description = long_description.strip()
 
-packages = [
+PACKAGES = [
     "cihpc",
     "cihpc.cfg",
     "cihpc.utils",
@@ -37,16 +37,38 @@ packages = [
 ]
 
 
+CLASSIFIERS = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Science/Research',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Topic :: Software Development',
+    'Topic :: Software Development :: Testing',
+    'Topic :: Scientific/Engineering :: Visualization',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX',
+    'Operating System :: Unix',
+    'Operating System :: MacOS',
+]
+
+
 setuptools.setup(
     name='cihpc',
     version='0.1.0',
-    packages=packages,
+
+    packages=PACKAGES,
+    classifiers=CLASSIFIERS,
+
     url='https://github.com/janhybs/ci-hpc',
     license='MIT License',
+
     author='jan-hybs',
     author_email='jan.hybs@tul.cz',
+
+
     long_description=long_description,
     long_description_content_type="text/markdown",
-    description='A framework combining CI and HPC together with a minimalistic set of Python scripts '
-                'to monitor scalability and performance of the software package'
+    description='Python performance monitoring tool using HPC'
 )
