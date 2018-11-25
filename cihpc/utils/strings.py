@@ -21,7 +21,7 @@ def generate_random_key(length=8):
     return ''.join(random.choice('0123456789abcdef') for _ in range(length))
 
 
-def pad_lines(string, pad=4):
+def pad_lines(string, pad=2):
     """
     :type pad: int or str
     :type string: str
