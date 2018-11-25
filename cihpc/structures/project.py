@@ -8,6 +8,7 @@ import time
 import datetime
 import cihpc.utils.strings
 
+from cihpc.cfg.cfgutil import configure_string
 from cihpc.structures.project_section import ProjectSection
 
 
@@ -60,7 +61,6 @@ class Project(object):
     def __init__(self, name, **kwargs):
         # globals
         self.name = name
-        self.workdir = os.path.abspath(kwargs.get('workdir', '.'))
         self.init_shell = kwargs.get('init-shell', None)
         self._counter = Counter()
         self._os = EnvGetter()
@@ -80,6 +80,9 @@ class Project(object):
         )
         self._global_args['$'] = self._global_args['os']
 
+        self.workdir = os.path.abspath(
+            configure_string(kwargs.get('workdir', '.'), self.global_args)
+        )
         # sections
         self.install = ProjectSection('install', kwargs.get('install', []))
         self.test = ProjectSection('test', kwargs.get('test', []))
@@ -91,6 +94,16 @@ class Project(object):
 
     def update_global_args(self, o):
         self._global_args.update(o)
+
+    @property
+    def pretty(self):
+        lines = [
+            'Project <{self.name}>'.format(self=self),
+            '  - workdir: {self.workdir}'.format(self=self),
+            '%s' % cihpc.utils.strings.pad_lines('- {self.install.pretty}'.format(self=self)),
+            '%s' % cihpc.utils.strings.pad_lines('- {self.test.pretty}'.format(self=self)),
+        ]
+        return '\n'.join(lines)
 
     @property
     def global_args(self):

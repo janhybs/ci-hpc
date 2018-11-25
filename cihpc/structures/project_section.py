@@ -22,8 +22,20 @@ class ProjectSection(object):
             for step in items:
                 self.steps.append(ProjectStep(self, **step))
 
+    def __len__(self):
+        return len(self.steps)
+
     def __iter__(self):
         return iter(self.steps)
+
+    @property
+    def pretty(self):
+        lines = [
+            'ProjectSection <{self.name}> %d item(s)' % len(self),
+            '  - items:'
+        ]
+        lines.extend(['    - ProjectStep <{step.name}>'.format(step=step) for step in self])
+        return '\n'.join(lines).format(self=self)
 
     def index(self, o):
         return self.steps.index(o)
