@@ -25,6 +25,7 @@ after_success:
 deploy:
   on:
     all_branches: true
+  twine_version: 1.12.1
   provider: pypi
   user: janhybs
   password:
