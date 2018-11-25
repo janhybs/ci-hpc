@@ -1,12 +1,16 @@
 language: python
+
+# run travis on versions 3.6 and 3.7 
 python:
   - "3.6"
   - "3.7-dev"
 
+# cache pip downloaded packages
 cache:
   directories:
     - $HOME/.cache/pip
 
+# remove log from the cache
 before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
 
@@ -19,6 +23,7 @@ install:
 script:
   - py.test --cov=cihpc tests/
 
+# publish coverage results
 after_success:
   - coveralls
 
