@@ -1,5 +1,6 @@
 #!/bin/python3
 # author: Jan Hybs
+import os
 
 import tests
 
@@ -7,7 +8,8 @@ import random
 from os.path import join
 
 from unittest import TestCase
-from cihpc.cfg import cfgutil
+
+from cihpc.utils.datautils import merge_dict
 
 
 project_dir = join(tests.__dir__, 'project-example')
@@ -17,6 +19,7 @@ config_path = join(project_dir, 'config.yaml')
 class TestConfig(TestCase):
 
     def test_configure_file(self):
+        from cihpc.cfg import cfgutil
 
         variables = dict()
         project_configs = list(cfgutil.configure_file(config_path, variables))
@@ -39,6 +42,8 @@ class TestConfig(TestCase):
         self.assertEqual(len(project_configs), 3)
 
     def test_configure_string(self):
+        from cihpc.cfg import cfgutil
+
         variables = dict(
             foo='foo',
             bar=dict(
@@ -69,3 +74,33 @@ class TestConfig(TestCase):
         config = list(cfgutil.configure_file(config_path, variables))[0]
         self.assertEqual(config['install'][0]['foo'], variables['foo'])
         self.assertEqual(config['install'][0]['bar-foo'], '<bar.foo>')      # is not supported
+
+    def test_config_special_variables(self):
+        from cihpc.structures.project import Project
+        from cihpc.cfg import cfgutil
+
+        project = Project(name='foobar')
+
+        self.assertEqual(
+            cfgutil.configure_string('My home is <os.HOME>', project.global_args),
+            'My home is %s' % os.environ.get('HOME')
+        )
+        self.assertEqual(
+            cfgutil.configure_string('My home is <$.HOME>', project.global_args),
+            'My home is %s' % os.environ.get('HOME')
+        )
+
+        kwargs = merge_dict(
+            project.global_args,
+            foobar=dict(
+                foo='foo',
+                bar=dict(
+                    foo='foo.bar'
+                )
+            )
+        )
+
+        self.assertEqual(
+            cfgutil.configure_string('foobar.bar.foo is <foobar.bar.foo> and I am <$.USER>', kwargs),
+            'foobar.bar.foo is foo.bar and I am %s' % os.environ.get('USER')
+        )

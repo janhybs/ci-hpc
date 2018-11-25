@@ -11,7 +11,7 @@ import itertools
 from cihpc.utils.logging import logger
 
 
-_configure_object_regex = re.compile('<([a-zA-Z0-9_\.-]+)(\|[a-zA-Z_]+)?>')
+_configure_object_regex = re.compile('<([a-zA-Z0-9_$.-]+)(\|[a-zA-Z_]+)?>')
 _configure_object_dict = dict(s=str, i=int, f=float, b=bool)
 
 

@@ -2,7 +2,6 @@
 # author: Jan Hybs
 
 import datetime as dt
-import maya
 
 
 epoch = dt.datetime(1970, 1, 1)
@@ -18,34 +17,46 @@ to_days = lambda x: to_seconds(x) / (60 * 60 * 24)
 
 
 def now():
+    import maya
+
     return maya.now()
 
 
 def short_format(datetime):
+    import maya
+
     if type(datetime) is maya.MayaDT:
         return short_format(datetime.datetime())
     return datetime.strftime('%Y/%m/%d')
 
 
 def long_format(datetime):
+    import maya
+
     if type(datetime) is maya.MayaDT:
         return short_format(datetime.datetime())
     return datetime.strftime('%Y/%m/%d-%H:%M:%S')
 
 
 def human_format(datetime):
+    import maya
+
     if type(datetime) is maya.MayaDT:
         return human_format(datetime.datetime())
     return maya.MayaDT.from_datetime(datetime).slang_time()
 
 
 def human_format2(datetime):
+    import maya
+
     if type(datetime) is maya.MayaDT:
         return human_format2(datetime.datetime())
     return maya.MayaDT.from_datetime(datetime).slang_date()
 
 
 def human_interval(start, end=dt.datetime.now()):
+    import maya
+
     td = maya.MayaInterval(maya.MayaDT.from_datetime(start), maya.MayaDT.from_datetime(end)).timedelta
     days, hours, minutes = td.days, td.seconds // 3600, (td.seconds // 60) % 60
     if not days:

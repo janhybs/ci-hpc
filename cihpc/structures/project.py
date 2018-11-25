@@ -38,6 +38,15 @@ class Counter(object):
             return ('{:%s}' % fmt).format(self.next)
 
 
+class EnvGetter(object):
+
+    def __deepcopy__(self, memo):
+        return self
+
+    def __getattr__(self, attr):
+        return os.environ.get(attr, None)
+
+
 class Project(object):
     """
     Main class representing single project in a yaml configuration file
@@ -54,6 +63,7 @@ class Project(object):
         self.workdir = os.path.abspath(kwargs.get('workdir', '.'))
         self.init_shell = kwargs.get('init-shell', None)
         self._counter = Counter()
+        self._os = EnvGetter()
         self._global_args = dict(
             __project__=dict(
                 start=dict(
@@ -65,8 +75,10 @@ class Project(object):
 
                 ),
                 counter=self._counter,
-            )
+            ),
+            os=self._os,
         )
+        self._global_args['$'] = self._global_args['os']
 
         # sections
         self.install = ProjectSection('install', kwargs.get('install', []))
