@@ -105,7 +105,7 @@ venv.bak/
 /logs
 /queue
 /visualisation
-ci-hpc.log
+*ci-hpc.log
 *back*.json
 /cont-imgs
 /bakcup-ci-hpc
