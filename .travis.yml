@@ -31,8 +31,9 @@ deploy:
   on:
     all_branches: true
   twine_version: 1.12.1
+  skip_existing: true
   provider: pypi
-  version: 3.6
+  python: 3.6
   user: janhybs
   password:
     secure: rMC3ZZTyzxhrZVRjyU4WKH4ahM0KzLXxI2nlEZI5upU4IL9sMlyhyjSrlRLkxiIBVHpcVtxU4xjy1MZmblVbXDoanSNMpArdB02/f+yeiE2fRFyqaLTP3UY3UFPy71PrJe1uCAS0KrgPinybtaje47mKbJN4gGSDy//Q/U3J6iJQ9J8znoa6k8H0E67coW5nHOiklY4dz+BB5NKIQr8S50O6dhTXTacoL1ZmCeIOC9I3ed8b9e1pt4e12b8tWFtvyPd8b+hUng9t7783t5KJGDG5z60wFnWdkD8FPvgpUzDZZRTiACoKOQjUIpifsFkAAswckL/tvTmZ4rb01QIp5g1/rdlqvgqikqjqILFT6D8iJeaxRCOVZhW/18CtV3QrYzXF8XHOg3GCqJOXINmmAH5SIyoZNMU6wPXIByXuQM6loCnAWWiCNqLpMzSJFlLf5SVZASIRMfa17/86pMP3dH+bvbTk9m43dcIMG6JCWQX1xLvKVON9Lllc9o4rmyUbrmUhwIUgWqi3GSvCrKuxN95OEMgmR6j6DKZ3Qqeq54MfPLeheGtS/EyiSFiGC7aCpr8LFvO80dy/uKlHZJGWW0buok8zDc8Z4LzqOciEa94NWJc+FOsTzkk3BILi6wXslGstipLUC5hvWbnezJeevUKu7y7xbhL6NzhgHnGcisQ=
