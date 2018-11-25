@@ -22,11 +22,12 @@ script:
 after_success:
   - coveralls
 
-deploy:
-  on:
-    all_branches: true
-  twine_version: 1.12.1
-  provider: pypi
-  user: janhybs
-  password:
-    secure: RMb5335GyFRNRNEUyDn9ra9sGmbLVUFq09d07+Cf4e0gkxDloLppcW54BztrDsMcIrjCZOMXkMRRUTETPJsscoSQH/rHiUyyvLkZyAnExQDIjqPWYQDwdFJr2wPp4IFHpXSis7fQJjr+gaQS6AplUlE8lo8NZGb9N2OpDKh1lcoEt7SsHIX4QwwyqrJsdqpi6Zmfzkfr3SZrOOEdxwQTLe1ArW9VKM8FU0yHWy0chOMrRPoHxo9RIaMQgYkf6Vb3WPe71TCLyx1wMke6bP6Jexh7212rHAcrIA6G0JwGREn7LgLV1/xr8JSfUgXXNg0h0hwoBLaxqzgQPFwaVltMsTz5dc+h6GMldkgZ6HpAexj4s1DBgxQ27paGjB+q5AQ5J7F/2xyVenzs2oM5GRr1Vk9s9Q/dUnf5H4lZQ7nHBkuZsws+xgVSt2LdJ6qAeHW9XewFoMyi18vxmfuQzyf/nMAhlAawOjZPo6asiptnifbSng3beVh3CaOF6AnvlbptCSt5F5mhn+HUlqTDldA1szDiN0cRHOqmzmDYtyNI5TKzQSPvLX6i56YIwjL0dL13jgvH3LN/ePPY3o2iSIWBBIJQ8FxST5oF+ttewvAqGJt1FELkpDfEeW7Fq7Uf0R9tZIUD+5fR06Fn8Hs/iCZK1ZdVCpKh9BHinvfDztfDLnE=
+# # disable for now
+# deploy:
+#   on:
+#     all_branches: true
+#   twine_version: 1.12.1
+#   provider: pypi
+#   user: janhybs
+#   password:
+#     secure: RMb5335GyFRNRNEUyDn9ra9sGmbLVUFq09d07+Cf4e0gkxDloLppcW54BztrDsMcIrjCZOMXkMRRUTETPJsscoSQH/rHiUyyvLkZyAnExQDIjqPWYQDwdFJr2wPp4IFHpXSis7fQJjr+gaQS6AplUlE8lo8NZGb9N2OpDKh1lcoEt7SsHIX4QwwyqrJsdqpi6Zmfzkfr3SZrOOEdxwQTLe1ArW9VKM8FU0yHWy0chOMrRPoHxo9RIaMQgYkf6Vb3WPe71TCLyx1wMke6bP6Jexh7212rHAcrIA6G0JwGREn7LgLV1/xr8JSfUgXXNg0h0hwoBLaxqzgQPFwaVltMsTz5dc+h6GMldkgZ6HpAexj4s1DBgxQ27paGjB+q5AQ5J7F/2xyVenzs2oM5GRr1Vk9s9Q/dUnf5H4lZQ7nHBkuZsws+xgVSt2LdJ6qAeHW9XewFoMyi18vxmfuQzyf/nMAhlAawOjZPo6asiptnifbSng3beVh3CaOF6AnvlbptCSt5F5mhn+HUlqTDldA1szDiN0cRHOqmzmDYtyNI5TKzQSPvLX6i56YIwjL0dL13jgvH3LN/ePPY3o2iSIWBBIJQ8FxST5oF+ttewvAqGJt1FELkpDfEeW7Fq7Uf0R9tZIUD+5fR06Fn8Hs/iCZK1ZdVCpKh9BHinvfDztfDLnE=
