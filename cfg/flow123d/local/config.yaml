@@ -43,6 +43,7 @@ test:
       module: artifacts.collect.modules.flow123d_profiler_module
     
       extra:
+        cpu-value:  <cpu-value>
         test-name:  <benchmark>
         mesh:       <mesh>
         weak:       <weak|b>
