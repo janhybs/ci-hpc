@@ -9,15 +9,37 @@ The results can be visualised in form of static Jupyter notebook or in an intera
 ## Features
  - automatically run benchmarks of your project
  - inspect performance and scalability of your project
- - create complex configurations with travis syntax build matrix capabilities
- - use entire computing node with parallel test processing
- - automatically browse a commit history and run the benchmarks
- - automatically determine which tests to run based on results in your database
+ - create complex configurations with travis-like syntax build matrix capabilities (`YAML` format)
+ 
+## How to use ci-hpc?
+ 1) create a configuration for your repository. In this cofiguration, you should specify several options.
+  - `ci-hpc` need to know, which repositories are part of your project
+  - you also need to tell the `ci-hpc` how to install your project.  
+    It can be as simple as `./configure; make; make install`  
+    or  `pip install ./foo/`
+    
+    But it can be also quite complex, you can even simplify entire process with usage of install file:  
+    with something like this`!sh install.sh` (`install.sh` in this case is a shell script, which contains
+    your installation process)
+    
+  - next thing is testing section. Here, we need to know, what benchmarks you want to run under what configuration.
+    You can create complex build matrices so your configuration can be kept simple and transparent.
+  
+  - and finally we need to know, what results you want to store. Is it a some `json` profiler, `yaml` results?
+    or are the timings save in a `xml` format? In the `ci-hpc` there is some general support for the `json` and `yaml`
+    formats, but you can write your own `artifact` module and simply put it in the correct folder. The most if 
+    the heavy lifting is already implemented in the parent class, so it should easier.  
 
-## Coming soon
- - simplify entire structure with a github push webhook
+## What's new?
+ - now supporting multiple repositories within single project
+ - speed up testing process by using multiple cores on a computing node
+ - easily run ci-hpc on a previous commits by using `commit-browser` module
+ - automatically determine which tests to run based on results in your database
+ - webhook support, automatically start `ci-chp` upon new commit
+
+## CWhat's to come?
  - run extra tests when suspecting significant performance change
- - easily create web visualisation configuration from analyzing records in database
+ - create web visualisation configuration from analyzing records in database
 
 ## CI-HPC showcase
 
