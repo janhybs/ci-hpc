@@ -3,14 +3,18 @@
 
 import os
 import setuptools
+import cihpc
 
 __root__ = os.path.dirname(__file__)
 
+# add description
 with open(os.path.join(__root__, 'README.md'), 'r') as fp:
     long_description = fp.read()
 
-with open(os.path.join(__root__, 'version'), 'r') as fp:
-    VERSION = fp.read().strip()
+
+# specify requirements
+with open(os.path.join(__root__, 'requirements.txt'), 'r') as fp:
+    REQUIREMENTS = [line for line in fp.read().strip().splitlines() if line]
 
 
 try:
@@ -18,25 +22,33 @@ try:
 except:
     long_description = long_description.strip()
 
+
 PACKAGES = [
-    "cihpc",
-    "cihpc.cfg",
-    "cihpc.utils",
-    "cihpc.vcs",
-    "cihpc.structures",
-    "cihpc.defaults",
-    "cihpc.visualisation",
-    "cihpc.processing",
-    "cihpc.utils.caching",
-    "cihpc.utils.files",
-    "cihpc.vcs.webhooks",
-    "cihpc.vcs.webhooks.push_hook",
-    "cihpc.visualisation.jupyter",
-    "cihpc.visualisation.www",
-    "cihpc.visualisation.www.rest",
-    "cihpc.processing.multi_processing",
-    "cihpc.processing.deamon",
-    "cihpc.processing.step"
+  'cihpc',
+  'cihpc.core',
+  'cihpc.core.structures',
+  'cihpc.core.db',
+  'cihpc.core.processing',
+  'cihpc.core.execution',
+  'cihpc.cfg',
+  'cihpc.common',
+  'cihpc.common.utils',
+  'cihpc.common.utils.caching',
+  'cihpc.common.utils.git',
+  'cihpc.common.utils.git.webhooks',
+  'cihpc.common.utils.git.webhooks.push_hook',
+  'cihpc.common.utils.files',
+  'cihpc.common.logging',
+  'cihpc.common.processing',
+  'cihpc.common.processing.daemon',
+  'cihpc.git_tools',
+  'cihpc.git_tools.utils',
+  'cihpc.artifacts',
+  'cihpc.artifacts.modules',
+  'cihpc.www',
+  'cihpc.www.rest',
+  'cihpc.www.cfg',
+  'cihpc.www.engines',
 ]
 
 
@@ -57,13 +69,21 @@ CLASSIFIERS = [
 ]
 
 
+SCRIPTS = [
+    'bin/cihpc-www',
+    'bin/cihpc',
+]
+
+
 setuptools.setup(
     name='cihpc',
-    version=VERSION,
+    version=cihpc.__version__,
 
     packages=PACKAGES,
     classifiers=CLASSIFIERS,
-
+    scripts=SCRIPTS,
+    install_requires=REQUIREMENTS,
+    
     url='https://github.com/janhybs/ci-hpc',
     license='MIT License',
 
