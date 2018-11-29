@@ -1,15 +1,16 @@
 #!/bin/python3
 # author: Jan Hybs
-import os
 
 import tests
 
+
+tests.fix_paths()
+
+import os
 import random
 from os.path import join
-
 from unittest import TestCase
-
-from cihpc.utils.datautils import merge_dict
+from cihpc.common.utils.datautils import merge_dict
 
 
 project_dir = join(tests.__dir__, 'project-example')
@@ -73,10 +74,10 @@ class TestConfig(TestCase):
 
         config = list(cfgutil.configure_file(config_path, variables))[0]
         self.assertEqual(config['install'][0]['foo'], variables['foo'])
-        self.assertEqual(config['install'][0]['bar-foo'], '<bar.foo>')      # is not supported
+        self.assertEqual(config['install'][0]['bar-foo'], '<bar.foo>')  # is not supported
 
     def test_config_special_variables(self):
-        from cihpc.structures.project import Project
+        from cihpc.core.structures.project import Project
         from cihpc.cfg import cfgutil
 
         project = Project(name='foobar')

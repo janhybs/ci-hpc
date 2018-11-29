@@ -3,8 +3,11 @@
 
 import tests
 
+
+tests.fix_paths()
+
 from unittest import TestCase
-from cihpc.utils import colors
+from cihpc.common.utils import colors
 
 
 class TestColors(TestCase):
@@ -39,7 +42,7 @@ class TestColors(TestCase):
         self.assertEqual(colors.rgb2html((255, 255, 255), 0.125), 'rgba(255, 255, 255, 0.12)')
 
     def test_configurable_html_color(self):
-         lambda_func = colors.configurable_html_color((255, 255, 255))
-         self.assertEqual(lambda_func(0.5), 'rgba(255, 255, 255, 0.50)')
-         self.assertEqual(lambda_func(0.13), 'rgba(255, 255, 255, 0.13)')
-         self.assertEqual(lambda_func(None), 'rgb(255, 255, 255)')
+        lambda_func = colors.configurable_html_color((255, 255, 255))
+        self.assertEqual(lambda_func(0.5), 'rgba(255, 255, 255, 0.50)')
+        self.assertEqual(lambda_func(0.13), 'rgba(255, 255, 255, 0.13)')
+        self.assertEqual(lambda_func(None), 'rgb(255, 255, 255)')

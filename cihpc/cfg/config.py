@@ -5,28 +5,28 @@ import os
 import sys
 
 
+__cwd__ = os.getcwd()
+__home__ = os.environ.get('CIHPC_HOME', None) or os.environ.get('CIHPC_ROOT', None) or __cwd__
 __dir__ = os.path.abspath(os.path.dirname(__file__))
 __root__ = os.path.dirname(os.path.dirname(__dir__))
 
-__cfg__ = os.path.join(__root__, 'cfg')
+__cfg__ = os.path.join(__home__, 'cfg')
 __src__ = os.path.join(__root__, 'cihpc')
+__main_py__ = os.path.join(__root__, 'cihpc', '__init__.py')
 
 
 class global_configuration(object):
     """
-    :type project_git: structures.project_step_git.ProjectStepGit
+    :type project_git: cihpc.structures.project_step_git.ProjectStepGit
     """
     tty = getattr(sys.stdout, 'isatty', lambda: False)()
     root = __root__
     cfg = __cfg__
     src = __src__
+    cwd = __cwd__
 
     # path to the main.py
-    main_py = os.path.join(__src__, 'main.py')
-
-    # default location for the log file abd the format
-    log_path = os.path.join(__root__, '.ci-hpc.log')
-    log_style = 'short'
+    main_py = __main_py__
 
     # default cache is for 10 entries or 10 minutes
     cache_type = 'TTLCache'  # or LRUCache or None
@@ -49,3 +49,8 @@ class global_configuration(object):
     # path to a main repository, from which
     # git information is taken
     project_git = None
+
+    @classmethod
+    def update_cfg_path(cls, cfg):
+        cls.cfg = cfg
+        cls.cfg_secret_path = os.path.join(cfg, 'secret.yaml')

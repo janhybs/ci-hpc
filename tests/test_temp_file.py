@@ -2,9 +2,13 @@
 # author: Jan Hybs
 
 import tests
+
+
+tests.fix_paths()
+
 import random
 from unittest import TestCase
-from cihpc.utils.files.temp_file import TempFile
+from cihpc.common.utils.files.temp_file import TempFile
 
 
 class TestTempFile(TestCase):

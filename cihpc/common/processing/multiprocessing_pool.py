@@ -3,8 +3,8 @@
 
 
 import multiprocessing
-from cihpc.processing.step.step_shell import ProcessConfigCrate
-from cihpc.utils.events import EnterExitEvent
+from cihpc.core.processing.step_shell import ProcessConfigCrate
+from cihpc.common.utils.events import EnterExitEvent
 
 
 class PoolInt(object):
@@ -36,7 +36,7 @@ class ActivePool(object):
 
 
 def worker(item, process_event, semaphore: multiprocessing.Semaphore, pool, queue, worker, lock):
-    from cihpc.processing.step.step_shell import process_popen
+    from cihpc.core.processing.step_shell import process_popen
 
     name = multiprocessing.current_process().name
 

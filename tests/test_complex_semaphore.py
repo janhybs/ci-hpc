@@ -2,8 +2,12 @@
 # author: Jan Hybs
 
 import tests
+
+
+tests.fix_paths()
+
 from unittest import TestCase
-from cihpc.processing.multi_processing.complex_semaphore import ComplexSemaphore
+from cihpc.common.processing import ComplexSemaphore
 
 
 class TestComplexSemaphore(TestCase):

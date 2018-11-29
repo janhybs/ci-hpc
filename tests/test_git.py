@@ -1,16 +1,19 @@
 #!/bin/python3
 # author: Jan Hybs
 
+import tests
+
+
+tests.fix_paths()
+
 import os
 from os.path import join, abspath
 
-import tests
-
 from unittest import TestCase
 
-from cihpc.utils.files import StdoutType
-from cihpc.structures.project_step_git import ProjectStepGit
-from cihpc.vcs.git import Git
+from cihpc.common.utils.files import StdoutType
+from cihpc.common.utils.git import Git
+from cihpc.core.structures.project_step_git import ProjectStepGit
 
 
 class TestGit(TestCase):
@@ -49,4 +52,5 @@ class TestGit(TestCase):
             commits = git.log(5)
             self.assertEqual(len(commits), 5)
             # depends on version of the git available on machine
-        except TypeError: pass
+        except TypeError:
+            pass

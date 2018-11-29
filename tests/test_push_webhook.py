@@ -3,12 +3,15 @@
 
 import tests
 
+
+tests.fix_paths()
+
 import yaml
 from os.path import join
 from unittest import TestCase
 
 from cihpc.cfg.cfgutil import read_file
-from cihpc.vcs.webhooks.push_hook import push_webhook_from_dict, push_webhook_to_dict
+from cihpc.common.utils.git.webhooks.push_hook import push_webhook_from_dict, push_webhook_to_dict
 
 webhook_dir = join(tests.__dir__, 'webhooks')
 content = read_file(join(webhook_dir, 'example.json'))

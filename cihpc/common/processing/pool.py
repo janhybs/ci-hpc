@@ -4,16 +4,19 @@
 
 import enum
 import itertools
+import logging
 import multiprocessing
 import threading
 import time
 
-from cihpc.utils.events import EnterExitEvent
-from cihpc.utils.logging import logger
-from cihpc.utils.timer import Timer
 from pluck import pluck
 
 from cihpc.common.processing import ComplexSemaphore
+from cihpc.common.utils.events import EnterExitEvent
+from cihpc.common.utils.timer import Timer
+
+
+logger = logging.getLogger(__name__)
 
 
 class PoolInt(object):
@@ -149,7 +152,7 @@ class WorkerPool(object):
                     msgs.append('  %2d x %s %s' % (len(grp), key.name, [x[0] for x in grp]))
                 else:
                     msgs.append('  %2d x %s' % (len(grp), key.name))
-            logger.info(msg + '\n'.join(msgs), skip_format=True)
+            logger.info(msg + '\n'.join(msgs))
 
         elif format is LogStatusFormat.COMPLEX:
             msg = 'Worker statuses:\n'
@@ -161,19 +164,19 @@ class WorkerPool(object):
                         msgs.append(' - %dx %s [%1.3f sec]' % (cpus, name, timer.duration))
                     else:
                         msgs.append(' - %dx %s' % (cpus, name))
-            logger.info(msg + '\n'.join(msgs), skip_format=True)
+            logger.info(msg + '\n'.join(msgs))
 
         elif format is LogStatusFormat.ONELINE:
             statuses = sorted([x[0] for x in pluck(self.threads, 'status.name')])
             msg = ''.join(statuses).upper()  # .replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
-            logger.info(' - ' + msg, skip_format=True)
+            logger.info(' - ' + msg)
 
         elif format is LogStatusFormat.ONELINE_GROUPED:
             statuses = sorted([x for x in pluck(self.threads, 'status')])
             msg = list()
             for g, d in itertools.groupby(statuses):
                 msg.append('[%d x %s]' % (len(list(d)), g.name))
-            logger.info(' - ' + ' > '.join(msg), skip_format=True)
+            logger.info(' - ' + ' > '.join(msg))
 
     def log_statuses(self, log_period=None, update_period=0.9, format=LogStatusFormat.AUTO):
         if format is None:

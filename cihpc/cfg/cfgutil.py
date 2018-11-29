@@ -1,15 +1,16 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
+import itertools
+import logging
 import os
+import re
 from copy import deepcopy, copy
 
 import yaml
-import re
-import itertools
 
-from cihpc.utils.logging import logger
 
+logger = logging.getLogger(__name__)
 
 _configure_object_regex = re.compile('<([a-zA-Z0-9_$.-]+)(\|[a-zA-Z_]+)?>')
 _configure_object_dict = dict(s=str, i=int, f=float, b=bool)
@@ -38,7 +39,7 @@ class Config(object):
             import platform
 
             cls._hostname = platform.node()
-            logger.info('determined hostname as "%s"', cls._hostname)
+            logger.debug('determined hostname as "%s"', cls._hostname)
         return cls._hostname
 
     @classmethod
@@ -66,7 +67,7 @@ class Config(object):
             with open(config_file, 'r') as fp:
                 cls._cfg = yaml.load(fp.read()) or dict()
         except Exception as e:
-            logger.warn_exception('Failed to load/parse %s configuration file, will use empty dict', config_file)
+            logger.exception('Failed to load/parse %s configuration file, will use empty dict', config_file)
             logger.warn('You may want to create this file in order to use database connection')
             cls._cfg = dict()
         return cls._instance
@@ -223,3 +224,10 @@ def configure_object(obj, vars):
         else:
             obj_copy[k] = configure_item(v, vars)
     return obj_copy
+
+
+def find_valid_configuration(*hints, file):
+    for hint in hints:
+        if hint and os.path.isdir(hint) and os.path.isfile(os.path.join(hint, file)):
+            return hint
+    return None

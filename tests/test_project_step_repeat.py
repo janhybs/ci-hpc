@@ -3,8 +3,11 @@
 
 import tests
 
+
+tests.fix_paths()
+
 from unittest import TestCase
-from cihpc.structures.project_step_repeat import ProjectStepRepeat
+from cihpc.core.structures.project_step_repeat import ProjectStepRepeat
 
 
 class TestProjectStepRepeat(TestCase):

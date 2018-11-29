@@ -3,6 +3,9 @@
 
 import tests
 
+
+tests.fix_paths()
+
 from unittest import TestCase
 
 from cihpc.cfg.config import global_configuration
@@ -17,7 +20,7 @@ class TestCached(TestCase):
             ttl=10 * 60,
         )
 
-        from cihpc.utils.caching import cached
+        from cihpc.common.utils.caching import cached
 
         foo_i = dict(i=0)
 
@@ -28,7 +31,8 @@ class TestCached(TestCase):
 
         self.assertEqual(foo(1), 1)
         self.assertEqual(foo(1), 1)
-        for i in range(12): foo(i)
+        for i in range(12):
+            foo(i)
         self.assertEqual(foo(1), 13)
 
         global_configuration.cache_type = None
@@ -41,5 +45,6 @@ class TestCached(TestCase):
 
         self.assertEqual(bar(1), 1)
         self.assertEqual(bar(1), 2)
-        for i in range(12): bar(i)
+        for i in range(12):
+            bar(i)
         self.assertEqual(bar(1), 15)

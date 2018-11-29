@@ -3,19 +3,22 @@
 
 import tests
 
-from os.path import join
 
-from unittest import TestCase
-from cihpc.main import parse_args, main
+tests.fix_paths()
 
-project_dir = join(tests.__dir__, 'project-example')
+import os
+import unittest
+import cihpc.core
 
 
-class TestProject(TestCase):
+project_dir = os.path.join(tests.__dir__, 'project-example')
+
+
+class TestProject(unittest.TestCase):
 
     def test_parse_args(self):
         with self.assertRaises(SystemExit):
-            parse_args([])
+            cihpc.core.parse_args([])
 
         args = [
             '--project=foo',
@@ -24,7 +27,7 @@ class TestProject(TestCase):
             '--git-commit=foobar',
             '--tty',
         ]
-        parsed = parse_args(args)
+        parsed = cihpc.core.parse_args(args)
         self.assertEqual(parsed.project, 'foo')
         self.assertEqual(parsed.log_path, 'foo.log')
         self.assertEqual(parsed.tty, True)
@@ -34,11 +37,11 @@ class TestProject(TestCase):
 
         # no valid config
         with self.assertRaises(SystemExit):
-            main(args)
+            cihpc.core.main(args)
 
         args = [
             '--project=foo',
             '--log-level=warning',
             '--config-dir=%s' % project_dir,
         ]
-        main(args)
+        cihpc.core.main(args)

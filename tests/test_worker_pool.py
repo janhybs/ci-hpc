@@ -3,16 +3,19 @@
 
 import tests
 
+
+tests.fix_paths()
+
+import logging
 import time
 
-import cihpc.utils.logging
-cihpc.utils.logging.logger.set_level('WARNING')
 
+logger = logging.getLogger(__name__)
 
 import multiprocessing
 from unittest import TestCase
-from cihpc.processing.multi_processing.thread_pool import (
-    WorkerPool, Worker, LogStatusFormat
+from cihpc.common.processing.pool import (
+    WorkerPool, Worker, LogStatusFormat,
 )
 
 
@@ -22,7 +25,6 @@ cpu_count = multiprocessing.cpu_count()
 class TestWorkerPool(TestCase):
 
     def test_start_serial(self):
-        cihpc.utils.logging.logger.set_level('WARNING')
 
         items = [dict(foo=123), dict(foo=456)]
         processes = 1
@@ -38,8 +40,6 @@ class TestWorkerPool(TestCase):
         self.assertListEqual(pool.result, [[1, 123], [2, 456]])
 
     def test_start_parallel(self):
-        cihpc.utils.logging.logger.set_level('WARNING')
-
         class A:
             def __init__(self, name):
                 self.name = name
@@ -49,7 +49,7 @@ class TestWorkerPool(TestCase):
             A(name='a'), A(name='b'), A(name='c'),
             A(name='a'), A(name='b'), A(name='c'),
         ]
-        result = [[i+1, items[i].name] for i in range(len(items))]
+        result = [[i + 1, items[i].name] for i in range(len(items))]
 
         def func(worker: Worker):
             counter['cnt'] += 1

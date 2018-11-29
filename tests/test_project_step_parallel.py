@@ -3,9 +3,12 @@
 
 import tests
 
+
+tests.fix_paths()
+
 import multiprocessing
 from unittest import TestCase
-from cihpc.structures.project_step_parallel import ProjectStepParallel
+from cihpc.core.structures.project_step_parallel import ProjectStepParallel
 
 
 class TestProjectStepParallel(TestCase):

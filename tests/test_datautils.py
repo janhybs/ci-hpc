@@ -4,7 +4,7 @@
 import tests
 
 from unittest import TestCase
-from cihpc.utils.datautils import (
+from cihpc.common.utils.datautils import (
     recursive_get,
 )
 

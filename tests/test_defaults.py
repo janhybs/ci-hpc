@@ -2,39 +2,19 @@
 # author: Jan Hybs
 
 import tests
+
+
+tests.fix_paths()
+
 from unittest import TestCase
-from cihpc.defaults import (
-    aggregation_default_configuration,
-    artifacts_default_configuration,
-)
-
-
-class TestAggregation_default_configuration(TestCase):
-    def test_aggregation_default_configuration(self):
-        self.assertEqual(
-            aggregation_default_configuration(),
-            [
-                {
-                    '$unwind': '$libs',
-                },
-                {
-                    '$unwind': '$timers',
-                }
-            ]
-        )
-        self.assertEqual(
-            aggregation_default_configuration('foobar'),
-            [
-                {'$unwind': '$libs'},
-                {'$unwind': '$timers'},
-            ]
-        )
+from cihpc.core.db import CIHPCMongo
 
 
 class TestArtifacts_default_configuration(TestCase):
+
     def test_artifacts_default_configuration(self):
         self.assertEqual(
-            artifacts_default_configuration(),
+            CIHPCMongo.artifacts_default_configuration(),
             dict(
                 db_name='default',
                 col_timers_name='timers',
@@ -43,7 +23,7 @@ class TestArtifacts_default_configuration(TestCase):
             )
         )
         self.assertEqual(
-            artifacts_default_configuration('foobar'),
+            CIHPCMongo.artifacts_default_configuration('foobar'),
             dict(
                 db_name='foobar',
                 col_timers_name='timers',

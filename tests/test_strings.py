@@ -3,8 +3,11 @@
 
 import tests
 
+
+tests.fix_paths()
+
 from unittest import TestCase
-from cihpc.utils import strings
+from cihpc.common.utils import strings
 
 
 class TestStrings(TestCase):

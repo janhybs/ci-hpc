@@ -3,11 +3,14 @@
 
 import tests
 
+
+tests.fix_paths()
+
 import yaml
 from unittest import TestCase
 
 from cihpc.cfg.config import global_configuration
-from cihpc.utils import extend_yaml
+from cihpc.common.utils import extend_yaml
 
 repeat_yaml = '''
 foo: !repeat a 5

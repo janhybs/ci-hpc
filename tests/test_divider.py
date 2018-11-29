@@ -2,8 +2,12 @@
 # author: Jan Hybs
 
 import tests
+
+
+tests.fix_paths()
+
 from unittest import TestCase
-from cihpc.utils.files.temp_file import divider
+from cihpc.common.utils.files.temp_file import divider
 
 
 class TestDivider(TestCase):

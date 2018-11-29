@@ -1,9 +1,13 @@
 #!/bin/python3
 # author: Jan Hybs
 
-from unittest import TestCase
+import tests
 
-from cihpc.structures import new, pick
+
+tests.fix_paths()
+
+from unittest import TestCase
+from cihpc.core.structures import new, pick
 
 
 class TestNew(TestCase):
