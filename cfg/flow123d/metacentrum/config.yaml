@@ -37,7 +37,7 @@ test:
     output: 'null'
     
     repeat:
-      exactly: 15          # we want to have 15 repetitions by default
+      exactly: 15           # we want to have 15 repetitions by default
       no-less-thann: 15     # but with access to the db, we want to have 15 in total
     
     parallel:
@@ -51,7 +51,7 @@ test:
       files:    <flow123d-workdir>/bench_data/**/test_results-<__unique__>/**/profiler_info*.json
       move-to:  <flow123d-workdir>/artifacts/<__project__.start.datetime>
       repo:     <flow123d-home>
-      module:   artifacts.collect.modules.flow123d_profiler_module
+      module:   artifacts.modules.flow123d_profiler_module
 
       extra:
         cpu-value:  <cpu-value>

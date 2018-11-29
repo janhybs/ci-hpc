@@ -40,7 +40,7 @@ test:
       move-to: <flow123d-workdir>/artifacts/<__project__.start.datetime>
       repo: <flow123d-home>
       save-to-db: true
-      module: artifacts.collect.modules.flow123d_profiler_module
+      module: artifacts.modules.flow123d_profiler_module
     
       extra:
         cpu-value:  <cpu-value>

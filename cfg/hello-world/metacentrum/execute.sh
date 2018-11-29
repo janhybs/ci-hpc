@@ -1,10 +1,10 @@
 #!/bin/bash --login
 #
-#PBS -l select=1:ncpus=8:mem=16gb
-#PBS -l walltime=12:00:00
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=00:15:00
 #PBS -j oe
 #PBS -q charon
-#PBS -l place=excl
+# P B S -l place=excl
 
 
 # hard path is recommended since script location is elsewhere when in PBS
@@ -39,10 +39,6 @@ module load python-3.6.2-gcc
 module load python36-modules-gcc
 module list -t
 set -x
-
-# pip install deps
-pip3 install --user -r $ROOT/requirements.txt
-
 
 # the following line will be replaced later on
 <ci-hpc-exec> 2>&1 | tee .pbs.job.log
