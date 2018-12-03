@@ -7,7 +7,7 @@ import sys
 try:
     import cihpc.core
 except ImportError as e:
-    print(sys.executable)
+    print(sys.executable, sys.version)
     print('sys.path:')
     for i in range(len(sys.path)):
         print('%2d) %s' % (i + 1, sys.path[i]))
