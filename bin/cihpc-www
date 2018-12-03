@@ -14,7 +14,7 @@ except ImportError as e:
     raise
 
 
-print('cihpc-www v%s' % cihpc.__version__)
+print('cihpc-www v%s' % cihpc.__version__, sys.executable, sys.version)
 sys.exit(
     cihpc.www.main()
 )
