@@ -60,6 +60,6 @@ class CollectModule(AbstractCollectModule):
         report = CIHPCReport()
         report.merge(object)
 
-        logger.dump(report, 'report', level=logger.LEVEL_DEBUG)
+        logger.debug(str(report))
 
         return CollectResult([report])
