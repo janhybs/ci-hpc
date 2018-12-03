@@ -86,12 +86,12 @@ def process_step_collect(project, step, process_result, format_args=None):
                 timers_info.append((os.path.basename(file), len(collect_result.items)))
                 results.append(collect_result)
             except Exception as e:
-                logger.warning(
+                logger.exception(
                     'artifact processing failed (parse method) \n'
                     'module: %s\n'
-                    'report: %s\n'
-                    'file: %s\n', str(CollectModule), str(report), str(file)
+                    'file: %s\n', str(CollectModule), str(file)
                 )
+                logger.debug(str(report))
 
         for file, timers in timers_info:
             logger.debug('%20s: %5d timers found', file, timers)
@@ -125,9 +125,9 @@ def process_step_collect(project, step, process_result, format_args=None):
                 logger.warning(
                     'artifact processing failed (files method) \n'
                     'module: %s\n'
-                    'report: %s\n'
-                    'file: %s\n', str(CollectModule), str(report), str(file)
+                    'file: %s\n', str(CollectModule), str(file)
                 )
+                logger.debug(str(report))
 
         for file, timers in timers_info:
             logger.debug('%20s: %5d timers found', file, timers)

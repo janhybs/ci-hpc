@@ -51,7 +51,7 @@ class SeparateExecutor(object):
         execute_script = cls._load_content(execute_path)
 
         kwargs = {
-            'ci-hpc-exec'             : ' '.join([sys.executable, global_configuration.main_py]) + ' ' + execute_cmd,
+            'ci-hpc-exec'             : ' '.join(global_configuration.exec_args) + ' ' + execute_cmd,
             'ci-hpc-exec-no-interpret': global_configuration.main_py + ' ' + execute_cmd,
             'ci-hpc-exec-only-args'   : execute_cmd,
             'ci-hpc-install'          : install_cmd,
@@ -108,7 +108,12 @@ class SeparateExecutor(object):
 
 class AbstractExecutor(object):
     def __init__(self, script_content):
-        self.temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pbs', delete=False)
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode='w',
+            prefix='cihpc.',
+            suffix='.pbs',
+            delete=False
+        )
         self.temp_file.write(script_content)
         self.temp_file.close()
         self.id = None

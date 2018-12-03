@@ -7,8 +7,11 @@ import sys
 try:
     import cihpc.core
 except ImportError as e:
-    print('sys.path:\n  ' + '\n  '.join(['%2d) %s' % (i + 1, sys.path[i]) for i in range(len(sys.path))]))
-    sys.exit(1)
+    print(sys.executable)
+    print('sys.path:')
+    for i in range(len(sys.path)):
+        print('%2d) %s' % (i + 1, sys.path[i]))
+    raise
 
 
 print('cihpc-core v%s' % cihpc.__version__)

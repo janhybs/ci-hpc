@@ -12,7 +12,8 @@ __root__ = os.path.dirname(os.path.dirname(__dir__))
 
 __cfg__ = os.path.join(__home__, 'cfg')
 __src__ = os.path.join(__root__, 'cihpc')
-__main_py__ = os.path.join(__root__, 'cihpc', '__init__.py')
+
+__main_py__ = sys.argv[0]
 
 
 class global_configuration(object):
@@ -27,6 +28,7 @@ class global_configuration(object):
 
     # path to the main.py
     main_py = __main_py__
+    exec_args = [sys.executable, __main_py__]
 
     # default cache is for 10 entries or 10 minutes
     cache_type = 'TTLCache'  # or LRUCache or None

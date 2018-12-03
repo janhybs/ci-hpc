@@ -4,6 +4,7 @@
 import argparse
 import logging
 import os
+import sys
 
 from flask import Flask
 from flask_cors import CORS
@@ -54,6 +55,20 @@ def parse_args(cmd_args=None):
                             Perform given action
                             ''')
 
+    # logging group
+
+    log_group_parser = parser.add_argument_group('Logging options', 'further specify log level and log location.')
+    log_group_parser.add_argument('--log-path', type=str, default='.ci-hpc.log', help='''R|
+                            If set, will override standard log file location
+                            ''')
+    log_group_parser.add_argument('--log-style', choices=['short', 'long'], default='short', help='''R|
+                            Format style of the logger
+                            ''')
+    log_group_parser.add_argument('--log-level', '--log', default='info', choices=['debug', 'info', 'warning', 'error'],
+                            dest='log_level', help='''R|
+                            Level of the logger, available options are:
+                               debug, info, warning, error
+                            ''')
     # parse given arguments
     args = parser.parse_args(cmd_args)
     return args
@@ -155,13 +170,20 @@ class WWWServer(Daemon):
 
 def main(cmd_args=None):
     args = parse_args(cmd_args)
-    basic_config()
+    # configure the logging
+
+    basic_config(
+        level=getattr(logging, args.log_level.upper()),
+        log_path=args.log_path,
+        stream=sys.stdout
+    )
+
     logger = logging.getLogger(__name__)
 
     if args.config_dir:
         global_configuration.update_cfg_path(args.config_dir)
 
-    logger.info('Using config dir %s' % global_configuration.cfg)
+    logger.info('using config dir %s' % global_configuration.cfg)
 
     if args.action == 'debug':
         args.debug = True
@@ -175,8 +197,10 @@ def main(cmd_args=None):
             port=args.port,
         )
     )
-    ws.do_action(args.action)
-    return 0
+
+    if ws.do_action(args.action):
+        return 0
+    return 1
 
 
 if __name__ == '__main__':
