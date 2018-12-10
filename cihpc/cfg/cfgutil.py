@@ -171,11 +171,6 @@ def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):
         yield convert(single_content)
 
 
-def configure_string(string, vars):
-    result = configure_object(dict(str=string), vars)
-    return result.get('str')
-
-
 def configure_object(obj, vars):
     """
     Configure given object (replaces placeholders <KEY> with VALUE contained in a given vars)
@@ -189,41 +184,50 @@ def configure_object(obj, vars):
     if not vars:
         return obj
 
-    def get_property(obj, val, default=None):
-        """
-        :type val: str
-        :type obj: dict
-        """
-        root = obj
-        for k in val.split('.'):
-            try:
-                if isinstance(root, dict):
-                    root = root[k]
-                else:
-                    root = getattr(root, k)
-            except:
-                return default
-        return root
+    if obj is None:
+        return None
 
-    def configure_item(value, vars):
-        matches = _configure_object_regex.findall(str(value))
-        if matches:
-            value = str(value)
-            for key, dtype in matches:
-                orig = '<%s%s>' % (key, dtype)
-                value = _configure_object_dict.get(dtype[1:], str)(value.replace(orig, str(get_property(vars, key))))
-        return value
+    if isinstance(obj, list):
+        obj_copy = deepcopy(obj)
+        for i, v in enumerate(obj_copy):
+            obj_copy[i] = configure_string(v, vars)
+        return obj_copy
 
-    obj_copy = deepcopy(obj)
-    for k, v in obj_copy.items():
-        if isinstance(v, list):
-            for i in range(len(v)):
-                v[i] = configure_item(v[i], vars)
-        elif isinstance(v, dict):
-            configure_object(v, vars)
-        else:
-            obj_copy[k] = configure_item(v, vars)
-    return obj_copy
+    if isinstance(obj, dict):
+        obj_copy = deepcopy(obj)
+        for k, v in obj_copy.items():
+            obj_copy[k] = configure_object(v, vars)
+        return obj_copy
+
+    else:
+        return configure_string(obj, vars)
+
+
+def _get_property(obj, val, default=None):
+    """
+    :type val: str
+    :type obj: dict
+    """
+    root = obj
+    for k in val.split('.'):
+        try:
+            if isinstance(root, dict):
+                root = root[k]
+            else:
+                root = getattr(root, k)
+        except:
+            return default
+    return root
+
+
+def configure_string(value, vars):
+    matches = _configure_object_regex.findall(str(value))
+    if matches:
+        value = str(value)
+        for key, dtype in matches:
+            orig = '<%s%s>' % (key, dtype)
+            value = _configure_object_dict.get(dtype[1:], str)(value.replace(orig, str(_get_property(vars, key))))
+    return value
 
 
 def find_valid_configuration(*hints, file):
