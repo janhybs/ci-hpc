@@ -10,10 +10,16 @@ install:
       branch: <arg.branch.hello-world> # under this branch's name
       
     shell: !sh sh/install.sh
+    
+    cache:
+      storage: <os.HOME>/.cache/cihpc
+      directories:
+        - bench-stat
 
 test:
   - name: memory-cache-test
     output: 'null'
+    
     repeat:
       exactly: 1
       no-less-thann: 8
