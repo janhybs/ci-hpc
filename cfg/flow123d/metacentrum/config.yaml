@@ -29,7 +29,12 @@ install:
       cp config/config-cihpc-meta.cmake config.cmake
       make -j16
       bin/flow123d --version
-
+    
+    cache:
+      storage: <cache-dir>
+      directories:
+        - flow123d
+        - build-master
 
 test:
   - name: integration
