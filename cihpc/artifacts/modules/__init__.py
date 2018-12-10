@@ -228,8 +228,8 @@ class CIHPCReportGit(dict):
         timestamp = int(parse_output(
             check_output('git show -s --format=%%ct %s' % commit, shell=True, cwd=root)
         ))
-        logger.info('current git index of *%s* is at:\n'
-                    'commit=%s, branch=%s', repo, commit, branch)
+        logger.debug('current git index of *%s* is at:\n'
+                     'commit=%s, branch=%s', repo, commit, branch)
 
         git = CIHPCReportGit()
         git.update(

@@ -6,16 +6,20 @@ import itertools
 import logging
 import os
 import shutil
+import sys
+
+from tqdm import tqdm
 
 from cihpc.cfg.config import global_configuration
-from cihpc.common.processing.pool import WorkerPool, Worker, PoolInt
+from cihpc.common.processing.pool import LogStatusFormat, PoolInt, Worker, WorkerPool
 from cihpc.common.utils import strings
-from cihpc.common.utils.datautils import merge_dict, iter_over
+from cihpc.common.utils.datautils import iter_over, merge_dict
 from cihpc.common.utils.parallels import extract_cpus_from_worker
 from cihpc.common.utils.timer import Timer
+from cihpc.core.processing.step_cache import ProcessStepCache
 from cihpc.core.processing.step_collect import process_step_collect
 from cihpc.core.processing.step_git import process_step_git
-from cihpc.core.processing.step_shell import process_step_shell, ShellProcessing, ProcessConfigCrate, process_popen
+from cihpc.core.processing.step_shell import ShellProcessing, process_step_shell
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +40,7 @@ class ProcessProject(object):
         Method will process entire project
         :return:
         """
-        logger.info('preparing project %s', self.project.name)
+        logger.debug('preparing project %s', self.project.name)
         # remove old configuration
         shutil.rmtree('tmp.%s' % self.project.name, True)
 
@@ -49,7 +53,7 @@ class ProcessProject(object):
         Method will process every step in a section
         :type section:  ProjectSection
         """
-        logger.info('preparing section %s', section.name)
+        logger.debug('preparing section %s', section.name)
         process_status_log_type = logger.debug
         process_collect_log_type = logger.debug
         # define more complex value so it can be accessed
@@ -57,12 +61,12 @@ class ProcessProject(object):
         timers_total = PoolInt()
 
         def step_on_enter(worker: Worker):
-            process_status_log_type('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
+            process_status_log_type('%d x %s %s' % (worker.cpus, worker.pretty_name, worker.status.name))
 
         def step_on_exit(worker: Worker):
-            process_status_log_type('%d x %s %s' % (worker.cpus, worker.crate.name, worker.status.name))
+            process_status_log_type('%d x %s %s' % (worker.cpus, worker.pretty_name, worker.status.name))
 
-            if worker.crate.collect:
+            if worker.crate and worker.crate.collect:
                 project, step, _, format_args = worker.crate.collect
                 process_result = worker.result
                 collect_result = process_step_collect(
@@ -80,50 +84,65 @@ class ProcessProject(object):
         # clear temp files
         if global_configuration.project_clear_temp:
             tmp_dir = os.path.join(self.project.tmp_workdir, section.ord_name)
-            logger.info('removing temp dir %s', tmp_dir)
+            logger.debug('removing temp dir %s', tmp_dir)
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
         for step in section.steps:
-            processes: list[ProcessConfigCrate] = list()
+            threads: list[Worker] = list()
 
             if step.smart_repeat.is_complex() and global_configuration.project_git:
                 from cihpc.artifacts.modules import CIHPCReportGit
 
-                logger.info('determining how many repetitions to run from the database')
+                logger.debug('determining how many repetitions to run from the database')
                 step.smart_repeat.load_stats(
                     self.project.name,
                     step.name,
                     CIHPCReportGit.current_commit()
                 )
 
-            logger.info('preparing step %s with %d repetitions', step.name, step.repeat)
+            logger.debug('preparing step %s with %d repetitions', step.name, step.repeat)
             for i in range(step.repeat):
                 logger.debug('repetition %02d of %02d', i + 1, step.repeat)
                 if step.repeat > 1:
-                    processes.extend(
+                    threads.extend(
                         self.process_step(step, section, indices=['rep-%d-%d' % (i + 1, step.repeat)])
                     )
                 elif step.repeat == 1:
-                    processes.extend(
+                    threads.extend(
                         self.process_step(step, section, indices=[])
                     )
             timers_total.value = 0
 
-            with Timer('step execution', log=logger.info) as execution_timer:
-                pool = WorkerPool(processes, step.parallel.cpus, process_popen)
+            with Timer('step execution', log=logger.debug) as execution_timer:
+                pool = WorkerPool(processes=step.parallel.cpus, threads=threads)
                 pool.update_cpu_values(extract_cpus_from_worker)
                 pool.thread_event.on_exit.on(step_on_exit)
                 pool.thread_event.on_enter.on(step_on_enter)
+
+                if step.parallel:
+                    logger.debug('%d processes will be now executed in parallel' % len(threads))
+                else:
+                    logger.debug('%d processes will be now executed in serial' % len(threads))
+
+                default_status = pool.get_statuses(LogStatusFormat.ONELINE)
+                cqtdm = tqdm(file=sys.stdout, total=len(threads), dynamic_ncols=True,
+                             desc='section %s: %s' % (section.name, default_status))
+
+                def update_status(worker: Worker):
+                    cqtdm.desc = 'section %s: %s' % (section.name, pool.get_statuses(LogStatusFormat.ONELINE))
+                    cqtdm.update()
+
+                pool.thread_event.on_exit.on(update_status)
+
                 # pretty status async logging
                 status_thread = pool.log_statuses(format='oneline-grouped')
                 # run in serial or parallel
                 if step.parallel:
-                    logger.info('%d processes will be now executed in parallel' % len(processes))
                     pool.start_parallel()
                 else:
-                    logger.info('%d processes will be now executed in serial' % len(processes))
                     pool.start_serial()
                 status_thread.join()
+                cqtdm.close()
 
             try:
                 # here we will store additional info to the DB
@@ -133,11 +152,11 @@ class ProcessProject(object):
                 # execution for specific commit value, we will now how many results
                 # we have for each step, so we can automatically determine how many
                 # repetition we need in order to have minimum result available
-                if section.name == 'test' and processes and len(processes) > 0:
+                if section.name == 'test' and threads and len(threads) > 0:
                     from cihpc.artifacts.modules import CIHPCReport
                     from cihpc.core.db import CIHPCMongo
 
-                    logger.info('%d processes finished, found %d documents' % (len(processes), timers_total()))
+                    logger.info('%d processes finished, found %d documents' % (len(threads), timers_total()))
 
                     stats = dict()
                     stats['git'] = CIHPCReport.global_git.copy()
@@ -216,29 +235,39 @@ class ProcessProject(object):
 
     def process_step(self, step, section, indices=list()):
         """
-        :type step:     ProjectStep
-        :type section:  ProjectSection
+        :type step:     cihpc.core.structures.project_step.ProjectStep
+        :type section:  cihpc.core.structures.project_section.ProjectSection
         """
+        processes = list()  # type: list[Worker]
 
-        processes = list()  # type: list[ProcessConfigCrate]
+        cache = None
+        if step.cache:
+            cache = ProcessStepCache(step.cache, self.project.global_args)
+
+            if cache.exists():
+                logger.debug('restoring cache stored in %s' % cache.location)
+                processes.append(CacheThread(cache, action='restore'))
+                return processes
+            else:
+                logger.debug('no cache found in %s ' % cache.location)
 
         if not step.enabled:
             logger.debug('step %s is disabled', step.name)
             return
 
-        logger.debug('processing step %s (%s)', step.name, indices)
+        logger.debug('preparing step %s (%s)', step.name, indices)
 
         if not step.git:
             logger.debug('no repos setup')
         else:
-            process_step_git(step.git, self.project.global_args)
+            processes.append(GitThread(step.git, self.project.global_args))
 
         if step.variables:
             logger.debug('found %d build matrices', len(step.variables))
 
             len_variables = len(step.variables)
             cur_variables = 0
-            
+
             for matrix_section in step.variables:
                 cur_variables += 1
                 variables = self.expand_variables(matrix_section)
@@ -248,7 +277,7 @@ class ProcessProject(object):
                         'var-%d-%d' % (cur_variables, len_variables),
                         'cfg-%d-%d' % (current + 1, total),
                     ]
-                    
+
                     vars = merge_dict(vars, dict(
                         __total__=total,
                         __current__=current + 1,
@@ -265,9 +294,12 @@ class ProcessProject(object):
                     #     )
                     #     process_step_collect(self.project, step, process_result, format_args)
         else:
-            logger.info('processing step %s without variables', step.name)
+            logger.debug('processing step %s without variables', step.name)
             process_result = self.process_step_with_vars(step, section, None, indices.copy())
             processes.append(process_result)
+
+        if cache and not cache.exists():
+            processes.append(CacheThread(cache, action='save'))
 
         return processes
 
@@ -279,3 +311,25 @@ class ProcessProject(object):
             elif type(o[k]) is dict:
                 o[k] = cls.configure(o[k], d)
         return o
+
+
+class GitThread(Worker):
+    def __init__(self, step_git, global_args):
+        super().__init__(None, None, 1)
+        self.global_args = global_args
+        self.step_git = step_git
+        self._pretty_name = 'git-checkout'
+
+    def _run(self):
+        process_step_git(self.step_git, self.global_args)
+
+
+class CacheThread(Worker):
+    def __init__(self, cache, action='restore'):
+        super().__init__(None, None, 1)
+        self.cache = cache
+        self.action = action
+        self._pretty_name = 'cache-%s' % action
+
+    def _run(self):
+        getattr(self.cache, self.action)()

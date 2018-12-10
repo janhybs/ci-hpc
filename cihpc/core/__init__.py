@@ -60,7 +60,7 @@ def parse_args(cmd_args=None):
         part of the repository
     ''')
     parser.add_argument(
-        '--git-commit',
+        '--git-commit', '--commit',
         action='append',
         type=str,
         default=[],
@@ -70,7 +70,7 @@ def parse_args(cmd_args=None):
         last commit.
     ''')
     parser.add_argument(
-        '--git-branch',
+        '--git-branch', '--branch',
         action='append',
         type=str,
         default=[],
@@ -191,7 +191,7 @@ def parse_args(cmd_args=None):
     ''')
     log_group_parser.add_argument(
         '--log-level', '--log',
-        default='info',
+        default='warning',
         choices=['debug', 'info', 'warning', 'error'],
         dest='log_level',
         help='''R|
@@ -232,7 +232,9 @@ def main(cmd_args=None):
     basic_config(
         level=args.log_level,
         log_path=args.log_path,
-        stream=sys.stdout
+        stream=sys.stdout,
+        stream_level=args.log_level,
+        file_level=logging.DEBUG,
     )
 
     logger = logging.getLogger(__name__)
@@ -283,7 +285,7 @@ def main(cmd_args=None):
                      ]))
         sys.exit(1)
     else:
-        logger.info('determined config dir: %s' % project_dir)
+        logger.debug('determined config dir: %s' % project_dir)
 
     # execute on demand using pbs/local or other system
     if args.pbs:

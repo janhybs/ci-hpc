@@ -4,6 +4,7 @@
 import logging
 import os
 import subprocess as sp
+import threading
 from time import time
 
 import yaml
@@ -76,6 +77,9 @@ def process_step_shell(project, section, step, vars, shell_processing, indices):
     :type shell_processing: ShellProcessing
     :type indices:          list[str]
     """
+
+    from cihpc.common.processing.pool import Worker
+
     logger.debug('processing shell script in step %s', step.name)
     format_args = project.global_args
 
@@ -158,7 +162,7 @@ def process_step_shell(project, section, step, vars, shell_processing, indices):
 
         if not step.container:
             logger.debug('preparing vanilla shell script %s', tmp_sh.path)
-            return crate
+            return Worker(crate, process_popen)
         else:
             tmp_cont = TempFile(os.path.join(tmp_dir, 'cont.sh'), verbose=step.verbose)
             with tmp_cont:
@@ -167,7 +171,7 @@ def process_step_shell(project, section, step, vars, shell_processing, indices):
 
             logger.debug('preparing container shell script %s', tmp_cont.path)
             crate.args = ['/bin/bash', tmp_cont.path]
-            return crate
+            return Worker(crate, process_popen)
 
 
 class ProcessConfigCrate(object):
@@ -194,7 +198,7 @@ class ProcessConfigCrate(object):
 
 def process_popen(worker):
     """
-    :type worker: multiproc.thread_pool.Worker
+    :type worker: cihpc.common.processing.pool.Worker
     :return:
     """
     crate = worker.crate
@@ -209,7 +213,7 @@ def process_popen(worker):
             if result.returncode == 0:
                 logger.debug('ok [%d] ended with %d' % (process.pid, result.returncode))
             else:
-                logger.warn('process [%d] ended with %d' % (process.pid, result.returncode))
+                logger.warning('process [%d] ended with %d' % (process.pid, result.returncode))
 
     # try to grab output
     result.output = getattr(io.opener, 'output', None)

@@ -43,21 +43,21 @@ class JSONEncoder(json.JSONEncoder):
 
     def default(self, o):
         from bson import ObjectId
-        import numpy as np
-        import pandas as pd
-
+        
         if isinstance(o, datetime.datetime):
             return dateutils.long_format(o)
 
         if isinstance(o, ObjectId):
             return str(o)
 
+        import numpy as np
         if isinstance(o, np.ndarray):
             try:
                 return list(np.around(o, 2))
             except Exception as e:
                 return list(o)
-
+        
+        import pandas as pd
         if isinstance(o, pd.Series):
             return list(o)
         if isinstance(o, pd.DataFrame):

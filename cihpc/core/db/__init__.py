@@ -46,7 +46,7 @@ class Mongo(object):
         self.client = MongoClient(**opts)
 
         logger.debug('connection established %s', str(self.client))
-        logger.info('connected to the mongo server %s', str(self))
+        logger.debug('connected to the mongo server %s', str(self))
 
     def _warn_first_time(self, warning):
         result = self._was_warned.get(warning) is False

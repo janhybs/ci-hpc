@@ -9,6 +9,7 @@ from cihpc.core.structures.project_step_git import ProjectStepGit
 from cihpc.core.structures.project_step_measure import ProjectStepMeasure
 from cihpc.core.structures.project_step_parallel import ProjectStepParallel
 from cihpc.core.structures.project_step_repeat import ProjectStepRepeat
+from cihpc.core.structures.project_step_cache import ProjectStepCache
 
 
 class ProjectStep(object):
@@ -30,6 +31,7 @@ class ProjectStep(object):
     :type measure:          from cihpc.core.structures.project_step_measure.ProjectStepMeasure
     :type collect:          cihpc.core.structures.project_step_collectProjectStepCollect
     :type parallel:         cihpc.core.structures.project_step_parallel.ProjectStepParallel
+    :type cache:            cihpc.core.structures.project_step_cache.ProjectStepCache
     """
 
     def __init__(self, section, **kwargs):
@@ -43,6 +45,7 @@ class ProjectStep(object):
         self.smart_repeat = ProjectStepRepeat(kwargs.get('repeat', 1))
         self.shell = kwargs.get('shell', None)
         self.parallel = ProjectStepParallel(kwargs.get('parallel', dict()))
+        self.cache = ProjectStepCache(kwargs.get('cache', dict()))
 
         # available choices are 
         #   stdout      - live output to the stdout

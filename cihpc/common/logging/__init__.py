@@ -18,7 +18,7 @@ class LogConfig(object):
     stream: any = None
 
 
-def basic_config(level=logging.INFO, log_path='.ci-hpc.log', stream=sys.stdout, file_level=None, stream_level=None):
+def basic_config(level=logging.WARNING, log_path='.ci-hpc.log', stream=sys.stdout, file_level=None, stream_level=None):
     """
     shortcut method for initializing logging
 

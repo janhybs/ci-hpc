@@ -13,6 +13,7 @@ pytest
 pluck
 python-daemon
 python-dateutil
+tqdm
 flask
 Flask-Admin
 Flask-Cors

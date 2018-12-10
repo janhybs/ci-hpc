@@ -14,6 +14,8 @@ from pluck import pluck
 from cihpc.common.processing import ComplexSemaphore
 from cihpc.common.utils.events import EnterExitEvent
 from cihpc.common.utils.timer import Timer
+from cihpc.core.processing.step_shell import ProcessConfigCrate
+from cihpc.core.processing.step_shell import ProcessStepResult
 
 
 logger = logging.getLogger(__name__)
@@ -44,17 +46,26 @@ class LogStatusFormat(enum.Enum):
 
 
 class Worker(threading.Thread):
-    def __init__(self, crate, semaphore, thread_event, target, cpus=1):
+    def __init__(self, crate, target, cpus=1):
+        """
+        Parameters
+        ----------
+        crate: ProcessConfigCrate or None
+        target: callable or None
+        cpus: int
+        """
         super(Worker, self).__init__()
-        self.cpus = cpus  # type: int
-        self.semaphore = semaphore  # type: ComplexSemaphore
-        self.thread_event = thread_event  # type: EnterExitEvent
-        self.target = target  # type: callable
-        self.crate = crate  # type: cihpc.processing.step.step_shell.ProcessConfigCrate
-        self.result = None  # type: cihpc.processing.step.step_shell.ProcessStepResult or any
+        self.cpus = cpus
+        self.target = target
+        self.crate = crate
+
+        self.semaphore = None  # type: ComplexSemaphore
+        self.thread_event = None  # type: EnterExitEvent
+        self.result = None  # type: ProcessStepResult
         self._status = None
         self.status = WorkerStatus.CREATED  # random.choice(list(WorkerStatus))
         self.timer = Timer(self.name)
+        self._pretty_name = None
 
     @property
     def status(self):
@@ -66,7 +77,8 @@ class Worker(threading.Thread):
         self._status = value
 
     def _run(self):
-        self.result = self.target(self)
+        if self.target:
+            self.result = self.target(self)
 
     def run(self):
         self.status = WorkerStatus.WAITING
@@ -80,28 +92,31 @@ class Worker(threading.Thread):
         self.semaphore.release(value=self.cpus)
         self.status = WorkerStatus.EXITING
 
+    @property
+    def pretty_name(self):
+        if self.crate:
+            return self.crate.name
+        return self._pretty_name or self.name
+
     def __repr__(self):
         return '{self.name}({self.cpus}x, [{self.status}])'.format(self=self)
 
 
 class WorkerPool(object):
-    def __init__(self, items, processes, target):
-        self.items = items
+    def __init__(self, processes, threads):
         self.processes = processes or multiprocessing.cpu_count()
         self.semaphore = ComplexSemaphore(self.processes)
         self.thread_event = EnterExitEvent('thread')
         self.threads = list()
 
-        logger.info('process limit set to %d' % self.processes)
-        for item in items:
-            self.threads.append(
-                Worker(
-                    crate=item,
-                    semaphore=self.semaphore,
-                    thread_event=self.thread_event,
-                    target=target
-                )
-            )
+        logger.debug('process limit set to %d' % self.processes)
+        self.add_threads(*threads)
+
+    def add_threads(self, *threads: Worker):
+        for worker in threads:
+            worker.semaphore = self.semaphore
+            worker.thread_event = self.thread_event
+            self.threads.append(worker)
 
     def update_cpu_values(self, target):
         for thread in self.threads:
@@ -131,16 +146,17 @@ class WorkerPool(object):
         for thread in self.threads:
             thread.join()
             thread.status = WorkerStatus.FINISHED
-
-        # fire on_exit
-        for thread in self.threads:
             self.thread_event.on_exit(thread)
+
+        # # fire on_exit
+        # for thread in self.threads:
+        #     self.thread_event.on_exit(thread)
 
         return self.result
 
-    def _print_statuses(self, format):
+    def get_statuses(self, format):
         status_getter = lambda x: x[1]
-        statuses = pluck(self.threads, 'crate.name', 'status', 'cpus', 'timer')
+        statuses = pluck(self.threads, 'pretty_name', 'status', 'cpus', 'timer')
         sorted_statuses = sorted(statuses, key=status_getter)
 
         if format is LogStatusFormat.SIMPLE:
@@ -152,7 +168,7 @@ class WorkerPool(object):
                     msgs.append('  %2d x %s %s' % (len(grp), key.name, [x[0] for x in grp]))
                 else:
                     msgs.append('  %2d x %s' % (len(grp), key.name))
-            logger.info(msg + '\n'.join(msgs))
+            return msg + '\n'.join(msgs)
 
         elif format is LogStatusFormat.COMPLEX:
             msg = 'Worker statuses:\n'
@@ -164,19 +180,19 @@ class WorkerPool(object):
                         msgs.append(' - %dx %s [%1.3f sec]' % (cpus, name, timer.duration))
                     else:
                         msgs.append(' - %dx %s' % (cpus, name))
-            logger.info(msg + '\n'.join(msgs))
+            return msg + '\n'.join(msgs)
 
         elif format is LogStatusFormat.ONELINE:
             statuses = sorted([x[0] for x in pluck(self.threads, 'status.name')])
             msg = ''.join(statuses).upper()  # .replace('W', '◦').replace('R', '▸').replace('F', ' ') # ⧖⧗⚡
-            logger.info(' - ' + msg)
+            return msg
 
         elif format is LogStatusFormat.ONELINE_GROUPED:
             statuses = sorted([x for x in pluck(self.threads, 'status')])
             msg = list()
             for g, d in itertools.groupby(statuses):
                 msg.append('[%d x %s]' % (len(list(d)), g.name))
-            logger.info(' - ' + ' > '.join(msg))
+            return ' > '.join(msg)
 
     def log_statuses(self, log_period=None, update_period=0.9, format=LogStatusFormat.AUTO):
         if format is None:
@@ -209,7 +225,7 @@ class WorkerPool(object):
             last_print = 0
             while True:
                 if (time.time() - last_print) > log_period:
-                    self._print_statuses(format)
+                    logger.debug(self.get_statuses(format))
                     last_print = time.time()
 
                 if set(pluck(self.threads, 'status')) == {WorkerStatus.FINISHED}:

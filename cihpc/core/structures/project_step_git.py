@@ -3,7 +3,6 @@
 
 
 import os
-import logging
 from cihpc.common.utils.files import StdoutType
 
 
