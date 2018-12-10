@@ -32,7 +32,7 @@ class TestProject(unittest.TestCase):
         self.assertEqual(parsed.log_path, 'foo.log')
         self.assertEqual(parsed.tty, True)
         self.assertEqual(parsed.watch_commit_policy, 'commit-per-day')
-        self.assertListEqual(parsed.step, ['install', 'test'])
+        self.assertEqual(parsed.action.value, 'run')
         self.assertListEqual(parsed.git_commit, ['foobar'])
 
         # no valid config
