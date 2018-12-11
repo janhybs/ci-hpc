@@ -1,11 +1,13 @@
 #!/bin/python3
 # author: Jan Hybs
 
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 from flask_restful import Resource
-
 from cihpc.common.utils import strings
-from cihpc.common.logging import logger
 from cihpc.common.utils import datautils as du
 
 
