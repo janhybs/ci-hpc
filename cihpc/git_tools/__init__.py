@@ -9,6 +9,7 @@ import subprocess
 import sys
 import threading
 import logging
+from cihpc.cfg.config import global_configuration
 
 from flask import Flask, request
 
@@ -97,8 +98,8 @@ class CommitHistoryExecutor(Daemon):
 
             with Timer(commit.short_format) as timer:
                 args = self.args_constructor.construct_arguments(commit.hash)
-                logger.info(str(args))
-                process = subprocess.Popen(args)
+                logger.info(' '.join([str(x) for x in args]))
+                process = subprocess.Popen(args, cwd=global_configuration.cwd)
                 process.wait()
 
             logger.info('%s took %s [%d]' % (commit.short_format, timer.pretty_duration, process.returncode))
