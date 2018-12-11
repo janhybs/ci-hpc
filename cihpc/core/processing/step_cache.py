@@ -64,8 +64,13 @@ class ProcessStepCache(object):
 
         for git in step_git:
             git_control = Git(configure_git(git, self.global_args))
-            attributes.append((git.repo, (git_control.commit or 'none')[:10]))
 
+            # arguments are more important than actual git repo state
+            if git_control.git.commit:
+                attributes.append((git.repo, git_control.git.commit[:10]))
+            else:
+                attributes.append((git.repo, (git_control.commit or 'none')[:10]))
+        
         self.value = ','.join(['%s-%s' % x for x in attributes])
         self.location = os.path.join(self.storage, self.value)
 
