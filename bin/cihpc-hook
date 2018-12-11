@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+# author: Jan Hybs
+
+import sys
+
+
+try:
+    import cihpc.git_tools
+except ImportError as e:
+    print(sys.executable, sys.version)
+    print('sys.path:')
+    for i in range(len(sys.path)):
+        print('%2d) %s' % (i + 1, sys.path[i]))
+    raise
+
+
+print('cihpc-hook v%s' % cihpc.__version__, sys.executable, str(sys.version).replace('\n', ' '))
+sys.exit(
+    cihpc.git_tools.main()
+)

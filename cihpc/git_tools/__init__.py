@@ -21,7 +21,7 @@ import cihpc.common.logging
 
 logger = logging.getLogger(__name__)
 
-
+from cihpc.git_tools.triggers.shell import ShellTrigger
 from cihpc.common.processing.daemon import Daemon
 from cihpc.common.utils.git.webhooks.push_hook import push_webhook_from_dict
 from cihpc.common.utils.timer import Timer
@@ -123,7 +123,8 @@ To turn the webhooks on, go to your github repository settings page, e.g.\n
   `https://github.com/`**`username`**`/`**`repository`**`/settings/hooks`
 \n
 
-Each time a webhook arrives it will run the following (assuming the new commit hash is `foobar`): \n
+Each time a webhook arrives it will run the following (assuming the new commit hash is `foobar` and the 
+project is `foo`): \n
   `{example_command}`
 
 ## Useful links
@@ -153,7 +154,7 @@ Each time a webhook arrives it will run the following (assuming the new commit h
 </html>
     '''.strip()
 
-    def __init__(self, name, args_constructor, flask_opts=None, **kwargs):
+    def __init__(self, name, trigger, flask_opts=None, **kwargs):
         """
         Parameters
         ----------
@@ -164,9 +165,8 @@ Each time a webhook arrives it will run the following (assuming the new commit h
         flask_opts: dict or None
             additional options for the flask server
 
-        args_constructor: cihpc.git_tools.utils.ArgConstructor
-            an argument constructor instance which will generate
-            arguments which will be passed to :class:`subprocess.Popen`
+        trigger: cihpc.git_tools.triggers.AbstractWebhookTrigger
+            instance with method 'process' accepting webhook payloads
 
         kwargs: **dict
             additional arguments passed to the :class:`daemon.DaemonContext` constructor
@@ -177,11 +177,11 @@ Each time a webhook arrives it will run the following (assuming the new commit h
             pid_file='/tmp/%s.pid' % name,
             **kwargs
         )
-        self.args_constructor = args_constructor
+        self.trigger = trigger
 
         self.flask_opts = dict(
             host='0.0.0.0',
-            port=5000,
+            port=5001,
             debug=False,
         )
 
@@ -218,17 +218,14 @@ Each time a webhook arrives it will run the following (assuming the new commit h
         logger.info('%s starting' % payload.after)
 
         with Timer(payload.after) as timer:
-            args = self.args_constructor.construct_arguments(payload.after)
-
             try:
-                logger.info(str(args))
-                process = subprocess.Popen(args)
-                returncode = process.wait()
+                self.trigger.process(payload)
+                returncode = self.trigger.wait()
 
             except Exception as e:
                 # no such binary
                 returncode = -1
-                logger.exception('Error while starting the process %s' % str(args))
+                logger.exception('Error while starting the process %s' % self.trigger)
 
         logger.info('%s took %s [%d]' % (payload.after, timer.pretty_duration, returncode))
 
@@ -249,10 +246,10 @@ Each time a webhook arrives it will run the following (assuming the new commit h
             try:
                 import markdown
 
-                args = self.args_constructor.construct_arguments('foobar')
+                args = '$CIHPC_HOME/bin/cihpc -p foo --commit foobar'
                 return (self._welcome_html % markdown.markdown(self._welcome_message)).format(
                     self=self,
-                    example_command=' '.join(args)
+                    example_command=args
                 )
             except Exception as e:
                 print(e)
@@ -286,11 +283,12 @@ Each time a webhook arrives it will run the following (assuming the new commit h
         return app
 
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
+    trigger = ShellTrigger()
     ws = WebhookService(
         'webhook-service',
-        None,
+        trigger,
         working_directory=os.getcwd(),
         flask_opts=dict(
             debug=args.debug,
@@ -299,3 +297,7 @@ if __name__ == '__main__':
         )
     )
     ws.do_action(args.action)
+
+
+if __name__ == '__main__':
+    main()

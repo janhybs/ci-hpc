@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# args are following
+REPO = $1
+COMMIT = $2
+
+
+$CIHPC_HOME/bin/cihpc -p $REPO --commit $COMMIT
+
