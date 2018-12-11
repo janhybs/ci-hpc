@@ -9,6 +9,10 @@ from cihpc.common.utils.files import StdoutType
 class ProjectStepGit(object):
     """
     Simple class holding git specification
+    Attributes
+    ----------
+    repo: str
+        name of the repository
     """
 
     def __init__(self, url,

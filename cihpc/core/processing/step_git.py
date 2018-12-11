@@ -18,12 +18,16 @@ def process_step_git(step_git, global_args=None):
     """
     logger.debug('processing git repos')
     for git in step_git:
-        if global_args:
-            git.branch = configure_string(git.branch, global_args)
-            git.commit = configure_string(git.commit, global_args)
-
-        git_control = Git(git)
+        git_control = Git(configure_git(git, global_args))
         logger.debug('initializing git %s to (%s, %s)', git.repo, git.branch, git.commit)
         git_control.clone()
         git_control.checkout()
         git_control.info()
+
+
+def configure_git(git, global_args):
+    if global_args:
+        git.branch = configure_string(git.branch, global_args)
+        git.commit = configure_string(git.commit, global_args)
+
+    return git

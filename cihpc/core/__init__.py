@@ -191,7 +191,7 @@ def parse_args(cmd_args=None):
     ''')
     log_group_parser.add_argument(
         '--log-level', '--log',
-        default='warning',
+        default='info',
         choices=['debug', 'info', 'warning', 'error'],
         dest='log_level',
         help='''R|

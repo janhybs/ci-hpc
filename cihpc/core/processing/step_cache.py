@@ -3,6 +3,9 @@
 
 import logging
 
+from cihpc.common.utils.git import Git
+from cihpc.core.processing.step_git import configure_git
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,14 +25,18 @@ class ProcessStepCache(object):
         'project-name': '-',
     }
 
-    def __init__(self, step_cache, global_args=None, cwd='.'):
+    def __init__(self, step_cache, step_git, global_args=None, cwd='.'):
         """
         Function will clone given git
         and will checkout to a given branch and commit
         :type step_cache: cihpc.core.structures.project_step_cache.ProjectStepCache
+        :type step_git: list[cihpc.core.structures.project_step_git.ProjectStepGit]
+        :type global_args: dict
         """
+
         self.global_args = global_args
         self.step_cache = step_cache
+        self.step_git = step_git
         self._cache_hash = None
         self._cache_name = None
         self.value = None
@@ -45,23 +52,22 @@ class ProcessStepCache(object):
         )
 
         self.fields = self.step_cache.fields or (
-            'arg.branch', 'arg.commit', 'project-name'
+            'project-name',
         )
-
-        value = self._compute_hash()
-        self._cache_hash = hashlib.md5(value.encode()).hexdigest()
-        self._cache_name = re.sub('[^a-zA-Z0-9._=,:-]', '', value)
-        self.value = '%s-%s' % (self._cache_name, self._cache_hash)
-        self.location = os.path.join(self.storage, self.value)
-
-    def _compute_hash(self):
-        hash_dict = dict()
+        attributes = list()
         for f in self.fields:
             recursive_value = recursive_get(self.global_args, f)
             if recursive_value:
-                hash_dict[self._arg_map.get(f, f)] = recursive_value
+                attributes.append(
+                    (self._arg_map.get(f, f), str(recursive_value))
+                )
 
-        return json.dumps(hash_dict, sort_keys=True, separators=(',', '-'))
+        for git in step_git:
+            git_control = Git(configure_git(git, self.global_args))
+            attributes.append((git.repo, (git_control.commit or 'none')[:10]))
+
+        self.value = ','.join(['%s-%s' % x for x in attributes])
+        self.location = os.path.join(self.storage, self.value)
 
     def exists(self):
         if os.path.exists(self.location) and os.path.isdir(self.location):
@@ -92,20 +98,3 @@ class ProcessStepCache(object):
 
     def __repr__(self):
         return 'ProcessStepCache(%s, %s)' % (self._cache_hash, self._cache_name)
-
-
-def _smart_hash(d):
-    if not d:
-        return tuple()
-
-    result = list()
-    if isinstance(d, dict):
-        for k in sorted(list(d.keys())):
-            v = '%s:%s' % (k, _smart_hash(d[k]))
-            result.append(v)
-    elif isinstance(d, list):
-        for v in d:
-            result.append(_smart_hash(v))
-    else:
-        return str(d)
-    return ','.join([str(x) for x in result])

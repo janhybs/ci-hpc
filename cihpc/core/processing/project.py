@@ -242,7 +242,7 @@ class ProcessProject(object):
 
         cache = None
         if step.cache:
-            cache = ProcessStepCache(step.cache, self.project.global_args)
+            cache = ProcessStepCache(step.cache, step.git, self.project.global_args)
 
             if cache.exists():
                 logger.debug('restoring cache stored in %s' % cache.location)

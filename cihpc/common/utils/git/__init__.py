@@ -10,11 +10,13 @@ import logging
 
 from cihpc.common.utils.files import StdoutType
 from cihpc.common.processing import create_execute_command
+from cihpc.core.extensions.singleton import single_parameter_singleton
 
 
 logger = logging.getLogger(__name__)
 
 
+@single_parameter_singleton
 class Git(object):
     """
     :type git: cihpc.core.structures.project_step_git.ProjectStepGit
@@ -44,6 +46,20 @@ class Git(object):
             return
 
         self.execute('git clone', self.git.url, self.dir).wait()
+
+    @property
+    def commit(self):
+        try:
+            return subprocess.check_output('git rev-parse HEAD'.split(), cwd=self.dir).decode().strip()
+        except:
+            return None
+
+    @property
+    def branch(self):
+        try:
+            return subprocess.check_output('git rev-parse --abbrev-ref HEAD'.split(), cwd=self.dir).decode().strip()
+        except:
+            return None
 
     def checkout(self):
         branch = self.git.branch
