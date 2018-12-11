@@ -14,7 +14,7 @@ except ImportError as e:
     raise
 
 
-print('cihpc-core v%s' % cihpc.__version__, sys.executable, sys.version)
+print('cihpc-core v%s' % cihpc.__version__, sys.executable, str(sys.version).replace('\n', ' '))
 sys.exit(
     cihpc.core.main()
 )
