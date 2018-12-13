@@ -6,13 +6,13 @@
 PLENTY_OF_CPUS = 64  # turn off for now
 
 
-def extract_cpus_from_worker(worker):
+def extract_cpus_from_worker(process_stage):
     """
-    :type worker: multiproc.thread_pool.Worker
+    :type worker: cihpc.core.processing.stage.ProcessStage
     :return:
     """
-    if worker and worker.crate and worker.crate.vars:
-        return int(worker.crate.vars.get('__cpu__', 1))
+    if process_stage and process_stage.variables:
+        return int(process_stage.variables.get('__cpu__', 1))
 
     return 1
 

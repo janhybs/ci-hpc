@@ -45,20 +45,11 @@ class LogStatusFormat(enum.Enum):
     ONELINE_GROUPED = 'oneline-grouped'
 
 
-class Worker(threading.Thread):
-    def __init__(self, crate, target, cpus=1):
-        """
-        Parameters
-        ----------
-        crate: ProcessConfigCrate or None
-        target: callable or None
-        cpus: int
-        """
-        super(Worker, self).__init__()
-        self.cpus = cpus
-        self.target = target
-        self.crate = crate
-
+class SimpleWorker(threading.Thread):
+    def __init__(self):
+        super(SimpleWorker, self).__init__()
+        self.cpus = 1
+        self.target = None
         self.semaphore = None  # type: ComplexSemaphore
         self.thread_event = None  # type: EnterExitEvent
         self.result = None  # type: ProcessStepResult
@@ -66,6 +57,7 @@ class Worker(threading.Thread):
         self.status = WorkerStatus.CREATED  # random.choice(list(WorkerStatus))
         self.timer = Timer(self.name)
         self._pretty_name = None
+
 
     @property
     def status(self):
@@ -92,14 +84,29 @@ class Worker(threading.Thread):
         self.semaphore.release(value=self.cpus)
         self.status = WorkerStatus.EXITING
 
+    def __repr__(self):
+        return '{self.name}({self.cpus}x, [{self.status}])'.format(self=self)
+
+
+class Worker(SimpleWorker):
+    def __init__(self, crate, target, cpus=1):
+        """
+        Parameters
+        ----------
+        crate: ProcessConfigCrate or None
+        target: callable or None
+        cpus: int
+        """
+        super(Worker, self).__init__()
+        self.cpus = cpus
+        self.target = target
+        self.crate = crate
+
     @property
     def pretty_name(self):
         if self.crate:
             return self.crate.name
         return self._pretty_name or self.name
-
-    def __repr__(self):
-        return '{self.name}({self.cpus}x, [{self.status}])'.format(self=self)
 
 
 class WorkerPool(object):
@@ -126,6 +133,11 @@ class WorkerPool(object):
     def result(self):
         return pluck(self.threads, 'result')
 
+    def start(self):
+        if self.processes == 1:
+            return self.start_serial()
+        return self.start_parallel()
+
     def start_serial(self):
         # in serial mode, we start the thread, wait for finish and fire on_exit
         for thread in self.threads:
@@ -135,9 +147,6 @@ class WorkerPool(object):
             self.thread_event.on_exit(thread)
 
     def start_parallel(self):
-        if self.processes == 1:
-            return self.start_serial()
-
         # start
         for thread in self.threads:
             thread.start()

@@ -344,6 +344,9 @@ def main(cmd_args=None):
         project = ProcessProject(project_definition)
         logger.info('processing project %s, action %s', project_name, args.action)
 
+        project.process()
+        exit(0)
+
         if args.action is ArgAction.GIT_FOREACH:
             if not global_configuration.project_git:
                 logger.error('no repository provided')

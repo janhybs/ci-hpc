@@ -4,6 +4,36 @@
 
 import os
 from cihpc.common.utils.files import StdoutType
+from cihpc.cfg.config import global_configuration
+
+
+class ProjectStepGits(list):
+    def __init__(self, kwargs):
+        super(ProjectStepGits, self).__init__()
+
+        if not kwargs:
+            return
+
+        # single git repo
+        elif isinstance(kwargs, dict):
+            self.append(ProjectStepGit(**kwargs))
+
+        # list of git repos
+        elif isinstance(kwargs, list):
+            for v in kwargs:
+                if isinstance(v, str):
+                    self.append(ProjectStepGit(v))
+                elif isinstance(v, dict):
+                    self.append(ProjectStepGit(**v))
+                else:
+                    raise ValueError('kwargs must be dictionary or list ro str')
+
+        # just url
+        elif isinstance(kwargs, str):
+            for v in kwargs:
+                self.append(ProjectStepGit(v))
+        else:
+            raise ValueError('kwargs must be dictionary or list ro str')
 
 
 class ProjectStepGit(object):
@@ -32,9 +62,7 @@ class ProjectStepGit(object):
         self.repo = str(os.path.basename(self.url).split('.')[0])
 
         # optionally mark this repo as main
-        if kwargs.get('is-main', False):
-            from cihpc.cfg.config import global_configuration
-
+        if kwargs.get('is-main') or not global_configuration.project_git:
             global_configuration.project_git = self
 
     def __repr__(self):

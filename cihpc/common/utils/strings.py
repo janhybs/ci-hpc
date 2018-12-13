@@ -6,12 +6,21 @@ import datetime
 import random
 import json
 import yaml
+import re
 
 from cihpc.common.utils import dateutils as dateutils
 from cihpc.common.utils import extend_yaml
 
 
 extend_yaml.extend()
+
+_non_valid_chars = re.compile('[^a-zA-Z0-9_-]+')
+
+
+def secure_filename(name):
+    if name:
+        return _non_valid_chars.sub('-', str(name))
+    return ''
 
 
 def generate_random_key(length=8):

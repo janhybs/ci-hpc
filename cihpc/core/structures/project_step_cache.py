@@ -3,29 +3,40 @@
 
 import logging
 
+from cihpc.core.structures.a_project import ComplexClass
+
+
 logger = logging.getLogger(__name__)
 
 
-class ProjectStepCache(object):
+class ProjectStepCache(ComplexClass):
     """
     A class which handles project caching
     """
 
     def __init__(self, kwargs):
+        super(ProjectStepCache, self).__init__(kwargs)
+
         if not kwargs:
-            self.enabled = False
             self.directories = None
             self.storage = None
             self.fields = None
 
         elif isinstance(kwargs, dict):
-            self.enabled = True
-            self.storage = kwargs['storage']  # required
             self.directories = kwargs['directories']  # required
+            self.storage = kwargs.get('storage', '<os.HOME>/.cache/cihpc')  # default is home .cache dir
             self.fields = kwargs.get('fields', dict())
 
-        else:
-            raise ValueError('kwargs must be dictionary')
+        elif isinstance(kwargs, list):
+            self.storage = '<os.HOME>/.cache/cihpc'
+            self.directories = kwargs
+            self.fields = dict()
 
-    def __bool__(self):
-        return self.enabled
+        elif isinstance(kwargs, str):
+            self.enabled = True
+            self.storage = '<os.HOME>/.cache/cihpc'
+            self.directories = [kwargs]
+            self.fields = dict()
+
+        else:
+            raise ValueError('kwargs must be dictionary, string or list')

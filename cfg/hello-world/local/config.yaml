@@ -1,28 +1,23 @@
 workdir: <hello-world-workdir>
 init-shell: !sh sh/init.sh
-  
-install:
-  - name: compilation-phase
-    output: stdout
+
+stages:
+  - name: compile
+    enabled: true
     git:
-    - url: https://github.com/janhybs/bench-stat.git
-      commit: <arg.commit.hello-world> # checkout to this commit
-      branch: <arg.branch.hello-world> # under this branch's name
+      - url: https://github.com/janhybs/bench-stat.git
+        commit: <arg.commit.hello-world> # checkout to this commit
+        branch: <arg.branch.hello-world> # under this branch's name
       
     shell: !sh sh/install.sh
-    
-    cache:
-      storage: <os.HOME>/.cache/cihpc
-      directories:
-        - bench-stat
+    cache: bench-stat
 
-test:
   - name: memory-cache-test
     output: 'null'
     
     repeat:
       exactly: 1
-      no-less-thann: 8
+      no-less-than: 8
       
     parallel:
       cpus: 0.51
@@ -33,14 +28,14 @@ test:
         - test:
             - id: 1
               name: memory-cache-test-l1
-            - id: 2
-              name: memory-cache-test-l2
-            - id: 3
-              name: memory-cache-test-l3
-      - matrix:
-        - test:
-            - id: 0
-              name: memory-cache-test-all
+            # - id: 2
+            #   name: memory-cache-test-l2
+            # - id: 3
+            #   name: memory-cache-test-l3
+      # - matrix:
+      #   - test:
+      #       - id: 0
+      #         name: memory-cache-test-all
             
     shell: !sh sh/test.sh
       

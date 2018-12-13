@@ -6,10 +6,11 @@ import os
 import copy
 import time
 import datetime
-import cihpc.common.utils.strings
+import cihpc.common.utils.strings as strings
 
 from cihpc.cfg.cfgutil import configure_string
 from cihpc.core.structures.project_section import ProjectSection
+from cihpc.core.structures.project_stage import ProjectStages
 
 
 class Counter(object):
@@ -53,6 +54,7 @@ class Project(object):
     Main class representing single project in a yaml configuration file
     :type test:        ProjectSection
     :type install:     ProjectSection
+    :type stages:      list[cihpc.core.structures.project_stage.ProjectStage]
     :type init_shell:  str
     :type workdir:     str
     :type name:        str
@@ -61,6 +63,7 @@ class Project(object):
     def __init__(self, name, **kwargs):
         # globals
         self.name = name
+        self._secure_name = strings.secure_filename(self.name)
         self.init_shell = kwargs.get('init-shell', None)
         self._counter = Counter()
         self._os = EnvGetter()
@@ -69,7 +72,7 @@ class Project(object):
                 start=dict(
                     datetime=datetime.datetime.now().strftime('%Y_%m_%d-%H_%M_%S'),
                     timestamp=int(time.time()),
-                    random=cihpc.common.utils.strings.generate_random_key(6),
+                    random=strings.generate_random_key(6),
                 ),
                 current=dict(
 
@@ -87,9 +90,11 @@ class Project(object):
         self.install = ProjectSection('install', kwargs.get('install', []))
         self.test = ProjectSection('test', kwargs.get('test', []))
 
+        # stages
+        self.stages = ProjectStages(kwargs.get('stages'))
+
     def unique(self):
         import uuid
-
         return uuid.uuid4().hex
 
     def update_global_args(self, o):
@@ -100,8 +105,8 @@ class Project(object):
         lines = [
             'Project <{self.name}>'.format(self=self),
             '  - workdir: {self.workdir}'.format(self=self),
-            '%s' % cihpc.common.utils.strings.pad_lines('- {self.install.pretty}'.format(self=self)),
-            '%s' % cihpc.common.utils.strings.pad_lines('- {self.test.pretty}'.format(self=self)),
+            '%s' % strings.pad_lines('- {self.install.pretty}'.format(self=self)),
+            '%s' % strings.pad_lines('- {self.test.pretty}'.format(self=self)),
         ]
         return '\n'.join(lines)
 
@@ -112,13 +117,13 @@ class Project(object):
         cp['__project__']['current'] = dict(
             datetime=datetime.datetime.now().strftime('%Y_%m_%d-%H_%M_%S'),
             timestamp=int(time.time()),
-            random=cihpc.common.utils.strings.generate_random_key(6),
+            random=strings.generate_random_key(6),
         )
         return cp
 
     @property
     def tmp_workdir(self):
-        return os.path.join(self.workdir, 'tmp.%s' % self.name)
+        return os.path.join(self.workdir, 'tmp.%s' % self._secure_name)
 
     def __repr__(self):
-        return '<Project %s>' % self.name
+        return '<Project %s>' % self._secure_name

@@ -7,15 +7,18 @@ import logging
 import os
 import shutil
 import sys
+import threading
 
 from tqdm import tqdm
 
 from cihpc.cfg.config import global_configuration
-from cihpc.common.processing.pool import LogStatusFormat, PoolInt, Worker, WorkerPool
+from cihpc.common.processing.pool import LogStatusFormat, PoolInt, Worker, WorkerPool, SimpleWorker
 from cihpc.common.utils import strings
 from cihpc.common.utils.datautils import iter_over, merge_dict
 from cihpc.common.utils.parallels import extract_cpus_from_worker
 from cihpc.common.utils.timer import Timer
+from cihpc.core.db import CIHPCMongo
+from cihpc.core.processing.stage import ProcessStage
 from cihpc.core.processing.step_cache import ProcessStepCache
 from cihpc.core.processing.step_collect import process_step_collect
 from cihpc.core.processing.step_git import process_step_git
@@ -32,21 +35,85 @@ class ProcessProject(object):
 
     def __init__(self, project):
         self.project = project
+        self.mongo = CIHPCMongo.get(self.project.name)
         os.makedirs(self.project.workdir, exist_ok=True)
         os.chdir(self.project.workdir)
 
     def process(self):
         """
-        Method will process entire project
-        :return:
-        """
-        logger.debug('preparing project %s', self.project.name)
-        # remove old configuration
-        shutil.rmtree('tmp.%s' % self.project.name, True)
+        Method will read configuration and prepare threads, which will
+        perform given action
+        Returns
+        -------
 
-        # process both sections
-        for section in [self.project.install, self.project.test]:
-            self.process_section(section)
+        list[threading.Thread]
+        """
+        for stage in self.project.stages:
+            if stage:
+                threads = ProcessStage.create(self.project, stage)
+                self._process_stage_threads(stage, threads)
+
+    def _process_stage_threads(self, stage, threads):
+        with Timer(stage.ord_name) as timer:
+            pool = WorkerPool(processes=stage.parallel.cpus, threads=threads)
+            pool.update_cpu_values(extract_cpus_from_worker)
+
+            if stage.parallel:
+                logger.info('%d job(s) will be now executed in parallel' % len(threads))
+            else:
+                logger.info('%d job(s) will be now executed in serial' % len(threads))
+
+            default_status = pool.get_statuses(LogStatusFormat.ONELINE)
+            cqtdm = tqdm(file=sys.stdout, total=len(threads), dynamic_ncols=True,
+                         desc='%s: %s' % (stage.ord_name, default_status))
+
+            def update_status(worker: SimpleWorker):
+                cqtdm.desc = '%s: %s' % (stage.ord_name, pool.get_statuses(LogStatusFormat.ONELINE))
+                cqtdm.update()
+
+            pool.thread_event.on_exit.on(update_status)
+
+            # run in serial or parallel
+            pool.start()
+            cqtdm.close()
+
+        timers_total = sum([sum(x.collect_result.total) for x in threads if x.collect_result])
+        if timers_total:
+            self._save_stats(stage, threads, timers_total, timer.duration)
+
+    def _save_stats(self, stage, threads, timers_total, duration):
+        try:
+            # here we will store additional info to the DB
+            # such as how many result we have for each commit
+            # or how long the testing took.
+            # is this manner, we will have better control over
+            # execution for specific commit value, we will now how many results
+            # we have for each step, so we can automatically determine how many
+            # repetition we need in order to have minimum result available
+            from cihpc.artifacts.modules import CIHPCReport
+            from cihpc.core.db import CIHPCMongo
+
+            logger.info('%d processes finished, found %d documents' % (len(threads), timers_total))
+
+            stats = dict()
+            stats['git'] = CIHPCReport.global_git.copy()
+            stats['system'] = CIHPCReport.global_system.copy()
+            stats['name'] = stage.name
+            stats['reps'] = stage.repeat
+            stats['docs'] = timers_total
+            stats['config'] = strings.to_yaml(stage.raw_config)
+            stats['duration'] = duration
+            stats['parallel'] = bool(stage.parallel)
+            # logger.dump(stats, 'stats')
+
+            cihpc_mongo = CIHPCMongo.get(self.project.name)
+            insert_result = cihpc_mongo.history.insert_one(stats)
+            logger.debug('DB write acknowledged: %s' % str(insert_result.acknowledged))
+            if insert_result.acknowledged:
+                logger.info('saved stat document to build history')
+
+        except Exception as e:
+            logger.exception(str(e))
 
     def process_section(self, section):
         """
@@ -128,7 +195,7 @@ class ProcessProject(object):
                 cqtdm = tqdm(file=sys.stdout, total=len(threads), dynamic_ncols=True,
                              desc='section %s: %s' % (section.name, default_status))
 
-                def update_status(worker: Worker):
+                def update_status(worker: SimpleWorker):
                     cqtdm.desc = 'section %s: %s' % (section.name, pool.get_statuses(LogStatusFormat.ONELINE))
                     cqtdm.update()
 

@@ -107,6 +107,7 @@ class CIHPCMongo(Mongo):
         self.reports = self.db.get_collection(opts.get('col_timers_name'))
         self.files = self.db.get_collection(opts.get('col_files_name'))
         self.history = self.db.get_collection(opts.get('col_history_name'))
+        self.running = self.db.get_collection(opts.get('col_running_name'))
 
     def _get_artifacts(self, opts=None):
         if opts:
@@ -292,4 +293,5 @@ class CIHPCMongo(Mongo):
             col_timers_name='timers',
             col_files_name='files',
             col_history_name='hist',
+            col_running_name='running',
         )

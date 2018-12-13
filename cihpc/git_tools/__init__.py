@@ -45,7 +45,7 @@ def parse_args():
     parser.add_argument('-d', '--debug', default=False, action="store_true", help='''R|
                             Turns on the debug mode increasing verbosity.
                             ''')
-    parser.add_argument('-p', '--port', default=5000, type=int, help='''R|
+    parser.add_argument('-p', '--port', default=5001, type=int, help='''R|
                             The port of the webserver. Defaults to 5000.
                             ''')
     parser.add_argument('action', choices=['start', 'stop', 'restart', 'status', 'debug'], help='''R|

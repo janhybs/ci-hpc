@@ -4,20 +4,24 @@
 
 import os
 
+from cihpc.core.structures.a_project import ComplexClass
 
-class ProjectStepContainer(object):
+
+class ProjectStepContainer(ComplexClass):
     """
     Helper class which holds information about singularity/docker
     """
 
-    def __init__(self, value):
+    def __init__(self, kwargs):
         """
         Parameters
         ----------
         value : str
             lines to load container module and to exec singularity/docker
         """
-        self.exec = self._parse_exec_value(value)
+        super(ProjectStepContainer, self).__init__(kwargs)
+        if self:
+            self.exec = self._parse_exec_value(kwargs)
 
     @staticmethod
     def _parse_exec_value(value):
@@ -47,6 +51,3 @@ class ProjectStepContainer(object):
 
         # we assume the docker image name was given
         return 'docker run --rm -v $(pwd):$(pwd) -w $(pwd) %s %%s' % value.strip()
-
-    def __bool__(self):
-        return bool(self.exec)

@@ -3,10 +3,11 @@
 
 
 import cihpc.core.structures
+from cihpc.core.structures.a_project import ComplexClass
 from cihpc.core.structures.project_step_collect_parse import ProjectStepContainerParse
 
 
-class ProjectStepCollect(object):
+class ProjectStepCollect(ComplexClass):
     """
     Class definition for artifact collection
     :type files:        str
@@ -20,7 +21,11 @@ class ProjectStepCollect(object):
     :type save_to_db:   bool
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, kwargs):
+        super(ProjectStepCollect, self).__init__(kwargs)
+        if not self:
+            return
+
         self.files = kwargs.get('files', None)
         self.parse = cihpc.core.structures.new(kwargs, 'parse', ProjectStepContainerParse)
         self.module = kwargs.get('module', 'cihpc.artifacts.collect.modules.generic_module')

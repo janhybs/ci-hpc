@@ -37,8 +37,6 @@ class ProcessStepCache(object):
         self.global_args = global_args
         self.step_cache = step_cache
         self.step_git = step_git
-        self._cache_hash = None
-        self._cache_name = None
         self.value = None
         self.cwd = os.path.abspath(cwd)
 
@@ -102,4 +100,4 @@ class ProcessStepCache(object):
             shutil.copytree(from_dir, to_dir)
 
     def __repr__(self):
-        return 'ProcessStepCache(%s, %s)' % (self._cache_hash, self._cache_name)
+        return 'ProcessStepCache(%s)' % self.value

@@ -101,8 +101,11 @@ def process_step_collect(project, step, process_result, format_args=None):
         if step.collect.save_to_db:
             instance.save_to_db(results)
 
-    result.total.append(timers_total)
-    result.items.append(timers_info)
+    if timers_total:
+        result.total.append(timers_total)
+
+    if timers_info:
+        result.items.append(timers_info)
 
     # --------------------------------------------------
 
@@ -163,7 +166,10 @@ def process_step_collect(project, step, process_result, format_args=None):
                     os.makedirs(move_to, exist_ok=True)
                     os.rename(old_filepath, new_filepath)
 
-    result.total.append(timers_total)
-    result.items.append(timers_info)
+    if timers_total:
+        result.total.append(timers_total)
+
+    if timers_info:
+        result.items.append(timers_info)
 
     return result
