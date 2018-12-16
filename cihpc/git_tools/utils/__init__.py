@@ -126,15 +126,16 @@ class WebhookTrigger(object):
         """
         project = payload.repository.name
         commit = payload.after
-        branch = payload.ref
+        branch_full = payload.ref
+        branch = strings.startswith_strip(branch_full, 'refs/heads/')
         url = payload.repository.html_url
-        rest_args = [project, commit, payload.ref, branch, url]
+        rest_args = [project, commit, branch, url]
 
         match = False
         for b in self.branches:
             b = b.replace('*', '.*')
             match |= bool(re.match(b, branch))
-            match |= bool(re.match(b, strings.startswith_strip(branch, 'refs/heads/')))
+            match |= bool(re.match(b, branch_full))
 
         if not match:
             return None

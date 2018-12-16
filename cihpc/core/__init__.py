@@ -283,9 +283,12 @@ def main(cmd_args=None):
         sys.exit(1)
     else:
         logger.debug('determined config dir: %s' % project_dir)
+        config_path = os.path.join(project_dir, 'config.yaml')
+
+        global_configuration.project_cfg_dir = project_dir
+        global_configuration.project_cfg = config_path
 
     # this file contains all the sections and actions for installation and testing
-    config_path = os.path.join(project_dir, 'config.yaml')
     config_yaml = cfgutil.yaml_load(cfgutil.read_file(config_path))
     project_name = config_yaml.get('project', None)
 
@@ -333,8 +336,6 @@ def main(cmd_args=None):
     # variables['cpu-count'] = args.cpu_count
 
     global_configuration.project_name = project_name
-    global_configuration.project_cfg_dir = project_dir
-    global_configuration.project_cfg = config_path
 
     # -----------------------------------------------------------------
 

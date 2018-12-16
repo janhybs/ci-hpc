@@ -307,8 +307,6 @@ def main():
                 '  %s' % project_dir)
 
     webhook_trigger = WebhookTrigger.from_file(os.path.join(project_dir, 'webhook.yaml'))
-    print(webhook_trigger.branches)
-    print(webhook_trigger.actions)
 
     ws = WebhookService(
         'webhook-service',
