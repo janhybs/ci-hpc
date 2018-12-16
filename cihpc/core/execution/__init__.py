@@ -101,7 +101,14 @@ class SeparateExecutor(object):
             cihpc execute command with passed arguments
 
         """
-        cmd_args = convert_project_arguments(args, excludes=('pbs',))
+
+        from cihpc.core import ArgAction
+
+        cmd_args = convert_project_arguments(args, excludes=['action', 'config-dir', 'pbs', 'secret-yaml'])
+        
+        cmd_args += ['--config-dir', global_configuration.project_cfg_dir]
+        cmd_args += ['--secret-yaml', global_configuration.cfg_secret_path]
+        cmd_args += [':'.join([ArgAction.Values.RUN.value] + args.action.sections)]
         return ' '.join([str(x) for x in cmd_args])
 
 

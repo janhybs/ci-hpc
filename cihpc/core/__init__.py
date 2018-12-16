@@ -87,6 +87,13 @@ def parse_args(cmd_args=None):
         default value will current dir,
     ''')
     parser.add_argument(
+        '--secret-yaml',
+        type=str,
+        default=None,
+        help='''R|
+        Path to the secret.yaml file which contains db config,
+    ''')
+    parser.add_argument(
         '--pbs',
         choices=['pbspro', 'pbs', 'local'],
         default=None, help='''R|
@@ -267,6 +274,9 @@ def main(cmd_args=None):
     # force tty mode if set
     if args.tty:
         global_configuration.tty = True
+
+    if args.secret_yaml:
+        global_configuration.cfg_secret_path = args.secret_yaml
 
     # -------------------------------------------------------
 

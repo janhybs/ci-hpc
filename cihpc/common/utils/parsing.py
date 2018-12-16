@@ -80,5 +80,5 @@ def convert_project_arguments(namespace, excludes=None):
 
         elif key in action_args:
             if value:
-                result.append(value.value)
+                result.append(value.enum.value)
     return result
