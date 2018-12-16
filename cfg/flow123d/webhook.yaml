@@ -1,0 +1,6 @@
+branches:
+  - master
+  - release*
+
+action: !readfile scripts/remote-trigger.sh
+  

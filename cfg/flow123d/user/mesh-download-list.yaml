@@ -1,0 +1,8 @@
+ # list of files which will be downloaded from the astra server to a
+ # bench_data/benchmarks folder
+ - values:
+   - server: http://astra.cxi.tul.cz/~jan.hybs/benchmarks
+   - filename:
+     - 04_kravi_hora/1_212773_el/KH__data_okp.msh
+     - 04_kravi_hora/1_212773_el/KH__data_vodivost.msh
+     - 04_kravi_hora/1_212773_el/KH__mesh.msh

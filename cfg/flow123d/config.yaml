@@ -1,0 +1,56 @@
+project: flow123d
+workdir: <flow123d-workdir>
+init-shell: !readfile scripts/init-shell.sh
+
+
+stages:
+  # -----------------------------------------------------------
+  # COMPILATION -----------------------------------------------
+  # -----------------------------------------------------------
+  - stage: compile-flow123d
+    shell: !readfile scripts/install.sh
+    git:   !readyaml yamls/git-repository.yaml
+    cache: !readyaml yamls/cache-build.yaml
+    
+    
+  # -----------------------------------------------------------
+  # MESH DOWNLOAD ---------------------------------------------
+  # -----------------------------------------------------------
+  # to specify what files will be downloaded from astra.cxi.tul.cz,
+  # see configuration yaml file:
+  #     user/mesh-download-list.yaml
+  - stage: download-mesh
+    shell: !readfile scripts/download-mesh.sh
+    # which files will be downloaded
+    variables: !readyaml user/mesh-download-list.yaml
+
+
+  # -----------------------------------------------------------
+  # TESTING ---------------------------------------------------
+  # -----------------------------------------------------------
+  # to specify what benchmarks will be tested,
+  # see the configuration yaml file:
+  #     user/benchmark-list.yaml
+  - stage: testing
+    shell: !readfile scripts/run-test.sh
+    # which benchmark will be tested
+    variables: !readyaml user/benchmark-list.yaml
+    # how we want to collect the results
+    collect: !readyaml yamls/test-collect.yaml
+    
+    # how many repetitions we want for each benchmark
+    repeat:
+      exactly: 15           # we want to have 15 repetitions by default
+      no-less-than: 15      # but with access to the db, we want to have 15 in total
+    
+    # how many cores we want to use on a computing node
+    parallel:
+      cpus: 8               # we want to use 8 cores at max
+      prop: <cpu>           # by default each 'worker' will use <cpu> of cpus
+  
+  
+  # -----------------------------------------------------------
+  # CLEANUP ---------------------------------------------------
+  # -----------------------------------------------------------
+  - stage: cleanup
+    shell: scripts/clean-files.sh

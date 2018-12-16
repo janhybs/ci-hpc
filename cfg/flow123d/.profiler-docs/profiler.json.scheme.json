@@ -1,0 +1,236 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "$ref": "#/definitions/Profiler",
+    "definitions": {
+        "Profiler": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "program-name": {
+                    "type": "string"
+                },
+                "program-version": {
+                    "type": "string"
+                },
+                "program-branch": {
+                    "type": "string"
+                },
+                "program-revision": {
+                    "type": "string"
+                },
+                "program-build": {
+                    "type": "string"
+                },
+                "timer-resolution": {
+                    "type": "string"
+                },
+                "task-description": {
+                    "type": "string"
+                },
+                "task-size": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "run-process-count": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "run-started-at": {
+                    "type": "string"
+                },
+                "run-finished-at": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Child"
+                    }
+                }
+            },
+            "required": [
+                "children",
+                "program-branch",
+                "program-build",
+                "program-name",
+                "program-revision",
+                "program-version",
+                "run-finished-at",
+                "run-process-count",
+                "run-started-at",
+                "task-description",
+                "task-size",
+                "timer-resolution"
+            ],
+            "title": "Profiler"
+        },
+        "Child": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "tag": {
+                    "type": "string"
+                },
+                "file-path": {
+                    "type": "string"
+                },
+                "file-line": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "function": {
+                    "type": "string"
+                },
+                "cumul-time-min": {
+                    "type": "string"
+                },
+                "cumul-time-max": {
+                    "type": "string"
+                },
+                "cumul-time-sum": {
+                    "type": "string"
+                },
+                "call-count-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "call-count-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "call-count-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-alloc-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-alloc-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-alloc-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-dealloc-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-dealloc-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-dealloc-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-peak-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-peak-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-peak-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-alloc-called-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-alloc-called-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-alloc-called-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-dealloc-called-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-dealloc-called-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-dealloc-called-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-petsc-diff-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-petsc-diff-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-petsc-diff-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-petsc-peak-min": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-petsc-peak-max": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "memory-petsc-peak-sum": {
+                    "type": "string",
+                    "format": "integer"
+                },
+                "percent": {
+                    "type": "string"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Child"
+                    }
+                }
+            },
+            "required": [
+                "call-count-max",
+                "call-count-min",
+                "call-count-sum",
+                "cumul-time-max",
+                "cumul-time-min",
+                "cumul-time-sum",
+                "file-line",
+                "file-path",
+                "function",
+                "memory-alloc-called-max",
+                "memory-alloc-called-min",
+                "memory-alloc-called-sum",
+                "memory-alloc-max",
+                "memory-alloc-min",
+                "memory-alloc-sum",
+                "memory-dealloc-called-max",
+                "memory-dealloc-called-min",
+                "memory-dealloc-called-sum",
+                "memory-dealloc-max",
+                "memory-dealloc-min",
+                "memory-dealloc-sum",
+                "memory-peak-max",
+                "memory-peak-min",
+                "memory-peak-sum",
+                "memory-petsc-diff-max",
+                "memory-petsc-diff-min",
+                "memory-petsc-diff-sum",
+                "memory-petsc-peak-max",
+                "memory-petsc-peak-min",
+                "memory-petsc-peak-sum",
+                "percent",
+                "tag"
+            ],
+            "title": "Child"
+        }
+    }
+}
