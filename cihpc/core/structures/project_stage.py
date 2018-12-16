@@ -2,7 +2,6 @@
 # author: Jan Hybs
 
 import cihpc.common.utils.strings as strings
-from cihpc.cfg.config import global_configuration
 from cihpc.core.structures.a_project import ComplexClass
 from cihpc.core.structures.project_step_cache import ProjectStepCache
 from cihpc.core.structures.project_step_collect import ProjectStepCollect
@@ -15,7 +14,7 @@ from cihpc.core.structures.project_step_variables import ProjectStepVariables
 
 
 class Props(object):
-    NAME = 'name'
+    NAME = 'stage'
     DESCRIPTION = 'description'
     ENABLED = 'enabled'
     GIT = 'git'
@@ -66,7 +65,7 @@ class ProjectStage(ComplexClass):
                 return
 
             # output level
-            self.output = kwargs.get(Props.OUTPUT, 'stdout' if global_configuration.tty else 'log+stdout')
+            self.output = kwargs.get(Props.OUTPUT, 'log')
             # caching
             self.cache = ProjectStepCache(kwargs.get(Props.CACHE))
             # list of git repos

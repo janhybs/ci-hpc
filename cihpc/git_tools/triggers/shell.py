@@ -23,9 +23,11 @@ class ShellTrigger(AbstractWebhookTrigger):
     def process(self, payload):
         project = payload.repository.name
         commit = payload.after
+        branch = payload.ref
+        url = payload.repository.html_url
 
         trigger_path = self.trigger_path or os.path.join(global_configuration.cwd, 'triggers', 'local-trigger')
-        args = ['bash', trigger_path, project, commit]
+        args = ['bash', trigger_path, project, commit, payload.ref, branch, url]
 
         self._process = subprocess.Popen(args)
 

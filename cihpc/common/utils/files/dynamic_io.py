@@ -69,6 +69,10 @@ class OpenerBoth(Opener):
         with open(self.tf, 'r') as fp:
             self.output = fp.read()
         os.unlink(self.tf)
+
+        if LogConfig.log_path and self.output:
+            with open(LogConfig.log_path, 'a') as fp:
+                fp.write(self.output)
         return None
 
 
@@ -94,10 +98,20 @@ class DynamicIO(object):
     }
 
     def __init__(self, location, mode='a'):
-        self.location = location
+        self.location = location if location is not None else 'null'
         self.mode = mode
         self.opener = self.TYPES.get(self.location, OpenerFile)(self.location, self.mode)
         self.fp = None
+
+    def is_writable(self):
+        if self.fp is None:
+            return False
+        try:
+            write = getattr(self.fp, 'write') is not None
+            flush = getattr(self.fp, 'flush') is not None
+            return write & flush
+        except:
+            return False
 
     def __enter__(self):
         self.fp = self.opener.open()

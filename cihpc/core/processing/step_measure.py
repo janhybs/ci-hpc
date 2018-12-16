@@ -1,13 +1,17 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 import os
 import datetime
 import time
-import cihpc.common.utils.strings
 import json
 
-from cihpc.common.logging import logger
+import cihpc.common.utils.strings
 
 
 instrument_shell_pre = lambda output_file: '''
@@ -81,4 +85,3 @@ def process_step_measure(step, measure, shell_processing):
     shell_processing.shell.on_enter += before_shell,
     shell_processing.shell.on_exit += after_shell,
     shell_processing.process.on_exit += read_measure,
-

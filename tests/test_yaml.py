@@ -22,7 +22,7 @@ bar: !range 1 2 6
 '''
 
 sh_yaml = '''
-foo: !sh yaml/foo.txt
+foo: !readfile yaml/foo.txt
 '''
 
 
@@ -32,7 +32,8 @@ class TestExtendYaml(TestCase):
         extend_yaml.extend()
         self.assertIn('!range', yaml.Loader.yaml_constructors)
         self.assertIn('!repeat', yaml.Loader.yaml_constructors)
-        self.assertIn('!sh', yaml.Loader.yaml_constructors)
+        self.assertIn('!readfile', yaml.Loader.yaml_constructors)
+        self.assertIn('!readyaml', yaml.Loader.yaml_constructors)
 
     def test_repeat(self):
         extend_yaml.extend()

@@ -45,7 +45,7 @@ def iter_reports(reports, conversion, is_file):
 def process_step_collect(project, step, process_result, format_args=None):
     """
     Function will collect artifacts for the given step
-    :type step:           structures.project_step.ProjectStep
+    :type step:           cihpc.core.structures.project_stage.ProjectStage
     :type project:        structures.project.Project
     :type process_result: proc.step.step_shell.ProcessStepResult
     """

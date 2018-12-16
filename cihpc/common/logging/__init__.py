@@ -2,6 +2,7 @@
 # author: Jan Hybs
 
 
+import os
 import sys
 import logging
 
@@ -47,7 +48,7 @@ def basic_config(level=logging.WARNING, log_path='.ci-hpc.log', stream=sys.stdou
     LogConfig.file_level = file_level or LogConfig.level
     LogConfig.stream_level = stream_level or LogConfig.level
 
-    LogConfig.log_path = log_path
+    LogConfig.log_path = os.path.abspath(log_path or '.ci-hpc.log')
     LogConfig.stream = stream
 
     handlers = []

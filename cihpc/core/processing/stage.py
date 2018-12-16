@@ -65,7 +65,7 @@ class ProcessStage(SimpleWorker):
             )
 
         result = list()
-        for i in range(stage.repeat):
+        for j in range(stage.repeat):
             items = list(stage.variables.items())
             total = len(items)
             if total:
@@ -204,9 +204,15 @@ class ProcessStage(SimpleWorker):
         io = DynamicIO(self.stage.output)
         result = ProcessStepResult()
 
-        with io as fp:
+        with io:
+            if io.is_writable():
+                io.fp.write('=' * 80 + '\n')
+                io.fp.write(' '.join(args) + '\n')
+                io.fp.write('=' * 80 + '\n')
+                io.fp.flush()
+
             logger.debug('running ' + ' '.join(args))
-            process = sp.Popen(args, stdout=fp, stderr=sp.STDOUT)
+            process = sp.Popen(args, stdout=io.fp, stderr=sp.STDOUT)
             result.process = process
 
             with process:
@@ -215,6 +221,10 @@ class ProcessStage(SimpleWorker):
                     logger.debug('ok [%d] ended with %d' % (process.pid, result.returncode))
                 else:
                     logger.warning('process [%d] ended with %d' % (process.pid, result.returncode))
+
+            if io.is_writable():
+                io.fp.write('-' * 80 + '\n')
+                io.fp.flush()
         result.output = getattr(io.opener, 'output', None)
         return result
 

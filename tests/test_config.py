@@ -73,8 +73,8 @@ class TestConfig(TestCase):
         )
 
         config = list(cfgutil.configure_file(config_path, variables))[0]
-        self.assertEqual(config['install'][0]['foo'], variables['foo'])
-        self.assertEqual(config['install'][0]['bar-foo'], '<bar.foo>')  # is not supported
+        self.assertEqual(config['stages'][0]['foo'], variables['foo'])
+        self.assertEqual(config['stages'][0]['bar-foo'], '<bar.foo>')  # is not supported
 
     def test_config_special_variables(self):
         from cihpc.core.structures.project import Project

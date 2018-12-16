@@ -20,6 +20,7 @@ class TestArtifacts_default_configuration(TestCase):
                 col_timers_name='timers',
                 col_files_name='files',
                 col_history_name='hist',
+                col_running_name='running',
             )
         )
         self.assertEqual(
@@ -29,5 +30,6 @@ class TestArtifacts_default_configuration(TestCase):
                 col_timers_name='timers',
                 col_files_name='files',
                 col_history_name='hist',
+                col_running_name='running',
             )
         )

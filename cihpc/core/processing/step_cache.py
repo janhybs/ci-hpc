@@ -9,10 +9,7 @@ from cihpc.core.processing.step_git import configure_git
 
 logger = logging.getLogger(__name__)
 
-import re
 import os
-import json
-import hashlib
 import shutil
 from cihpc.common.utils.datautils import recursive_get
 from cihpc.cfg.cfgutil import configure_object, configure_string
@@ -20,8 +17,8 @@ from cihpc.cfg.cfgutil import configure_object, configure_string
 
 class ProcessStepCache(object):
     _arg_map = {
-        'arg.branch': 'b',
-        'arg.commit': 'c',
+        'arg.branch'  : 'b',
+        'arg.commit'  : 'c',
         'project-name': '-',
     }
 
@@ -68,7 +65,7 @@ class ProcessStepCache(object):
                 attributes.append((git.repo, git_control.git.commit[:10]))
             else:
                 attributes.append((git.repo, (git_control.commit or 'none')[:10]))
-        
+
         self.value = ','.join(['%s-%s' % x for x in attributes])
         self.location = os.path.join(self.storage, self.value)
 

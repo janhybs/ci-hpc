@@ -6,8 +6,12 @@ import collections
 from collections import defaultdict
 
 
-olist = lambda x: sorted(list(set(x)))
-set_if_none = lambda x, y: y if x is None else x
+def olist(x):
+    return sorted(list(set(x)))
+
+
+def set_if_none(x, y):
+    return y if x is None else x
 
 
 def recursive_get(d, attr, default=None, sep='.'):

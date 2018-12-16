@@ -23,7 +23,7 @@ def str_presenter(dumper, data):
     return dumper.represent_scalar('tag:yaml.org,2002:str', data)
 
 
-def shell_file(loader, node):
+def read_file(loader, node):
     from cihpc.cfg.config import global_configuration
 
     cwd = global_configuration.project_cfg_dir
@@ -33,8 +33,19 @@ def shell_file(loader, node):
         return fp.read()
 
 
+def read_yaml(loader, node):
+    from cihpc.cfg.config import global_configuration
+
+    cwd = global_configuration.project_cfg_dir
+    path = node.value
+
+    with open(os.path.join(cwd, path), 'r') as fp:
+        return yaml.load(fp)
+
+
 def extend():
     yaml.add_constructor('!range', cpu_range)
     yaml.add_constructor('!repeat', str_repeat)
-    yaml.add_constructor('!sh', shell_file)
+    yaml.add_constructor('!readfile', read_file)
+    yaml.add_constructor('!readyaml', read_yaml)
     yaml.add_representer(str, str_presenter)

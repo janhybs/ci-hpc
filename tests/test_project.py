@@ -2,6 +2,7 @@
 # author: Jan Hybs
 
 import tests
+from cihpc.core import ArgAction
 
 
 tests.fix_paths()
@@ -18,21 +19,20 @@ class TestProject(unittest.TestCase):
 
     def test_parse_args(self):
         with self.assertRaises(SystemExit):
-            cihpc.core.parse_args([])
+            cihpc.core.parse_args(['--log-level=foo'])
 
         args = [
-            '--project=foo',
+            '--config-dir=/foo/' + project_dir,
             '--log-path=foo.log',
             '--watch-commit-policy=commit-per-day',
             '--git-commit=foobar',
             '--tty',
         ]
         parsed = cihpc.core.parse_args(args)
-        self.assertEqual(parsed.project, 'foo')
         self.assertEqual(parsed.log_path, 'foo.log')
         self.assertEqual(parsed.tty, True)
         self.assertEqual(parsed.watch_commit_policy, 'commit-per-day')
-        self.assertEqual(parsed.action.value, 'run')
+        self.assertIs(parsed.action.enum, ArgAction.Values.RUN)
         self.assertListEqual(parsed.git_commit, ['foobar'])
 
         # no valid config
@@ -40,7 +40,6 @@ class TestProject(unittest.TestCase):
             cihpc.core.main(args)
 
         args = [
-            '--project=foo',
             '--log-level=warning',
             '--config-dir=%s' % project_dir,
         ]

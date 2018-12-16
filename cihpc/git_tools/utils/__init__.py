@@ -29,7 +29,7 @@ class CommitBrowser(object):
         commit_policy
         """
 
-        self.limit = limit
+        self.limit = limit or 3
         self.commit_policy = CommitPolicy(commit_policy) if commit_policy else CommitPolicy.EVERY_COMMIT
         self.git = git
         self.all_commits: [Commit] = list()

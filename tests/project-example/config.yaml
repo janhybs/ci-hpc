@@ -1,5 +1,8 @@
-install:
-  - name: install-step
+project: foo
+no-database: true
+
+stages:
+  - stage: install-step
 
     foo: <foo>
     bar-foo: <bar.foo>
@@ -7,7 +10,7 @@ install:
     shell: |
       echo foo
 
-test:
-  - name: test-step
+
+  - stage: test-step
     shell: |
       echo bar

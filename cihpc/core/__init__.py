@@ -23,19 +23,21 @@ if str(getattr(sys.stdout, 'encoding', '')).upper() not in ('UTF8', 'UTF-8'):
         pass
 
 
-class ArgAction(enum.Enum):
-    RUN='run'
-    TEST='test'
-    INSTALL='install'
-    GIT_FOREACH='git-foreach'
+class ArgAction(object):
+    class Values(enum.Enum):
+        RUN = 'run'
+        FOREACH = 'foreach'
 
-    @classmethod
-    def values(cls):
-        return list(map(lambda c: c.value, cls))
+    def __init__(self, value):
+        parts = str(value).split(':')
+        self.enum = self.Values(parts[0])
+        self.sections = parts[1:]
 
-    @classmethod
-    def names(cls):
-        return list(map(lambda c: c.name, cls))
+    def contains_stage(self, stage):
+        return not self.sections or stage.name in self.sections
+
+    def __repr__(self):
+        return '{self.__class__.__name__}({self.enum}, {self.sections})'.format(self=self)
 
 
 def parse_args(cmd_args=None):
@@ -43,14 +45,6 @@ def parse_args(cmd_args=None):
 
     # create parser
     parser = argparse.ArgumentParser(formatter_class=RawFormatter)
-    parser.add_argument(
-        '-p', '--project',
-        required=True,
-        help='''R|
-        Name of the project.
-        Based on this value, proper configuration will be
-        loaded (assuming --config-dir) was not set.
-    ''')
     parser.add_argument(
         '--git-url',
         default=None,
@@ -90,8 +84,7 @@ def parse_args(cmd_args=None):
         help='''R|
         Path to the directory, where config.yaml (and optionally
         variables.yaml) file is/are located. If no value is set
-        default value will cfg/<project>,
-        where <project> is name of the project given.
+        default value will current dir,
     ''')
     parser.add_argument(
         '--pbs',
@@ -111,21 +104,17 @@ def parse_args(cmd_args=None):
 
     parser.add_argument(
         'action',
-        choices=ArgAction.values(),
         nargs='?',
         default='run',
         help='''R|
         Action to perform:
             - run (default) run the installation followed by the testing
-            - install will  only run the installation
-            - test will     only run the testing process
             - git-foreach   will perform installation and testing 
                             for the previous commits in the main repository
                             See Git Foreach option group below for more details
         ''')
 
     # pbs options
-
     pbs_group_parser = parser.add_argument_group(
         'PBS options', 'other options applicable when in PBS mode'
     )
@@ -178,17 +167,17 @@ def parse_args(cmd_args=None):
     log_group_parser.add_argument(
         '--log-path',
         type=str,
-        default='.ci-hpc.log',
+        default=None,
         help='''R|
         If set, will override standard log file location
     ''')
-    log_group_parser.add_argument(
-        '--log-style',
-        choices=['short', 'long'],
-        default='short',
-        help='''R|
-        Format style of the logger
-    ''')
+    # log_group_parser.add_argument(
+    #     '--log-style',
+    #     choices=['short', 'long'],
+    #     default='short',
+    #     help='''R|
+    #     Format style of the logger
+    # ''')
     log_group_parser.add_argument(
         '--log-level', '--log',
         default='info',
@@ -208,17 +197,53 @@ def parse_args(cmd_args=None):
     return args
 
 
-def main(cmd_args=None):
-    from cihpc.common.logging import basic_config
+def _git_foreach(args, project_name):
+    import logging
+
     from cihpc.cfg.config import global_configuration
     from cihpc.common.utils.git import Git
     from cihpc.git_tools import CommitHistoryExecutor
-    from cihpc.cfg.cfgutil import find_valid_configuration
+    from cihpc.git_tools.utils import ArgConstructor, CommitBrowser
+    from cihpc.common.utils.parsing import convert_project_arguments
 
+    logger = logging.getLogger(__name__)
+
+    if not global_configuration.project_git:
+        logger.error('no repository provided')
+        exit(0)
+
+    project_commit_format = global_configuration.project_git.commit
+    if not project_commit_format or not str(project_commit_format).strip():
+        logger.error('project repository must be configurable via <arg.commit.foobar> placeholder')
+
+    project_commit_format = str(project_commit_format).strip()
+    if project_commit_format.startswith('<arg.commit.') and project_commit_format.endswith('>'):
+        commit_field = project_commit_format[len('<arg.commit.'):-1]
+        fixed_args = global_configuration.exec_args \
+                     + convert_project_arguments(args, excludes=['action', 'config-dir'])
+
+        fixed_args += ['-c', global_configuration.project_cfg_dir]
+        fixed_args += [':'.join([ArgAction.Values.RUN.value] + args.action.sections)]
+
+        args_constructor = ArgConstructor(fixed_args, commit_field)
+        commit_browser = CommitBrowser(
+            Git(global_configuration.project_git),
+            limit=args.watch_commit_limit,
+            commit_policy=args.watch_commit_policy,
+        )
+        logger.info('analyzing last %d commits, commit pick policy: %s' % (
+            commit_browser.limit, commit_browser.commit_policy))
+        service = CommitHistoryExecutor(project_name, args_constructor, commit_browser)
+
+        service.run()
+
+
+def main(cmd_args=None):
+    from cihpc.common.logging import basic_config
+    from cihpc.cfg.config import global_configuration
     import cihpc.cfg.cfgutil as cfgutil
 
-    from cihpc.git_tools.utils import ArgConstructor, CommitBrowser
-    from cihpc.common.utils.parsing import defaultdict_type, convert_project_arguments
+    from cihpc.common.utils.parsing import defaultdict_type
     from cihpc.common.utils import strings as strings_utils
 
     from cihpc.core.processing.project import ProcessProject
@@ -245,15 +270,34 @@ def main(cmd_args=None):
 
     # -------------------------------------------------------
 
-    # all the paths depend on the project name
-    # the name cannot contain the slash, it is used for the config dir location
-    #   bin/cihpc -p foo/bar
-    # will expand to:
-    #   bin/cihpc -p foo --config-dir foo/bar
-    project_name_parts = str(args.project).split('/')
-    project_name = project_name_parts[0]
-    if project_name_parts[1:] and not args.config_dir:
-        args.config_dir = args.project
+    # all configuration files are cfg/<project-name> directory if not set otherwise
+    project_dir = cfgutil.find_valid_configuration(
+        args.config_dir,
+        global_configuration.home,
+        file='config.yaml',
+    )
+
+    if not project_dir:
+        logger.error('no valid configuration found\n'
+                     'the paths that were tried: \n  %s',
+                     '\n  '.join([
+                         '1) --config-dir       ' + str(args.config_dir),
+                         '2) ./cfg/--config-dir ' + str(global_configuration.home),
+                     ]))
+        sys.exit(1)
+    else:
+        logger.debug('determined config dir: %s' % project_dir)
+
+    # this file contains all the sections and actions for installation and testing
+    config_path = os.path.join(project_dir, 'config.yaml')
+    config_yaml = cfgutil.yaml_load(cfgutil.read_file(config_path))
+    project_name = config_yaml.get('project', None)
+
+    if project_name is None:
+        logger.error('configuration file\n%s\n'
+                     'does not contain required field "project"' % config_path)
+        logger.error(cfgutil.read_file(config_path))
+        sys.exit(1)
 
     logger.info('running cihpc for the project %s' % project_name)
     logger.debug('app args: %s', str(args))
@@ -264,28 +308,6 @@ def main(cmd_args=None):
 
     # default value for this dictionary is string value ''
     args.git_commit = defaultdict_type(args.git_commit, '', project_name)
-
-    # all configuration files are cfg/<project-name> directory if not set otherwise
-    project_dir = find_valid_configuration(
-        args.config_dir,
-        os.path.join(global_configuration.cfg, str(args.config_dir)),
-        os.path.join(global_configuration.cfg, project_name),
-        os.path.abspath(project_name),
-        file='config.yaml',
-    )
-
-    if not project_dir:
-        logger.error('no valid configuration found for the project %s\n'
-                     'the paths that were tried: \n  %s', project_name,
-                     '\n  '.join([
-                         '1) --config-dir       ' + str(args.config_dir),
-                         '2) ./cfg/--config-dir ' + os.path.join(global_configuration.cfg, str(args.config_dir)),
-                         '3) ./cfg/<project>    ' + os.path.join(global_configuration.cfg, project_name),
-                         '4) ./<project>        ' + os.path.abspath(project_name)
-                     ]))
-        sys.exit(1)
-    else:
-        logger.debug('determined config dir: %s' % project_dir)
 
     # execute on demand using pbs/local or other system
     if args.pbs:
@@ -309,8 +331,6 @@ def main(cmd_args=None):
 
     # this file contains only variables which can be used in config.yaml
     variables_path = os.path.join(project_dir, 'variables.yaml')
-    # this file contains all the sections and actions for installation and testing
-    config_path = os.path.join(project_dir, 'config.yaml')
 
     # update cpu count
     variables = cfgutil.load_config(variables_path)
@@ -341,41 +361,15 @@ def main(cmd_args=None):
         project_definition = Project(project_name, **project_config)
         project_definition.update_global_args(global_args_extra)
 
+        # prepare process
         project = ProcessProject(project_definition)
         logger.info('processing project %s, action %s', project_name, args.action)
 
-        project.process()
-        exit(0)
+        if args.action.enum is ArgAction.Values.FOREACH:
+            _git_foreach(args, project_name)
+            sys.exit(0)
 
-        if args.action is ArgAction.GIT_FOREACH:
-            if not global_configuration.project_git:
-                logger.error('no repository provided')
-                exit(0)
-
-            project_commit_format = global_configuration.project_git.commit
-            if not project_commit_format or not str(project_commit_format).strip():
-                logger.error('project repository must be configurable via <arg.commit.foobar> placeholder')
-
-            project_commit_format = str(project_commit_format).strip()
-            if project_commit_format.startswith('<arg.commit.') and project_commit_format.endswith('>'):
-                commit_field = project_commit_format[len('<arg.commit.'):-1]
-                fixed_args = global_configuration.exec_args \
-                             + convert_project_arguments(args, excludes=['action'])
-
-                args_constructor = ArgConstructor(fixed_args, commit_field)
-                commit_browser = CommitBrowser(
-                    Git(global_configuration.project_git),
-                    limit=args.watch_commit_limit,
-                    commit_policy=args.watch_commit_policy,
-                )
-                logger.info('analyzing last %d commits, commit pick policy: %s' % (
-                    commit_browser.limit, commit_browser.commit_policy))
-                service = CommitHistoryExecutor(project_name, args_constructor, commit_browser)
-                service.run()
-                exit(0)
-
-        if args.action in (ArgAction.RUN, ArgAction.INSTALL):
-            project.process_section(project_definition.install)
-
-        if args.action in (ArgAction.RUN, ArgAction.TEST):
-            project.process_section(project_definition.test)
+        if args.action.enum is ArgAction.Values.RUN:
+            for stage in project_definition.stages:
+                if stage and args.action.contains_stage(stage):
+                    project.process_stage(stage)

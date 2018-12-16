@@ -14,7 +14,6 @@ from pluck import pluck
 from cihpc.common.processing import ComplexSemaphore
 from cihpc.common.utils.events import EnterExitEvent
 from cihpc.common.utils.timer import Timer
-from cihpc.core.processing.step_shell import ProcessConfigCrate
 from cihpc.core.processing.step_shell import ProcessStepResult
 
 
@@ -46,10 +45,10 @@ class LogStatusFormat(enum.Enum):
 
 
 class SimpleWorker(threading.Thread):
-    def __init__(self):
+    def __init__(self, target=None):
         super(SimpleWorker, self).__init__()
         self.cpus = 1
-        self.target = None
+        self.target = target
         self.semaphore = None  # type: ComplexSemaphore
         self.thread_event = None  # type: EnterExitEvent
         self.result = None  # type: ProcessStepResult
@@ -57,7 +56,6 @@ class SimpleWorker(threading.Thread):
         self.status = WorkerStatus.CREATED  # random.choice(list(WorkerStatus))
         self.timer = Timer(self.name)
         self._pretty_name = None
-
 
     @property
     def status(self):
@@ -93,7 +91,7 @@ class Worker(SimpleWorker):
         """
         Parameters
         ----------
-        crate: ProcessConfigCrate or None
+        crate: dict or None
         target: callable or None
         cpus: int
         """
@@ -104,14 +102,16 @@ class Worker(SimpleWorker):
 
     @property
     def pretty_name(self):
-        if self.crate:
-            return self.crate.name
         return self._pretty_name or self.name
 
 
 class WorkerPool(object):
-    def __init__(self, processes, threads):
-        self.processes = processes or multiprocessing.cpu_count()
+    """
+    :type threads: list[cihpc.common.processing.pool.SimpleWorker]
+    """
+
+    def __init__(self, cpu_count, threads):
+        self.processes = cpu_count or multiprocessing.cpu_count()
         self.semaphore = ComplexSemaphore(self.processes)
         self.thread_event = EnterExitEvent('thread')
         self.threads = list()

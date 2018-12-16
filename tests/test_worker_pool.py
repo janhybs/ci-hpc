@@ -15,7 +15,9 @@ logger = logging.getLogger(__name__)
 import multiprocessing
 from unittest import TestCase
 from cihpc.common.processing.pool import (
-    WorkerPool, Worker, LogStatusFormat,
+    WorkerPool,
+    Worker,
+    LogStatusFormat,
 )
 
 
@@ -26,16 +28,17 @@ class TestWorkerPool(TestCase):
 
     def test_start_serial(self):
 
-        items = [dict(foo=123), dict(foo=456)]
-        processes = 1
-
+        cpu_count = 1
         counter = dict(cnt=0)
 
         def func(worker: Worker):
             counter['cnt'] += 1
             return [counter['cnt'], worker.crate['foo']]
 
-        pool = WorkerPool(items, processes, func)
+        items = [dict(foo=123), dict(foo=456)]
+        threads = [Worker(crate=x, target=func) for x in items]
+
+        pool = WorkerPool(cpu_count=cpu_count, threads=threads)
         pool.start_serial()
         self.assertListEqual(pool.result, [[1, 123], [2, 456]])
 
@@ -61,30 +64,33 @@ class TestWorkerPool(TestCase):
         if cpu_count > 1:
             with self.assertRaises(AssertionError):
                 for i in range(25):
+                    threads = [Worker(crate=x, target=func) for x in items]
                     counter = dict(cnt=0)
-
-                    pool = WorkerPool(items, 2, func)
+                    pool = WorkerPool(cpu_count=2, threads=threads)
                     pool.log_statuses(format=LogStatusFormat.ONELINE_GROUPED)
                     pool.start_parallel()
                     self.assertListEqual(pool.result, result)
 
         for i in range(10):
+            threads = [Worker(crate=x, target=func) for x in items]
             counter = dict(cnt=0)
-            pool = WorkerPool(items, 2, func)
+            pool = WorkerPool(cpu_count=2, threads=threads)
             pool.log_statuses(format=LogStatusFormat.COMPLEX)
             pool.start_serial()
             self.assertListEqual(pool.result, result)
 
         for i in range(10):
+            threads = [Worker(crate=x, target=func) for x in items]
             counter = dict(cnt=0)
-            pool = WorkerPool(items, 1, func)
+            pool = WorkerPool(cpu_count=1, threads=threads)
             pool.log_statuses(format=LogStatusFormat.SIMPLE)
             pool.start_serial()
             self.assertListEqual(pool.result, result)
 
         for i in range(10):
+            threads = [Worker(crate=x, target=func) for x in items]
             counter = dict(cnt=0)
-            pool = WorkerPool(items, 1, func)
+            pool = WorkerPool(cpu_count=1, threads=threads)
             pool.log_statuses(format=LogStatusFormat.ONELINE)
-            pool.start_parallel()
+            pool.start()
             self.assertListEqual(pool.result, result)

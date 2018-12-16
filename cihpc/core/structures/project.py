@@ -63,8 +63,10 @@ class Project(object):
     def __init__(self, name, **kwargs):
         # globals
         self.name = name
-        self._secure_name = strings.secure_filename(self.name)
         self.init_shell = kwargs.get('init-shell', None)
+        self.use_database = not kwargs.get('no-database', False)
+
+        self._secure_name = strings.secure_filename(self.name)
         self._counter = Counter()
         self._os = EnvGetter()
         self._global_args = dict(

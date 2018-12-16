@@ -181,9 +181,9 @@ def main(cmd_args=None):
     logger = logging.getLogger(__name__)
 
     if args.config_dir:
-        global_configuration.update_cfg_path(args.config_dir)
+        global_configuration.home = args.config_dir
 
-    logger.info('using config dir %s' % global_configuration.cfg)
+    logger.info('using config dir %s' % global_configuration.home)
 
     if args.action == 'debug':
         args.debug = True

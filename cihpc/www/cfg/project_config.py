@@ -101,18 +101,16 @@ class ProjectConfig(object):
     def _get_project_config(project_name):
 
         cfg_dir = find_valid_configuration(
-            os.path.join(global_configuration.cfg, project_name),
-            os.path.join(global_configuration.cwd, project_name),
-            os.path.join(global_configuration.cwd, 'cfg', project_name),
+            os.path.join(global_configuration.home, project_name),
+            global_configuration.home,
             file='www.yaml'
         )
         if not cfg_dir:
             logger.error('no valid configuration found for the project %s\n'
                          ' the paths that were tried: \n   %s', project_name,
                          '\n   '.join([
-                             '<cfg>/<project>   ' + os.path.join(global_configuration.cfg, project_name),
-                             './cfg/<project>   ' + os.path.join(global_configuration.cwd, project_name),
-                             './<project>       ' + os.path.join(global_configuration.cwd, 'cfg', project_name)
+                             '<cihpc_home>/<project-name>   ' + os.path.join(global_configuration.home, project_name),
+                             '<cihpc_home>                  ' + global_configuration.home,
                          ]))
             exit(1)
 
