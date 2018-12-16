@@ -275,15 +275,11 @@ def main(cmd_args=None):
         args.config_dir,
         global_configuration.home,
         file='config.yaml',
+        raise_if_not_found=True
     )
 
     if not project_dir:
-        logger.error('no valid configuration found\n'
-                     'the paths that were tried: \n  %s',
-                     '\n  '.join([
-                         '1) --config-dir       ' + str(args.config_dir),
-                         '2) ./cfg/--config-dir ' + str(global_configuration.home),
-                     ]))
+        logger.error('termination execution')
         sys.exit(1)
     else:
         logger.debug('determined config dir: %s' % project_dir)

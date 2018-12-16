@@ -4,6 +4,7 @@
 import itertools
 import logging
 import os
+import sys
 from collections import namedtuple
 from enum import Enum
 
@@ -99,20 +100,15 @@ class ProjectConfig(object):
 
     @staticmethod
     def _get_project_config(project_name):
-
         cfg_dir = find_valid_configuration(
             os.path.join(global_configuration.home, project_name),
             global_configuration.home,
-            file='www.yaml'
+            file='www.yaml',
+            raise_if_not_found=True,
         )
         if not cfg_dir:
-            logger.error('no valid configuration found for the project %s\n'
-                         ' the paths that were tried: \n   %s', project_name,
-                         '\n   '.join([
-                             '<cihpc_home>/<project-name>   ' + os.path.join(global_configuration.home, project_name),
-                             '<cihpc_home>                  ' + global_configuration.home,
-                         ]))
-            exit(1)
+            logger.error('termination execution')
+            raise Exception('configuration not found')
 
         cfg_path = os.path.join(cfg_dir, 'www.yaml')
 
