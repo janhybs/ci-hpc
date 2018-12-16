@@ -246,7 +246,7 @@ class PBSProExecutor(AbstractExecutor):
                     logger.info('abandoning wait cycle...')
                     return None
 
-            logger.info('waiting for the job %s to finish')
+            logger.info('waiting for the job %s to finish' % self.id)
             time.sleep(sleeper())
 
     def kill(self):
