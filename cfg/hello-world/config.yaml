@@ -1,22 +1,24 @@
+project: hello-world
 workdir: <hello-world-workdir>
-init-shell: !sh sh/init.sh
-  
-install:
-  - name: compilation-phase
-    output: stdout
-    git:
-    - url: https://github.com/janhybs/bench-stat.git
-      commit: <arg.commit.hello-world> # checkout to this commit
-      branch: <arg.branch.hello-world> # under this branch's name
-      
-    shell: !sh sh/install.sh
+init-shell: !readfile sh/init.sh
 
-test:
-  - name: memory-cache-test
-    output: 'null'
+stages:
+  - stage: compile
+    enabled: true
+    git:
+      - url: https://github.com/janhybs/bench-stat.git
+        commit: <arg.commit.hello-world> # checkout to this commit
+        branch: <arg.branch.hello-world> # under this branch's name
+      
+    shell: !readfile sh/install.sh
+    cache: bench-stat
+
+  - stage: memory-cache-test
+    output: null
+    
     repeat:
       exactly: 1
-      no-less-thann: 8
+      no-less-than: 8
       
     parallel:
       cpus: 0.51
@@ -36,7 +38,7 @@ test:
             - id: 0
               name: memory-cache-test-all
             
-    shell: !sh sh/test.sh
+    shell: !readfile sh/test.sh
       
     collect:
       repo: bench-stat
@@ -44,9 +46,13 @@ test:
       module: cihpc.artifacts.modules.generic_module
       move-to: bench-stat/artifacts/<__project__.start.datetime>
       cut-prefix: null
-      save-to-db: true
+      
       extra:
         parallel:   15
         metric:     foobar      # additional property of the test you want to save
         test-id:    <test.id|i> # accessing current test
         test-name:  <test.name> # accessing current build matric data
+    
+  - stage: cleanup
+    shell: |
+      rm -vrf bench-stat/arts/*
