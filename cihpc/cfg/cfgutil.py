@@ -230,8 +230,18 @@ def configure_string(value, vars):
     return value
 
 
-def find_valid_configuration(*hints, file):
+def find_valid_configuration(*hints, file, raise_if_not_found=False):
     for hint in hints:
         if hint and os.path.isdir(hint) and os.path.isfile(os.path.join(hint, file)):
             return hint
+
+    if raise_if_not_found:
+        error_msg = [
+            'no valid configuration (file %s) found' % file,
+            'in any of the following paths'
+        ]
+        for i, hint in enumerate(hints):
+            error_msg += ['%d) %s' % (i, str(hint))]
+
+        logger.error('\n'.join(error_msg))
     return None

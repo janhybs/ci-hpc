@@ -79,3 +79,16 @@ class TempFile(object):
         os.chmod(self.path, 0o755)
 
         return False
+
+    @property
+    def content(self):
+        return ''.join(self.lines) if self.lines else ''
+
+
+class TempFile2(TempFile):
+    def __init__(self, prefix='cihpc-', suffix='.sh'):
+        from tempfile import NamedTemporaryFile
+
+        tmp_file = NamedTemporaryFile(delete=False, prefix=prefix, suffix=suffix)
+        tmp_file.close()
+        super(TempFile2, self).__init__(tmp_file.name)
