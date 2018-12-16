@@ -149,10 +149,11 @@ def load_config(path, replace=True, hostname_conditions=True, hostname=None):
 
 
 def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):
-    content = read_file(path)
+    content = yaml.dump(yaml_load(read_file(path)))
     iterable_keys = list()
     iterable_vals = list()
     rest = dict()
+
     for k, v in variables.items():
         if isinstance(v, list):
             iterable_keys.append(k)
