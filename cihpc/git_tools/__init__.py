@@ -1,27 +1,24 @@
 #!/bin/python3
 # author: Jan Hybs
+import datetime
+import logging
+import sys
+
+from cihpc.cfg.cfgutil import find_valid_configuration
+
+
+logger = logging.getLogger(__name__)
 
 import argparse
 import json
 import os
 import queue
 import subprocess
-import sys
 import threading
-import logging
-from cihpc.cfg.config import global_configuration
 
 from flask import Flask, request
 
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))))
-
-import cihpc.common.logging
-
-
-logger = logging.getLogger(__name__)
-
-from cihpc.git_tools.triggers.shell import ShellTrigger
+from cihpc.cfg.config import global_configuration
 from cihpc.common.processing.daemon import Daemon
 from cihpc.common.utils.git.webhooks.push_hook import push_webhook_from_dict
 from cihpc.common.utils.timer import Timer
@@ -29,6 +26,7 @@ from cihpc.git_tools.utils import (
     CommitBrowser,
     CommitPolicy,
     ArgConstructor,
+    WebhookTrigger,
 )
 
 
@@ -42,10 +40,14 @@ def parse_args():
                             By default the value is 0.0.0.0 meaning the server
                             will be reachable to anyone.
                             ''')
+    parser.add_argument('-c', '--config-dir', type=str, default=None, help='''R|
+                            Path to the directory, where webhook.yaml file is
+                            located. If no value is set default value will current dir,
+                            ''')
     parser.add_argument('-d', '--debug', default=False, action="store_true", help='''R|
                             Turns on the debug mode increasing verbosity.
                             ''')
-    parser.add_argument('-p', '--port', default=5001, type=int, help='''R|
+    parser.add_argument('-p', '--port', default=5005, type=int, help='''R|
                             The port of the webserver. Defaults to 5000.
                             ''')
     parser.add_argument('action', choices=['start', 'stop', 'restart', 'status', 'debug'], help='''R|
@@ -154,7 +156,7 @@ project is `foo`): \n
 </html>
     '''.strip()
 
-    def __init__(self, name, trigger, flask_opts=None, **kwargs):
+    def __init__(self, name, webhook_trigger, flask_opts=None, **kwargs):
         """
         Parameters
         ----------
@@ -165,7 +167,7 @@ project is `foo`): \n
         flask_opts: dict or None
             additional options for the flask server
 
-        trigger: cihpc.git_tools.triggers.AbstractWebhookTrigger
+        webhook_trigger: cihpc.git_tools.utils.WebhookTrigger
             instance with method 'process' accepting webhook payloads
 
         kwargs: **dict
@@ -177,7 +179,7 @@ project is `foo`): \n
             pid_file='/tmp/%s.pid' % name,
             **kwargs
         )
-        self.trigger = trigger
+        self.webhook_trigger = webhook_trigger
 
         self.flask_opts = dict(
             host='0.0.0.0',
@@ -219,13 +221,14 @@ project is `foo`): \n
 
         with Timer(payload.after) as timer:
             try:
-                self.trigger.process(payload)
-                returncode = self.trigger.wait()
+                returncode = self.webhook_trigger.process(payload)
+                if returncode != 0:
+                    raise Exception('script ended with non zero status')
 
             except Exception as e:
                 # no such binary
                 returncode = -1
-                logger.exception('Error while starting the process %s' % self.trigger)
+                logger.exception('Error while starting the process %s' % self.webhook_trigger)
 
         logger.info('%s took %s [%d]' % (payload.after, timer.pretty_duration, returncode))
 
@@ -233,6 +236,7 @@ project is `foo`): \n
 
     def run(self):
         import logging
+
         logger = logging.getLogger(__name__)
 
         logger.info('starting worker thread')
@@ -267,7 +271,7 @@ project is `foo`): \n
                     payload.head_commit.author.username,
                 )
                 logger.info(msg)
-                return 'OK\n%s' % msg
+                return 'OK\n%s\n%s' % (msg, str(datetime.datetime.now()))
             except Exception as e:
                 logger.exception('Payload parsing error')
                 return 'There was an error during payload parse %s' % str(e.__class__), 404
@@ -285,10 +289,30 @@ project is `foo`): \n
 
 def main():
     args = parse_args()
-    trigger = ShellTrigger()
+    project_dir = find_valid_configuration(
+        args.config_dir,
+        global_configuration.home,
+        file='webhook.yaml',
+        raise_if_not_found=True
+    )
+
+    if not project_dir:
+        logger.error('termination execution')
+        sys.exit(1)
+    else:
+        logger.debug('determined config dir: %s' % project_dir)
+        global_configuration.project_cfg_dir = project_dir
+
+    logger.info('running webhook server for the configuration \n'
+                '  %s' % project_dir)
+
+    webhook_trigger = WebhookTrigger.from_file(os.path.join(project_dir, 'webhook.yaml'))
+    print(webhook_trigger.branches)
+    print(webhook_trigger.actions)
+
     ws = WebhookService(
         'webhook-service',
-        trigger,
+        webhook_trigger,
         working_directory=os.getcwd(),
         flask_opts=dict(
             debug=args.debug,

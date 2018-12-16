@@ -3,11 +3,17 @@
 import enum
 import itertools
 import logging
-
-from cihpc.common.utils.git import Commit
-
+import subprocess as sp
+import re
 
 logger = logging.getLogger(__name__)
+
+from cihpc.cfg import cfgutil
+from cihpc.common.utils.git import Commit
+from cihpc.common.utils.files.temp_file import TempFile2
+import cihpc.common.utils.strings as strings
+
+
 
 
 class CommitPolicy(enum.Enum):
@@ -85,3 +91,69 @@ class ArgConstructor(object):
 
     def construct_arguments(self, commit_value):
         return self.fixed_args.copy() + self.commit_lambda(commit_value)
+
+
+class WebhookTrigger(object):
+    _default_action = '\n'.join([
+        'echo "received arguments from the webhook"',
+        'echo "$@"'
+    ])
+
+    def __init__(self, kwargs):
+        branches = kwargs.get('branches') or '*'
+
+        if isinstance(branches, str):
+            self.branches = [branches]
+        elif isinstance(branches, list):
+            self.branches = branches
+        else:
+            raise ValueError('expected type list or str of branches')
+
+        actions = kwargs.get('action') or self._default_action
+        if isinstance(actions, str):
+            self.actions = [actions]
+        elif isinstance(branches, list):
+            self.actions = actions
+        else:
+            raise ValueError('expected type list or str of actions')
+
+    def process(self, payload):
+        """
+        Parameters
+        ----------
+        payload: cihpc.common.utils.git.webhooks.push_hook.PushWebhook
+            payload to process
+        """
+        project = payload.repository.name
+        commit = payload.after
+        branch = payload.ref
+        url = payload.repository.html_url
+        rest_args = [project, commit, payload.ref, branch, url]
+
+        match = False
+        for b in self.branches:
+            b = b.replace('*', '.*')
+            match |= bool(re.match(b, branch))
+            match |= bool(re.match(b, strings.startswith_strip(branch, 'refs/heads/')))
+
+        if not match:
+            return None
+
+        for action in self.actions:
+            with TempFile2() as tmp_file:
+                tmp_file.write_shebang()
+                tmp_file.write(action)
+
+            process = sp.Popen(['bash', tmp_file.path] + rest_args)
+            returncode = process.wait()
+            tmp_file.remove()
+
+            if returncode != 0:
+                logger.error('error while executing trigger script %s: \n%s' % (tmp_file.path, tmp_file.content))
+                return returncode
+
+        return 0
+
+    @classmethod
+    def from_file(cls, path):
+        return cls(cfgutil.yaml_load(cfgutil.read_file(path, '{}')))
