@@ -70,7 +70,15 @@ class ProcessProject(object):
             default_status = pool.get_statuses(LogStatusFormat.ONELINE)
             progress_line = progress.Line(total=len(threads), desc='%s: %s' % (stage.ord_name, default_status), tty=False)
 
-            def update_status(worker: ProcessStage):
+            def update_status_enter(worker: ProcessStage):
+                progress_line.desc = '%02d-%s: %s ' % (
+                    stage.index,
+                    worker.debug_name if worker else '?',
+                    pool.get_statuses(LogStatusFormat.ONELINE)
+                )
+                progress_line.update(0)
+
+            def update_status_exit(worker: ProcessStage):
                 progress_line.desc = '%02d-%s: %s ' % (
                     stage.index,
                     worker.debug_name if worker else '?',
@@ -78,7 +86,8 @@ class ProcessProject(object):
                 )
                 progress_line.update()
 
-            pool.thread_event.on_exit.on(update_status)
+            pool.thread_event.on_exit.on(update_status_exit)
+            pool.thread_event.on_enter.on(update_status_enter)
 
             # run in serial or parallel
             progress_line.start()
