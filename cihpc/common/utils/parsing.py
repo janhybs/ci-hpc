@@ -54,7 +54,7 @@ def defaultdict_type(items, default_value='', default_name='', separator=':'):
 def convert_project_arguments(namespace, excludes=None):
     args = vars(namespace)
     result = list()
-    base_args = ['project', 'git-url', 'config-dir', 'pbs', 'timeout', 'check-interval', 'log-path']
+    base_args = ['project', 'git-url', 'config-dir', 'pbs', 'timeout', 'check-interval', 'log-path', 'execute']
     bool_args = ['verbosity', 'tty']
     extra_args = ['git-commit', 'git-branch']
     action_args = ['action']

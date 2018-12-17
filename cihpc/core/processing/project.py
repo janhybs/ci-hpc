@@ -8,7 +8,6 @@ import os
 import sys
 import threading
 
-from tqdm import tqdm
 
 from cihpc.common.processing.pool import LogStatusFormat, WorkerPool, SimpleWorker
 from cihpc.common.utils import strings
@@ -16,6 +15,7 @@ from cihpc.common.utils.parallels import extract_cpus_from_worker
 from cihpc.common.utils.timer import Timer
 from cihpc.core.db import CIHPCMongo
 from cihpc.core.processing.stage import ProcessStage
+import cihpc.common.utils.progress as progress
 
 
 logger = logging.getLogger(__name__)
@@ -68,18 +68,18 @@ class ProcessProject(object):
                 logger.info('%d job(s) will be now executed in serial' % len(threads))
 
             default_status = pool.get_statuses(LogStatusFormat.ONELINE)
-            cqtdm = tqdm(file=sys.stdout, total=len(threads), dynamic_ncols=True,
-                         desc='%s: %s' % (stage.ord_name, default_status))
+            progress_line = progress.Line(total=len(threads), desc='%s: %s' % (stage.ord_name, default_status))
 
             def update_status(worker: SimpleWorker):
-                cqtdm.desc = '%s: %s' % (stage.ord_name, pool.get_statuses(LogStatusFormat.ONELINE))
-                cqtdm.update()
+                progress_line.desc = '%s: %s' % (stage.ord_name, pool.get_statuses(LogStatusFormat.ONELINE))
+                progress_line.update()
 
             pool.thread_event.on_exit.on(update_status)
 
             # run in serial or parallel
+            progress_line.start()
             pool.start()
-            cqtdm.close()
+            progress_line.close()
 
         timers_total = sum([sum(x.collect_result.total) for x in threads if x.collect_result])
         if timers_total:

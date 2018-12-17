@@ -100,6 +100,12 @@ def parse_args(cmd_args=None):
         If set, will generate bash file where it calls itself 
         once again, but without --execute flag.
     ''')
+    parser.add_argument(
+        '--execute',
+        default=None, help='''R|
+        Name of the script located in a config dir, which will be used 
+        for in a qsub(bash) command
+    ''')
 
     parser.add_argument(
         '--tty',
@@ -321,7 +327,7 @@ def main(cmd_args=None):
     # execute on demand using pbs/local or other system
     if args.pbs:
         script_content = SeparateExecutor.get_script(
-            args, os.path.join(project_dir, 'execute.sh')
+            args, os.path.join(project_dir, args.execute or 'execute.sh')
         )
 
         executor = ExecutionFactor.create(
