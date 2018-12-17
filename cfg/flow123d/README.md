@@ -14,10 +14,6 @@ of the `ci-hpc` framework.
     a `yaml` file containing global variables, which will be used in
     in a `config.yaml` file.
 
- - **`execute.sh`** *
- 
-    a `shell` template, which specifies how should be `ci-hpc` processing started when within `PBS` context.
- 
  - **`www.yaml`**
  
     a `yaml` file which contains configuration for the visualization

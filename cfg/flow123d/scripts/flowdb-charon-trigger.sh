@@ -14,16 +14,17 @@ REMOTE=/storage/liberec3-tul/home/jan-hybs/projects/ci-hpc
 TMPDIR=/storage/liberec3-tul/home/jan-hybs/projects/ci-hpc-projects/.tmp
 CLONEDIR=$TMPDIR/$REPO
 CFGDIR=$CLONEDIR/config/cihpc
+CFGDIR=$REMOTE/cfg/flow123d
+
+SERVER=jan-hybs@charon.metacentrum.cz
 
 env
-
+set -x
 # renew kerberos tickets
 kinit -k -t /root/jh.keytab jan-hybs@META
 
-# clone the repo
-echo ssh -t jan-hybs@charon.metacentrum.cz "rm -rf $CLONEDIR ; git clone $GITURL $CLONEDIR"
-ssh -t jan-hybs@charon.metacentrum.cz "rm -rf $CLONEDIR ; git clone $GITURL $CLONEDIR"
+# clone the repo and points it to a correct commit under the correct name
+ssh -t $SERVER "rm -rf $CLONEDIR ; git clone $GITURL $CLONEDIR ; cd $CLONEDIR ; git checkout $COMMIT ; git branch -D $BRANCH || true ; git checkout -b $BRANCH $COMMIT"
 
 # call ci-hpc
-echo ssh -t jan-hybs@charon.metacentrum.cz CIHPC_SECRET=$REMOTE/secret.yaml "cd $REMOTE ; $REMOTE_PYTHON bin/cihpc -c $CFGDIR --commit $COMMIT --branch $BRANCH"
-ssh -t jan-hybs@charon.metacentrum.cz CIHPC_SECRET=$REMOTE/secret.yaml "cd $REMOTE ; $REMOTE_PYTHON bin/cihpc -c $CFGDIR --commit $COMMIT --branch $BRANCH"
+ssh -t $SERVER CIHPC_SECRET=$REMOTE/cfg/secret.yaml "cd $REMOTE ; $REMOTE_PYTHON bin/cihpc --pbs=pbspro --execute=qsub/charon-excl-2h.sh -c $CFGDIR --commit $COMMIT --branch $BRANCH"

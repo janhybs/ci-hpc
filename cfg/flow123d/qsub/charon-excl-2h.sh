@@ -1,9 +1,9 @@
 #!/bin/bash --login
 #
-#PBS -l select=1:ncpus=8:mem=16gb
-#PBS -l walltime=12:00:00
+#PBS -l select=1:ncpus=8:mem=48gb
+#PBS -l walltime=01:59:59
 #PBS -j oe
-#PBS -q charon
+#PBS -q charon_2h
 #PBS -l place=excl
 
 
