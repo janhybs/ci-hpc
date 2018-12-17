@@ -12,7 +12,7 @@
 
 
 # hard path is recommended since script location is elsewhere when in PBS
-ROOT=/storage/praha1/home/jan-hybs/projects/ci-hpc
+ROOT=/storage/liberec3-tul/home/jan-hybs/projects/ci-hpc
 NOW=$(date "+%Y-%m-%d_%H-%M-%S")
 cd $ROOT
 
