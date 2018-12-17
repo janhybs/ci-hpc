@@ -27,4 +27,4 @@ kinit -k -t /root/jh.keytab jan-hybs@META
 ssh -t $SERVER "rm -rf $CLONEDIR ; git clone $GITURL $CLONEDIR ; cd $CLONEDIR ; git checkout $COMMIT ; git branch -D $BRANCH || true ; git checkout -b $BRANCH $COMMIT"
 
 # call ci-hpc
-ssh -t $SERVER CIHPC_SECRET=$REMOTE/cfg/secret.yaml "cd $REMOTE ; $REMOTE_PYTHON bin/cihpc --pbs=pbspro --execute=qsub/charon-excl-2h.sh -c $CFGDIR --commit $COMMIT --branch $BRANCH"
+ssh -t "cd $REMOTE ; $REMOTE_PYTHON bin/cihpc --secret-yaml=$REMOTE/cfg/secret.yaml --pbs=pbspro --execute=qsub/charon-excl-2h.sh -c $CFGDIR --commit $COMMIT --branch $BRANCH"
