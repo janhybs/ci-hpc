@@ -12,6 +12,7 @@ from cihpc.cfg import cfgutil
 from cihpc.cfg.config import global_configuration
 from cihpc.common.utils.parsing import convert_project_arguments
 from cihpc.common.utils.timer import DynamicSleep
+import cihpc.common.utils.strings as strings
 
 
 logger = logging.getLogger(__name__)
@@ -120,7 +121,9 @@ class AbstractExecutor(object):
             suffix='.pbs',
             delete=False
         )
-        self.temp_file.write(script_content)
+
+        self.script_content = script_content
+        self.temp_file.write(self.script_content)
         self.temp_file.close()
         self.id = None
         logger.info('created temp file for the execution %s' % self.temp_file.name)
@@ -177,6 +180,12 @@ class AbstractExecutor(object):
             - None if reached the timeout but kill was set to False
         """
         raise NotImplemented()
+
+    def __repr__(self):
+        return (
+            '{self.__class__.__name__}{self.script_path}:\n'
+            '{content}'
+        ).format(self=self, content=strings.pad_lines(self.script_content, 4))
 
 
 class LocalExecutor(AbstractExecutor):
@@ -323,10 +332,11 @@ class ExecutionFactor(object):
         AbstractExecutor
             an executor instance
         """
-        if str(pbs).lower() in ('pbs', 'pbspro'):
+        pbs_mode = str(pbs).lower()
+        if pbs_mode in ('pbs', 'pbspro'):
             return PBSProExecutor(script_content)
 
-        if str(pbs).lower() in ('local', 'none', 'unix'):
+        if pbs_mode in ('local', 'none', 'unix'):
             return LocalExecutor(script_content)
 
-        return None
+        raise ValueError('unsupported pbs mode %s' % pbs_mode)

@@ -328,6 +328,7 @@ def main(cmd_args=None):
             args.pbs,
             script_content
         )
+        logger.debug(executor)
         executor.submit()
 
         if args.timeout:
