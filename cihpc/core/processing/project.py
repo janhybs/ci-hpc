@@ -9,7 +9,7 @@ import sys
 import threading
 
 
-from cihpc.common.processing.pool import LogStatusFormat, WorkerPool, SimpleWorker
+from cihpc.common.processing.pool import LogStatusFormat, WorkerPool
 from cihpc.common.utils import strings
 from cihpc.common.utils.parallels import extract_cpus_from_worker
 from cihpc.common.utils.timer import Timer
@@ -68,10 +68,14 @@ class ProcessProject(object):
                 logger.info('%d job(s) will be now executed in serial' % len(threads))
 
             default_status = pool.get_statuses(LogStatusFormat.ONELINE)
-            progress_line = progress.Line(total=len(threads), desc='%s: %s' % (stage.ord_name, default_status))
+            progress_line = progress.Line(total=len(threads), desc='%s: %s' % (stage.ord_name, default_status), tty=False)
 
-            def update_status(worker: SimpleWorker):
-                progress_line.desc = '%s: %s' % (stage.ord_name, pool.get_statuses(LogStatusFormat.ONELINE))
+            def update_status(worker: ProcessStage):
+                progress_line.desc = '%02d-%s: %s ' % (
+                    stage.index,
+                    worker.debug_name if worker else '?',
+                    pool.get_statuses(LogStatusFormat.ONELINE)
+                )
                 progress_line.update()
 
             pool.thread_event.on_exit.on(update_status)

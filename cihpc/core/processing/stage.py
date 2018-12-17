@@ -72,7 +72,7 @@ class ProcessStage(SimpleWorker):
                 for i, v in enumerate(items):
                     vars = merge_dict(variables, v)
                     worker = ProcessStage(project, stage, vars)
-                    worker.name_prefix = '%02d-%02d-' % (i + 1, total)
+                    worker.name_prefix = '%02d/%02d-' % (i + 1, total)
                     result.append(worker)
             else:
                 worker = ProcessStage(project, stage, variables)
@@ -115,6 +115,17 @@ class ProcessStage(SimpleWorker):
     @property
     def ord_name(self):
         return self.name_prefix + self.name
+
+    @property
+    def debug_name(self):
+        props = ['benchmark', 'mesh', 'cpu']
+        rest = ','.join(['%s=%s' % (x, str(self.variables.get(x, '?'))) for x in props if x in self.variables])
+        if rest:
+            rest = ', ' + rest
+        return '{self.name} {self.cpus}x({self.status.name}{rest})'.format(
+            self=self,
+            rest=rest
+        )
 
     @property
     def pretty_name(self):

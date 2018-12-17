@@ -37,6 +37,7 @@ class Line(object):
         self.update(0)
 
     def stop(self):
+        self.update(0)
         if self.tty:
             self.file.write('\n')
             self.file.flush()
