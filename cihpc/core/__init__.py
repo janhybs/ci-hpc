@@ -210,7 +210,19 @@ def parse_args(cmd_args=None):
     return args
 
 
-def _git_foreach(args, project_name):
+def _git_foreach(args, project):
+    """
+
+    Parameters
+    ----------
+    args: Namespace
+
+    project: cihpc.core.processing.project.ProcessProject
+
+    Returns
+    -------
+
+    """
     import logging
 
     from cihpc.cfg.config import global_configuration
@@ -218,6 +230,7 @@ def _git_foreach(args, project_name):
     from cihpc.git_tools import CommitHistoryExecutor
     from cihpc.git_tools.utils import ArgConstructor, CommitBrowser
     from cihpc.common.utils.parsing import convert_project_arguments
+    from cihpc.core.processing.step_git import configure_git
 
     logger = logging.getLogger(__name__)
 
@@ -235,18 +248,19 @@ def _git_foreach(args, project_name):
         fixed_args = global_configuration.exec_args \
                      + convert_project_arguments(args, excludes=['action', 'config-dir'])
 
-        fixed_args += ['-c', global_configuration.project_cfg_dir]
+        fixed_args += ['--config-dir', global_configuration.project_cfg_dir]
+        fixed_args += ['--secret-yaml', global_configuration.cfg_secret_path]
         fixed_args += [':'.join([ArgAction.Values.RUN.value] + args.action.sections)]
 
         args_constructor = ArgConstructor(fixed_args, commit_field)
         commit_browser = CommitBrowser(
-            Git(global_configuration.project_git),
+            Git(configure_git(global_configuration.project_git, project.definition.global_args)),
             limit=args.watch_commit_limit,
             commit_policy=args.watch_commit_policy,
         )
         logger.info('analyzing last %d commits, commit pick policy: %s' % (
             commit_browser.limit, commit_browser.commit_policy))
-        service = CommitHistoryExecutor(project_name, args_constructor, commit_browser)
+        service = CommitHistoryExecutor(project.definition.name, args_constructor, commit_browser)
 
         service.run()
 
@@ -324,6 +338,20 @@ def main(cmd_args=None):
     # default value for this dictionary is string value ''
     args.git_commit = defaultdict_type(args.git_commit, '', project_name)
 
+    # this file contains only variables which can be used in config.yaml
+    variables_path = os.path.join(project_dir, 'variables.yaml')
+
+    # update cpu count
+    variables = cfgutil.load_config(variables_path)
+    # variables['cpu-count'] = args.cpu_count
+
+    global_configuration.project_name = project_name
+
+    if args.action.enum is ArgAction.Values.FOREACH:
+        project = _init_first_project(args, config_path, variables, project_name, project_dir)
+        _git_foreach(args, project)
+        sys.exit(0)
+
     # execute on demand using pbs/local or other system
     if args.pbs:
         script_content = SeparateExecutor.get_script(
@@ -344,15 +372,6 @@ def main(cmd_args=None):
             else:
                 sys.exit(1)
         sys.exit(0)
-
-    # this file contains only variables which can be used in config.yaml
-    variables_path = os.path.join(project_dir, 'variables.yaml')
-
-    # update cpu count
-    variables = cfgutil.load_config(variables_path)
-    # variables['cpu-count'] = args.cpu_count
-
-    global_configuration.project_name = project_name
 
     # -----------------------------------------------------------------
 
@@ -379,11 +398,32 @@ def main(cmd_args=None):
         project = ProcessProject(project_definition)
         logger.info('processing project %s, action %s', project_name, args.action)
 
-        if args.action.enum is ArgAction.Values.FOREACH:
-            _git_foreach(args, project_name)
-            sys.exit(0)
-
         if args.action.enum is ArgAction.Values.RUN:
             for stage in project_definition.stages:
                 if stage and args.action.contains_stage(stage):
                     project.process_stage(stage)
+
+
+def _init_first_project(args, config_path, variables, project_name, project_dir):
+    from cihpc.cfg import cfgutil
+    from cihpc.core.processing.project import ProcessProject
+    from cihpc.core.structures.project import Project
+
+    project_configs = cfgutil.configure_file(config_path, variables)
+    for project_config in project_configs:
+        # specify some useful global arguments which will be available in the config file
+        global_args_extra = {
+            'project-name': project_name,
+            'project-dir' : project_dir,
+            'arg'         : dict(
+                branch=collections.defaultdict(lambda: 'master', **dict(args.git_branch)),
+                commit=collections.defaultdict(lambda: '', **dict(args.git_commit)),
+            )
+        }
+
+        # parse config
+        project_definition = Project(project_name, **project_config)
+        project_definition.update_global_args(global_args_extra)
+
+        # prepare process
+        return ProcessProject(project_definition)

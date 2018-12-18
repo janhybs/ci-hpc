@@ -109,7 +109,7 @@ class SeparateExecutor(object):
         
         cmd_args += ['--config-dir', global_configuration.project_cfg_dir]
         cmd_args += ['--secret-yaml', global_configuration.cfg_secret_path]
-        cmd_args += [':'.join([ArgAction.Values.RUN.value] + args.action.sections)]
+        cmd_args += [':'.join([args.action.enum.value] + args.action.sections)]
         return ' '.join([str(x) for x in cmd_args])
 
 

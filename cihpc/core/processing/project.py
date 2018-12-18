@@ -5,7 +5,6 @@
 import itertools
 import logging
 import os
-import sys
 import threading
 
 
@@ -28,6 +27,7 @@ class ProcessProject(object):
 
     def __init__(self, project):
         self.project = project
+        self.definition = project
         self._mongo = CIHPCMongo.get(self.project.name) if self.project.use_database else None
         os.makedirs(self.project.workdir, exist_ok=True)
         os.chdir(self.project.workdir)
