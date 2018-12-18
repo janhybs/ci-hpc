@@ -109,3 +109,8 @@ class ProjectStepRepeat(object):
 
     def is_complex(self):
         return self.dynamic_value is not None
+
+    def __repr__(self):
+        return 'Repeat(fixed={self.fixed_value}, dynamic={self.dynamic_value})'.format(
+            self=self
+        )

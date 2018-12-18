@@ -4,29 +4,29 @@
 import logging
 import itertools
 
+from cihpc.core.structures.a_project import ComplexClass
+
+
 logger = logging.getLogger(__name__)
 
 
-class ProjectStepVariables(object):
+class ProjectStepVariables(ComplexClass):
     def __init__(self, kwargs):
-        if not kwargs:
-            self._enabled = False
+        super(ProjectStepVariables, self).__init__(kwargs)
+
+        if not self:
             values = list()
 
         # single matrix or table
         elif isinstance(kwargs, dict):
-            self._enabled = True
             values = [kwargs]
+
         elif isinstance(kwargs, list):
-            self._enabled = True
             values = kwargs
         else:
             raise ValueError('kwargs must be list or dict')
 
         self.values = values.copy()
-
-    def __bool__(self):
-        return self._enabled
 
     @staticmethod
     def _expand_variables(section):

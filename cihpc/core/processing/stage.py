@@ -54,6 +54,8 @@ class ProcessStage(SimpleWorker):
             return []
 
         variables = variables or project.global_args
+        variables['__stage__'] = stage.stage_args
+        
         if stage.smart_repeat.is_complex() and global_configuration.project_git:
             from cihpc.artifacts.modules import CIHPCReportGit
 

@@ -10,4 +10,8 @@ class ComplexClass(object):
         return self._enabled
 
     def __repr__(self):
-        return '{self.__class__.__name__}{on}'.format(self=self, on='+' if self else '-')
+        return '{self._enable_str}{self.__class__.__name__}'.format(self=self)
+
+    @property
+    def _enable_str(self):
+        return '[T]' if self else '[F]'

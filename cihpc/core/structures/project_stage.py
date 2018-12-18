@@ -104,3 +104,15 @@ class ProjectStage(ComplexClass):
     @property
     def repeat(self):
         return self.smart_repeat.value
+
+    @property
+    def stage_args(self):
+        return dict(
+            name=self.name,
+            desc=self.description,
+            repeat=self.smart_repeat,
+            parallel=self.parallel,
+            container=self.container,
+            collect=self.collect,
+            variables=self.variables,
+        )

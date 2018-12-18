@@ -20,8 +20,7 @@ class ProjectStepContainer(ComplexClass):
             lines to load container module and to exec singularity/docker
         """
         super(ProjectStepContainer, self).__init__(kwargs)
-        if self:
-            self.exec = self._parse_exec_value(kwargs)
+        self.exec = self._parse_exec_value(kwargs) if self else None
 
     @staticmethod
     def _parse_exec_value(value):
@@ -51,3 +50,8 @@ class ProjectStepContainer(ComplexClass):
 
         # we assume the docker image name was given
         return 'docker run --rm -v $(pwd):$(pwd) -w $(pwd) %s %%s' % value.strip()
+
+    def __repr__(self):
+        return '{self._enable_str}Container({self.exec})'.format(
+            self=self
+        )

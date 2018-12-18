@@ -39,6 +39,11 @@ class Counter(object):
             fmt = attr[len(prefix):]
             return ('{:%s}' % fmt).format(self.next)
 
+    def __repr__(self):
+        return 'CNT({self.value})'.format(
+            self=self
+        )
+
 
 class EnvGetter(object):
 
@@ -47,6 +52,9 @@ class EnvGetter(object):
 
     def __getattr__(self, attr):
         return os.environ.get(attr, None)
+
+    def __repr__(self):
+        return '<ENV>'
 
 
 class Project(object):

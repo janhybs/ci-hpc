@@ -26,3 +26,8 @@ class ProjectStepParallel(ComplexClass):
         self.cpus = determine_cpus(
             kwargs.get('cpus', 1)
         )
+
+    def __repr__(self):
+        return 'Parallel(cpus={self.cpus}, prop={self.prop})'.format(
+            self=self
+        )

@@ -227,7 +227,13 @@ def configure_string(value, vars):
         value = str(value)
         for key, dtype in matches:
             orig = '<%s%s>' % (key, dtype)
-            value = _configure_object_dict.get(dtype[1:], str)(value.replace(orig, str(_get_property(vars, key))))
+            func = _configure_object_dict.get(dtype[1:], str)
+            val = value.replace(orig, str(_get_property(vars, key)))
+
+            try:
+                value = func(val)
+            except:
+                value = func()
     return value
 
 
