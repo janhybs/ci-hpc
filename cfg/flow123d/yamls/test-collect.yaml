@@ -7,7 +7,8 @@ module:   cihpc.artifacts.modules.flow123d_profiler_module
 
 # extra fields, which will be added to the report
 extra:
-  cpu-value:  <cpu-value>
+  stage:      <__stage__.name>
+  cpu-value:  <__stage__.cpus|i>
   test-name:  <benchmark>
   mesh:       <mesh>
   weak:       <weak|i>

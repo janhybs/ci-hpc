@@ -4,43 +4,50 @@ init-shell: !readfile scripts/init-shell.sh
 
 
 stages:
-  # -----------------------------------------------------------
-  # COMPILATION -----------------------------------------------
-  # -----------------------------------------------------------
+  # ----------------------------------------------------------------------------
+  # ------------------------------------------------------------ COMPILATION ---
+  # this stage compiles flow123d (or uses cached build)
+  # ----------------------------------------------------------------------------
   - stage: compile
     shell: !readfile scripts/install.sh
     git:   !readyaml yamls/git-repository.yaml
     cache: !readyaml yamls/cache-build.yaml
 
 
-  # -----------------------------------------------------------
-  # MESH DOWNLOAD ---------------------------------------------
-  # -----------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # ---------------------------------------------------------- MESH DOWNLOAD ---
   # to specify what files will be downloaded from astra.cxi.tul.cz,
   # see configuration yaml file:
   #     user/mesh-download-list.yaml
+  # ----------------------------------------------------------------------------
   - stage: download
     shell: !readfile scripts/download-mesh.sh
     # which files will be downloaded
     variables: !readyaml user/mesh-download-list.yaml
 
 
-  # -----------------------------------------------------------
-  # TESTING ---------------------------------------------------
-  # -----------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # -------------------------------------------------------------- TEST-WEAK ---
+  # test weak contains all the tests but is testing
+  # weak scaling only, one repetition with takes about
+  #   1200 seconds (if 8 MPI processes are runinng at once at most)
+  # 
   # to specify what benchmarks will be tested,
   # see the configuration yaml file:
-  #     user/benchmark-list.yaml
-  - stage: test
+  #     user/benchmark-list-test-weak.yaml
+  # ----------------------------------------------------------------------------
+  - stage: test-weak
     shell: !readfile scripts/run-test.sh
     # which benchmark will be tested
-    variables: !readyaml user/benchmark-list.yaml
+    variables: !readyaml user/benchmark-list-test-weak.yaml
     # how we want to collect the results
     collect: !readyaml yamls/test-collect.yaml
 
     # how many repetitions we want for each benchmark
     repeat:
-      exactly: 1          # we want to have 15 repetitions by default
+      exactly: 5          # we want to have 5 repetitions by default
       # no-less-than: 1   # but with access to the db, we want to have 15 in total
 
     # how many cores we want to use on a computing node
@@ -49,8 +56,33 @@ stages:
       prop: <cpu>         # by default each 'worker' will use <cpu> of cpus
 
 
-  # -----------------------------------------------------------
-  # CLEANUP ---------------------------------------------------
-  # -----------------------------------------------------------
+
+  # ----------------------------------------------------------------------------
+  # -------------------------------------------------------------- TEST-FULL ---
+  # test full contains all the tests and includes weak and strong scaling
+  # one repetition with takes about
+  #   4956 seconds (if 4 MPI processes are runinng at once at most)
+  #   2048 seconds (if 8 MPI processes are runinng at once at most)
+  # 
+  # to specify what benchmarks will be tested,
+  # see the configuration yaml file:
+  #     user/benchmark-list-test-full.yaml
+  # ----------------------------------------------------------------------------
+  - stage: test-full
+    enabled: false
+    shell: !readfile scripts/run-test.sh
+    variables: !readyaml user/benchmark-list-test-full.yaml
+    collect: !readyaml yamls/test-collect.yaml
+    repeat: 1
+    parallel:
+      cpus: <cpu-value>   # we want to use 8 cores at max
+      prop: <cpu>         # by default each 'worker' will use <cpu> of cpus
+  
+  
+  
+  # ----------------------------------------------------------------------------
+  # ---------------------------------------------------------------- CLEANUP ---
+  # this stage removes old profilers
+  # ----------------------------------------------------------------------------
   - stage: cleanup
     shell: !readfile scripts/clean-files.sh
