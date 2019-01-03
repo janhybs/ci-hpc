@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 _configure_object_regex = re.compile('<([a-zA-Z0-9_$.-]+)(\|[a-zA-Z_]+)?>')
 _configure_object_dict = dict(s=str, i=int, f=float, b=bool)
+_no_such_value = object()
 
 
 class Config(object):
@@ -204,7 +205,7 @@ def configure_object(obj, vars):
         return configure_string(obj, vars)
 
 
-def _get_property(obj, val, default=None):
+def _get_property(obj, val, default=_no_such_value):
     """
     :type val: str
     :type obj: dict
@@ -217,6 +218,7 @@ def _get_property(obj, val, default=None):
             else:
                 root = getattr(root, k)
         except:
+            logging.debug('could not find propery %s on %s' % (str(val), str(obj)))
             return default
     return root
 
@@ -230,10 +232,14 @@ def configure_string(value, vars):
             func = _configure_object_dict.get(dtype[1:], str)
             val = value.replace(orig, str(_get_property(vars, key)))
 
-            try:
-                value = func(val)
-            except:
+            # if no such value exists, we return default class instanace such as int() i.e. 0 or float() i.e. 0.0
+            if val is _no_such_value:
                 value = func()
+            else:
+                try:
+                    value = func(val)
+                except:
+                    value = func()
     return value
 
 

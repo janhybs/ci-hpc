@@ -5,7 +5,7 @@
 import os
 import copy
 import time
-import datetime
+import datetime as dt
 import cihpc.common.utils.strings as strings
 
 from cihpc.cfg.cfgutil import configure_string
@@ -57,6 +57,23 @@ class EnvGetter(object):
         return '<ENV>'
 
 
+class DatePoint(object):
+
+    def __init__(self, datetime=None, timestamp=None, random=None):
+        self.datetime = datetime or dt.datetime.now().strftime('%Y_%m_%d-%H_%M_%S')
+        self.timestamp = timestamp or int(time.time())
+        self.random = random or strings.generate_random_key(6)
+
+    def __getattr__(self, attr):
+        return self.__dict__.get(attr)
+
+    def __deepcopy__(self, memo):
+        return DatePoint(self.datetime, self.timestamp, self.random)
+
+    def __repr__(self):
+        return '<DatePoint>'
+
+
 class Project(object):
     """
     Main class representing single project in a yaml configuration file
@@ -79,14 +96,8 @@ class Project(object):
         self._os = EnvGetter()
         self._global_args = dict(
             __project__=dict(
-                start=dict(
-                    datetime=datetime.datetime.now().strftime('%Y_%m_%d-%H_%M_%S'),
-                    timestamp=int(time.time()),
-                    random=strings.generate_random_key(6),
-                ),
-                current=dict(
-
-                ),
+                start=DatePoint(),
+                current=DatePoint(),
                 counter=self._counter,
             ),
             os=self._os,
@@ -124,11 +135,7 @@ class Project(object):
     def global_args(self):
         cp = copy.deepcopy(self._global_args)
         cp['__project__']['counter'] = self._counter  # restore counter
-        cp['__project__']['current'] = dict(
-            datetime=datetime.datetime.now().strftime('%Y_%m_%d-%H_%M_%S'),
-            timestamp=int(time.time()),
-            random=strings.generate_random_key(6),
-        )
+        cp['__project__']['current'] = DatePoint()
         return cp
 
     @property

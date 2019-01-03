@@ -178,6 +178,12 @@ def parse_args(cmd_args=None):
         'further specify log level and log location.'
     )
     log_group_parser.add_argument(
+        '-d', '--debug',
+        action='store_true',
+        help='''R|
+        If set, will set log level to debug
+    ''')
+    log_group_parser.add_argument(
         '--log-path',
         type=str,
         default=None,
@@ -207,6 +213,8 @@ def parse_args(cmd_args=None):
     # convert some fields
     args.action = ArgAction(args.action)
     args.log_level = getattr(logging, args.log_level.upper())
+    if args.debug:
+        args.log_level = logging.DEBUG
     return args
 
 
