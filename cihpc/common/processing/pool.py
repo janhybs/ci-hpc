@@ -52,6 +52,7 @@ class SimpleWorker(threading.Thread):
         self.semaphore = None  # type: ComplexSemaphore
         self.thread_event = None  # type: EnterExitEvent
         self.result = None  # type: ProcessStepResult
+        self.lock_event = None  # type: threading.Event
         self._status = None
         self.status = WorkerStatus.CREATED  # random.choice(list(WorkerStatus))
         self.timer = Timer(self.name)
@@ -81,6 +82,8 @@ class SimpleWorker(threading.Thread):
 
         self.semaphore.release(value=self.cpus)
         self.status = WorkerStatus.EXITING
+        print('setting')
+        self.lock_event.set()
 
     def __repr__(self):
         return '{self.name}({self.cpus}x, [{self.status}])'.format(self=self)
@@ -113,6 +116,7 @@ class WorkerPool(object):
     def __init__(self, cpu_count, threads):
         self.processes = cpu_count or multiprocessing.cpu_count()
         self.semaphore = ComplexSemaphore(self.processes)
+        self.lock_event = threading.Event()
         self.thread_event = EnterExitEvent('thread')
         self.threads = list()
 
@@ -123,6 +127,7 @@ class WorkerPool(object):
         for worker in threads:
             worker.semaphore = self.semaphore
             worker.thread_event = self.thread_event
+            worker.lock_event = self.lock_event
             self.threads.append(worker)
 
     def update_cpu_values(self, target):
@@ -152,10 +157,20 @@ class WorkerPool(object):
             thread.start()
 
         # wait
-        for thread in self.threads:
-            thread.join()
-            thread.status = WorkerStatus.FINISHED
-            self.thread_event.on_exit(thread)
+        not_joined = self.threads.copy()
+        while not_joined:
+            # wait 30 seconds at max before checking thread status
+            self.lock_event.wait(30.0)
+            # clear the flag
+            self.lock_event.clear()
+
+            # wait for the finished threads to join
+            for thread in not_joined.copy():
+                if thread.status is WorkerStatus.EXITING:
+                    thread.join()
+                    thread.status = WorkerStatus.FINISHED
+                    self.thread_event.on_exit(thread)
+                    not_joined.remove(thread)
 
         # # fire on_exit
         # for thread in self.threads:
