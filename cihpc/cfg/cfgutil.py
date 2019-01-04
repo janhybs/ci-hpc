@@ -166,14 +166,16 @@ def configure_file(path, variables, convert=yaml_load, start='<', stop='>'):
         single_config = rest.copy()
         single_config.update(dict(zip(iterable_keys, g)))
 
-        single_content = copy(content)
-        for k, v in single_config.items():
-            single_content = single_content.replace('%s%s%s' % (start, k, stop), str(v))
+        # for k, v in single_config.items():
+        #     single_content = single_content.replace('%s%s%s' % (start, k, stop), str(v))
+        yield configure_object(
+            convert(content),
+            single_config,
+            preserve_if_missing=True
+        )
 
-        yield convert(single_content)
 
-
-def configure_object(obj, vars):
+def configure_object(obj, vars, preserve_if_missing=False):
     """
     Configure given object (replaces placeholders <KEY> with VALUE contained in a given vars)
         by default, everything is converted to string, to change conversion type use syntax:
@@ -192,17 +194,17 @@ def configure_object(obj, vars):
     if isinstance(obj, list):
         obj_copy = deepcopy(obj)
         for i, v in enumerate(obj_copy):
-            obj_copy[i] = configure_string(v, vars)
+            obj_copy[i] = configure_object(v, vars, preserve_if_missing)
         return obj_copy
 
     if isinstance(obj, dict):
         obj_copy = deepcopy(obj)
         for k, v in obj_copy.items():
-            obj_copy[k] = configure_object(v, vars)
+            obj_copy[k] = configure_object(v, vars, preserve_if_missing)
         return obj_copy
 
     else:
-        return configure_string(obj, vars)
+        return configure_string(obj, vars, preserve_if_missing)
 
 
 def _get_property(obj, val, default=_no_such_value):
@@ -223,19 +225,28 @@ def _get_property(obj, val, default=_no_such_value):
     return root
 
 
-def configure_string(value, vars):
+def configure_string(value, vars, preserve_if_missing=False):
     matches = _configure_object_regex.findall(str(value))
     if matches:
         value = str(value)
         for key, dtype in matches:
             orig = '<%s%s>' % (key, dtype)
             func = _configure_object_dict.get(dtype[1:], str)
-            val = value.replace(orig, str(_get_property(vars, key)))
+            prop = _get_property(vars, key)
 
-            # if no such value exists, we return default class instanace such as int() i.e. 0 or float() i.e. 0.0
-            if val is _no_such_value:
-                value = func()
+            # if no such value exists
+            if prop is _no_such_value:
+                # if we want to preserve the value, simply skip sub
+                if preserve_if_missing:
+                    continue
+                # otherwise we return default class instance such as int() i.e. 0 or float() i.e. 0.0
+                else:
+                    value = func()
+                    continue
+
+            # value exists, we try to return it
             else:
+                val = str(value).replace(orig, str(prop))
                 try:
                     value = func(val)
                 except:
