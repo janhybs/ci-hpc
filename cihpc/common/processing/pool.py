@@ -82,7 +82,6 @@ class SimpleWorker(threading.Thread):
 
         self.semaphore.release(value=self.cpus)
         self.status = WorkerStatus.EXITING
-        print('setting')
         self.lock_event.set()
 
     def __repr__(self):
