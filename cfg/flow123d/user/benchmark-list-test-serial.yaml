@@ -1,0 +1,38 @@
+ # 01_square_regular_grid
+ # weak scale
+ - values:
+   - benchmark:  01_square_regular_grid
+   - mesh:       [ 1_15662_el ]
+   - cpu:        [ 1 ]
+   - weak:       [ 1 ]
+   - strong:     [ 1 ]
+
+ # ------------------------------------------------------------------------
+ # 02_cube_123d
+ # weak scale
+ - values:
+   - benchmark:  02_cube_123d
+   - mesh:       [ 1_15786_el ]
+   - cpu:        [ 1 ]
+   - weak:       [ 1 ]
+   - strong:     [ 1 ]
+
+ # ------------------------------------------------------------------------
+ # 03_mesh_read
+ # weak scale
+ - values:
+   - benchmark:  03_mesh_read
+   - mesh:       [ 1_15786_el ]
+   - cpu:        [ 1 ]
+   - weak:       [ 1 ]
+   - strong:     [ 1 ]
+
+ # ------------------------------------------------------------------------
+ # 05_dfn_2d
+ # weak scale
+ - values:
+   - benchmark:  05_dfn_2d
+   - mesh:       1_1618_el
+   - cpu:        [ 1 ]
+   - weak:       [ 1 ]
+   - strong:     [ 1 ]

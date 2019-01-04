@@ -39,6 +39,7 @@ stages:
   #     user/benchmark-list-test-weak.yaml
   # ----------------------------------------------------------------------------
   - stage: test-weak
+    enabled: false
     shell: !readfile scripts/run-test.sh
     # which benchmark will be tested
     variables: !readyaml user/benchmark-list-test-weak.yaml
@@ -77,9 +78,32 @@ stages:
     parallel:
       cpus: <cpu-value>   # we want to use 8 cores at max
       prop: <cpu>         # by default each 'worker' will use <cpu> of cpus
-  
-  
-  
+
+
+
+  # ----------------------------------------------------------------------------
+  # -------------------------------------------------------------- TEST-FULL ---
+  # test serial contains most of the tests in serial experiment
+  # one repetition with takes about
+  #   4956 seconds (if 4 MPI processes are runinng at once at most)
+  #   2048 seconds (if 8 MPI processes are runinng at once at most)
+  #
+  # to specify what benchmarks will be tested,
+  # see the configuration yaml file:
+  #     user/benchmark-list-test-serial.yaml
+  # ----------------------------------------------------------------------------
+  - stage: test-serial
+    enabled: true
+    shell: !readfile scripts/run-test.sh
+    variables: !readyaml user/benchmark-list-test-serial.yaml
+    collect: !readyaml yamls/test-collect.yaml
+    repeat: 15
+    parallel:
+      cpus: <cpu-value>   # we want limit how many core we use
+      prop: 1             # each 'worker' will count as single MPI process
+
+
+
   # ----------------------------------------------------------------------------
   # ---------------------------------------------------------------- CLEANUP ---
   # this stage removes old profilers
