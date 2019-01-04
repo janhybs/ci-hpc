@@ -263,7 +263,7 @@ class CIHPCMongo(Mongo):
 
         Returns
         -------
-        artifacts.db.mongo.CIHPCMongo
+        cihpc.core.db.CIHPCMongo
             instance of CIHPCMongo
         """
 

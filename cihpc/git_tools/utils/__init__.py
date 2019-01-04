@@ -14,8 +14,6 @@ from cihpc.common.utils.files.temp_file import TempFile2
 import cihpc.common.utils.strings as strings
 
 
-
-
 class CommitPolicy(enum.Enum):
     EVERY_COMMIT = 'every-commit'
     COMMIT_PER_DAY = 'commit-per-day'
