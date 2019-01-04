@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # author: Jan Hybs
 
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 from cihpc.common.utils.parallels import determine_cpus
 from cihpc.core.structures.a_project import ComplexClass
@@ -17,15 +21,24 @@ class ProjectStepParallel(ComplexClass):
         super(ProjectStepParallel, self).__init__(kwargs)
 
         if not kwargs or kwargs in (None, False):
-            kwargs = dict()
+            self.cpus = 1
+            self.prop = None
 
-        if kwargs is True:
-            kwargs = dict(cpus='100%', prop=1)
-
-        self.prop = kwargs.get('prop', None)
-        self.cpus = determine_cpus(
-            kwargs.get('cpus', 1)
-        )
+        elif kwargs is True:
+            self.cpus = determine_cpus('51%')
+            self.prop = None
+        elif isinstance(kwargs, dict):
+            try:
+                self.cpus = determine_cpus(kwargs.get('cpus', 1))
+                self.prop = kwargs.get('prop', None)
+            except ValueError as e:
+                logger.warning('error while determining cpus value, will use 1 core\n'
+                               '%s' % str(e))
+                self.cpus = 1
+                self.prop = None
+                self._enabled = False
+        else:
+            raise ValueError('ProjectStepParallel: expected None, bool or dict')
 
     def __repr__(self):
         return 'Parallel(cpus={self.cpus}, prop={self.prop})'.format(
