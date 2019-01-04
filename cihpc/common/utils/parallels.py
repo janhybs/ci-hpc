@@ -44,7 +44,7 @@ def determine_cpus(hint=None):
 
     # when we desire half
     # we take 'bigger' half
-    elif hint in (1 / 2, 'half'):
+    elif str(hint).lower() == 'half':
         cpus = math.ceil(cpu_count / 2)
 
     # percent format
@@ -62,9 +62,9 @@ def determine_cpus(hint=None):
     elif isinstance(hint, int):
         cpus = int(hint)
 
-    # unknown format will result in single core used
+    # unknown format will result in error
     else:
-        cpus = 1
+        raise ValueError('determine_cpus: expected str, int or float')
 
     # limit the values of cpus
     cpus = max(min(cpus, cpu_count), 1)
