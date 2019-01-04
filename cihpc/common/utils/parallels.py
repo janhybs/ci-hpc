@@ -1,6 +1,11 @@
 #!/bin/python3
 # author: Jan Hybs
 
+
+import logging
+logger = logging.getLogger(__name__)
+
+
 # value which can be considered as plentiful cpus available
 
 PLENTY_OF_CPUS = 64  # turn off for now
@@ -18,14 +23,22 @@ def extract_cpus_from_worker(process_stage):
 
 
 def parse_cpu_property(value):
-    cpus = 1
     if value in (None, False):
-        cpus = 1
+        return 1
+    elif isinstance(value, str):
+        if str.isdigit(value):
+            return int(value)
+        else:
+            logger.warning('extract_cpus_from_worker: could not parse given value %s' % value)
+            return 1
 
-    elif str.isdigit(value):
-        cpus = int(value)
+    elif isinstance(value, (int, float)):
+        return int(value)
 
-    return cpus
+    else:
+        logger.warning('extract_cpus_from_worker: invalid value type!\n'
+                       'given type %s expected int or int-like string' % str(type(value)))
+        return 1
 
 
 def determine_cpus(hint=None):
