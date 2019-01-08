@@ -386,6 +386,10 @@ def main(cmd_args=None):
     # otherwise load configs
     project_configs = cfgutil.configure_file(config_path, variables)
     for project_config in project_configs:
+        # clear the cache
+        from cihpc.artifacts.modules import CIHPCReportGit
+        CIHPCReportGit.instances = dict()
+
         logger.debug('yaml configuration: \n%s', strings_utils.to_yaml(project_config))
 
         # specify some useful global arguments which will be available in the config file
