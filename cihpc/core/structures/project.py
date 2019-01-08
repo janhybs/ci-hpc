@@ -58,9 +58,14 @@ class EnvGetter(object):
 
 
 class DatePoint(object):
-
     def __init__(self, datetime=None, timestamp=None, random=None):
-        self.datetime = datetime or dt.datetime.now().strftime('%Y_%m_%d-%H_%M_%S')
+        if not datetime:
+            datetime = dt.datetime.now()
+
+        self._datetime = datetime
+        self.datetime = datetime.now().strftime('%Y_%m_%d-%H_%M_%S')
+        self.date = datetime.now().strftime('%Y_%m_%d')
+        self.time = datetime.now().strftime('%H_%M_%S')
         self.timestamp = timestamp or int(time.time())
         self.random = random or strings.generate_random_key(6)
 
@@ -68,7 +73,7 @@ class DatePoint(object):
         return self.__dict__.get(attr)
 
     def __deepcopy__(self, memo):
-        return DatePoint(self.datetime, self.timestamp, self.random)
+        return DatePoint(self._datetime, self.timestamp, self.random)
 
     def __repr__(self):
         return '<DatePoint>'
