@@ -387,7 +387,9 @@ def main(cmd_args=None):
     project_configs = cfgutil.configure_file(config_path, variables)
     for project_config in project_configs:
         # clear the cache
-        from cihpc.artifacts.modules import CIHPCReportGit
+        from cihpc.artifacts.modules import CIHPCReportGit, CIHPCReport
+
+        CIHPCReport.inited = False
         CIHPCReportGit.instances = dict()
 
         logger.debug('yaml configuration: \n%s', strings_utils.to_yaml(project_config))
