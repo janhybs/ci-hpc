@@ -225,6 +225,9 @@ class CIHPCReportGit(dict):
         commit = parse_output(
             check_output('git rev-parse HEAD', shell=True, cwd=root)
         )
+        tag = parse_output(
+            check_output('git describe --tags --always', shell=True, cwd=root)
+        )
         timestamp = int(parse_output(
             check_output('git show -s --format=%%ct %s' % commit, shell=True, cwd=root)
         ))
@@ -237,6 +240,7 @@ class CIHPCReportGit(dict):
                 name=repo_name,
                 branch=branch,
                 commit=commit,
+                tag=tag,
                 timestamp=timestamp,
                 datetime=datetime.datetime.fromtimestamp(float(timestamp)),
             )
@@ -274,6 +278,7 @@ class CIHPCReportGit(dict):
                 name=None,
                 branch=None,
                 commit=None,
+                tag=None,
                 timestamp=None,
                 datetime=None,
             )

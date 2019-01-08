@@ -61,6 +61,13 @@ class Git(object):
         except:
             return None
 
+    @property
+    def tag(self):
+        try:
+            return subprocess.check_output('git describe --tags --always'.split(), cwd=self.dir).decode().strip()
+        except:
+            return None
+
     def checkout(self):
         branch = self.git.branch
         commit = self.git.commit
@@ -68,11 +75,12 @@ class Git(object):
         if branch:
             branch = branch.replace('origin/', '')
 
-        logger.info(
-            'Git checkout repo={self.git.repo} to branch={self.git.branch}, commit={self.git.commit}'.format(self=self))
+        logger.info('Git checkout repo={self.git.repo} to \n'
+                    'branch={self.git.branch}\n'
+                    'commit={self.git.commit}\n'
+                    'folder={self.dir}'.format(self=self))
+
         self.execute("git config core.pager", "", dir=self.dir)  # turn of less pager
-        self.execute('pwd', dir=self.dir).wait()
-        self.execute('git branch -vv', dir=self.dir).wait()
         self.execute('git fetch', dir=self.dir).wait()
 
         if branch:
@@ -96,8 +104,10 @@ class Git(object):
 
     def info(self):
         logger.debug('Repository currently at:')
-        self.execute('git branch -vv', dir=self.dir).wait()
-        self.execute('git log -n 10 --graph', '--pretty=format:%h %ar %aN%d %s', dir=self.dir).wait()
+        o, e = self.execute_check_output('git branch -vv', dir=self.dir).communicate(timeout=60)
+        logger.debug(o.decode())
+        o, e = self.execute_check_output('git log -n 10 --graph', '--pretty=format:%h %ar %aN%d %s', dir=self.dir).communicate(timeout=60)
+        logger.debug(o.decode())
 
     def log(self, limit=50, branch='master'):
         command = 'git log -n {limit} {format} {branch}'.format(

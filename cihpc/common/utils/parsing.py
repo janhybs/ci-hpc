@@ -56,7 +56,7 @@ def convert_project_arguments(namespace, excludes=None):
     result = list()
     base_args = ['project', 'git-url', 'config-dir', 'pbs', 'timeout', 'check-interval', 'log-path', 'execute']
     bool_args = ['verbosity', 'tty']
-    extra_args = ['git-commit', 'git-branch']
+    extra_args = ['git-commit', 'git-branch', 'git-tag']
     action_args = ['action']
 
     for key, value in args.items():

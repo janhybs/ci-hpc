@@ -54,7 +54,7 @@ def parse_args(cmd_args=None):
         part of the repository
     ''')
     parser.add_argument(
-        '--git-commit', '--commit',
+        '--git-commit', '--git-tag', '--commit',
         action='append',
         type=str,
         default=[],

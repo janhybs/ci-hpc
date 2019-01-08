@@ -67,18 +67,25 @@ class ProcessStage(SimpleWorker):
             )
 
         result = list()
-        for j in range(stage.repeat):
+        repeat = stage.repeat
+        for j in range(repeat):
             items = list(stage.variables.items())
             total = len(items)
-            if total:
-                for i, v in enumerate(items):
-                    vars = merge_dict(variables, v)
-                    worker = ProcessStage(project, stage, vars)
-                    worker.name_prefix = '%02d/%02d-' % (i + 1, total)
-                    result.append(worker)
-            else:
-                worker = ProcessStage(project, stage, variables)
+
+            for i, v in enumerate(items):
+                # prefixes = [
+                #     'reps-%02d-%02d' % (j + 1, repeat),
+                #     'vars-%02d-%02d-' % (i + 1, total)
+                # ]
+                prefixes = [
+                    'reps-%02d-%02d-vars-%02d-%02d-' % (j + 1, repeat, i + 1, total),
+                ]
+
+                vars = merge_dict(variables, v)
+                worker = ProcessStage(project, stage, vars)
+                worker.name_prefix = os.path.join(*prefixes)
                 result.append(worker)
+
         return result
 
     def __init__(self, project, stage, variables):
@@ -158,7 +165,6 @@ class ProcessStage(SimpleWorker):
             tmp_dir_lst = [
                 project.tmp_workdir,
                 step.ord_name,
-                self.ord_name,
             ]
 
             # convert list to file path string
@@ -168,8 +174,11 @@ class ProcessStage(SimpleWorker):
             os.makedirs(tmp_dir, exist_ok=True)
 
             # the main script which will be executed, either using bash or with the help of a container
-            tmp_sh = TempFile(os.path.join(tmp_dir, 'shell.sh'))
-            tmp_cont = TempFile(os.path.join(tmp_dir, 'cont.sh'))
+            # tmp_sh = TempFile(os.path.join(tmp_dir, 'shell.sh'))
+            # tmp_cont = TempFile(os.path.join(tmp_dir, 'cont.sh'))
+
+            tmp_sh = TempFile(os.path.join(tmp_dir, self.ord_name + '--shell.sh'))
+            tmp_cont = TempFile(os.path.join(tmp_dir, self.ord_name + '--cont.sh'))
 
             # ---------------------------------------------------------------------
 
