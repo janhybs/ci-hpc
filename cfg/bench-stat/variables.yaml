@@ -1,0 +1,18 @@
+# define variables which will be used in config.yaml later on
+# supported variables types are strings and numbers (for now)
+workdir: <os.HOME>/projects/ci-hpc-projects/bench-stat
+
+charon*:
+  workdir: /storage/liberec3-tul/home/jan-hybs/projects/ci-hpc-projects/bench-stat
+
+
+
+# do not forget YAML is a superset of JSON
+# so to use wildcar at the beginning of the name, use quotes!
+# the following will match any hostname containing . (dot):
+#
+#   '*.*':
+#     foo: bar
+# usually HPC hostnames contain a . (dot)
+'*.*':
+  workdir: /storage/liberec3-tul/home/jan-hybs/projects/ci-hpc-projects/bench-stat
