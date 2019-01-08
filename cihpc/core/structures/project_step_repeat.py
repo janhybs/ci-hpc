@@ -114,3 +114,11 @@ class ProjectStepRepeat(object):
         return 'Repeat(fixed={self.fixed_value}, dynamic={self.dynamic_value})'.format(
             self=self
         )
+
+    def to_json(self):
+        return dict(
+            value=self.value,
+            fixed=self.fixed_value,
+            dynamic=self.dynamic_value,
+            remains=self._remains,
+        )

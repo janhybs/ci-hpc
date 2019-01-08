@@ -110,7 +110,7 @@ class ProjectStage(ComplexClass):
         return dict(
             name=self.name,
             desc=self.description,
-            repeat=self.smart_repeat,
+            repeat=self.smart_repeat.to_json(),
             parallel=self.parallel,
             container=self.container,
             collect=self.collect,
