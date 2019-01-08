@@ -69,13 +69,22 @@ class ProjectStepVariables(ComplexClass):
         return uuid.uuid4().hex
 
     def items(self):
-        for section in self.values:
-            var_list = self._expand_variables(section)
-            total = len(var_list)
-            for i, variables in enumerate(var_list):
-                variables.update(dict(
-                    __total__=total,
-                    __current__=i + 1,
-                    __unique__=self.unique(),
-                ))
-                yield variables
+        # empty matrix will yield single variables
+        if not self.values:
+            yield dict(
+                __total__=1,
+                __current__=1,
+                __unique__=self.unique(),
+            )
+
+        else:
+            for section in self.values:
+                var_list = self._expand_variables(section)
+                total = len(var_list)
+                for i, variables in enumerate(var_list):
+                    variables.update(dict(
+                        __total__=total,
+                        __current__=i + 1,
+                        __unique__=self.unique(),
+                    ))
+                    yield variables
