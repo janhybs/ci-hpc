@@ -48,8 +48,8 @@ stages:
 
     # how many repetitions we want for each benchmark
     repeat:
-      exactly: 5          # we want to have 5 repetitions by default
-      # no-less-than: 1   # but with access to the db, we want to have 15 in total
+      exactly: 5        # we want to have 5 repetitions by default
+      no-less-than: 5   # but with access to the db, we want to have 5 in total
 
     # how many cores we want to use on a computing node
     parallel:
@@ -97,7 +97,7 @@ stages:
     shell: !readfile scripts/run-test.sh
     variables: !readyaml user/benchmark-list-test-serial.yaml
     collect: !readyaml yamls/test-collect.yaml
-    repeat: 15
+    repeat: 5
     parallel:
       cpus: <cpu-value>   # we want limit how many core we use
       prop: 1             # each 'worker' will count as single MPI process

@@ -24,7 +24,8 @@ set -x
 kinit -k -t /root/jh.keytab jan-hybs@META
 
 # clone the repo and points it to a correct commit under the correct name
-ssh -t $SERVER "rm -rf $CLONEDIR ; git clone $GITURL $CLONEDIR ; cd $CLONEDIR ; git checkout $COMMIT ; git branch -D $BRANCH || true ; git checkout -b $BRANCH $COMMIT"
+echo ssh -t $SERVER "rm -rf $CLONEDIR ; git clone $GITURL $CLONEDIR ; cd $CLONEDIR ; git checkout $COMMIT ; git branch -D $BRANCH || true ; git checkout -b $BRANCH $COMMIT"
 
 # call ci-hpc
-ssh -t "cd $REMOTE ; $REMOTE_PYTHON bin/cihpc --secret-yaml=$REMOTE/cfg/secret.yaml --pbs=pbspro --execute=qsub/charon-excl-2h.sh -c $CFGDIR --commit $COMMIT --branch $BRANCH"
+echo ssh -t $SERVER CIHPC_SECRET=$REMOTE/secret.yaml "cd $REMOTE ; $REMOTE_PYTHON bin/cihpc -c $CFGDIR --commit $COMMIT --branch $BRANCH"
+

@@ -258,7 +258,11 @@ class ProjectConfigFields(object):
         for field_group in [self.result, self.git, self.problem]:
             for field in field_group:
                 if field:
-                    df[field.name] = df.apply(field.func, axis=1)
+                    try:
+                        df[field.name] = df.apply(field.func, axis=1)
+                    except Exception as e:
+                        raise ValueError('Error while processing field %s' % field.name)
+                    
         return df
 
     def __repr__(self):
