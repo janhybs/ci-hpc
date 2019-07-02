@@ -1,8 +1,8 @@
 #!/bin/python3
 # author: Jan Hybs
-
+import core.parsers
 import tests
-from cihpc.core import ArgAction
+from core import ArgAction
 
 
 tests.fix_paths()
@@ -19,7 +19,7 @@ class TestProject(unittest.TestCase):
 
     def test_parse_args(self):
         with self.assertRaises(SystemExit):
-            cihpc.core.parse_args(['--log-level=foo'])
+            core.parsers.parse_args(['--log-level=foo'])
 
         args = [
             '--config-dir=/foo/' + project_dir,
@@ -28,7 +28,7 @@ class TestProject(unittest.TestCase):
             '--git-commit=foobar',
             '--tty',
         ]
-        parsed = cihpc.core.parse_args(args)
+        parsed = core.parsers.parse_args(args)
         self.assertEqual(parsed.log_path, 'foo.log')
         self.assertEqual(parsed.tty, True)
         self.assertEqual(parsed.watch_commit_policy, 'commit-per-day')

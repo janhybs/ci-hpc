@@ -1,6 +1,14 @@
 project: flow123d
 workdir: <flow123d-workdir>
-init-shell: !readfile scripts/init-shell.sh
+# init-shell: !readfile scripts/init-shell.sh
+
+git:
+  # main flow123d repository
+  - url: https://github.com/flow123d/flow123d.git
+    commit: <arg.commit.flow123d>   # checkout to this commit
+    branch: <arg.branch.flow123d>   # under this branch's name
+  # benchmark repository, will always be at latest commit
+  - url: https://github.com/flow123d/bench_data.git
 
 
 stages:
@@ -9,10 +17,14 @@ stages:
   # this stage compiles flow123d (or uses cached build)
   # ----------------------------------------------------------------------------
   - stage: compile
+    output: stdout
     shell: !readfile scripts/install.sh
-    git:   !readyaml yamls/git-repository.yaml
     cache: !readyaml yamls/cache-build.yaml
-
+  
+  - stage: verify
+    output: stdout
+    shell: !readfile scripts/verify-installation.sh
+    on-error: exit
 
 
   # ----------------------------------------------------------------------------
@@ -25,6 +37,28 @@ stages:
     shell: !readfile scripts/download-mesh.sh
     # which files will be downloaded
     variables: !readyaml user/mesh-download-list.yaml
+
+
+
+  # 2 benchmarks on 4 meshes (40 cases in total)
+  - stage:      test
+    shell:      !readfile scripts/flow.sh
+    variables:  !readyaml user/benchmark-list-small.yaml
+    repeat:
+      no-less-than: 5
+    index:
+      branch:     <git.branch>  # name of the branch
+      commit:     <git.commit>  # long hash of current commit
+      mesh_cpus:  <mesh|0i>     # e.g. from value '1_15786_el' will get integer 1
+      mesh_size:  <mesh|1i>     # e.g. from value '1_15786_el' will get integer 15786
+      benchmark:  <benchmark>   # benchmark such as '01_square_regular_grid'
+      test:       <test>
+      cpus:       0             # 0 means no mpi was used
+      frame:      whole-program
+    collect:
+      files:    <tmp>/<project-name>/<__unique__>/profiler_info*.json
+      module:   cihpc.artifacts.modules.flow123d_profiler_module_flatten
+      move-to:  <flow123d-workdir>/artifacts/<__project__.start.datetime>
 
 
 

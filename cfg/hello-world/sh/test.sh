@@ -1,3 +1,5 @@
+sleep 1
+exit 0
 cd bench-stat
 
 echo "Running test <test.name> (id=<test.id>)"
@@ -12,7 +14,7 @@ echo "Running test <test.name> (id=<test.id>)"
 #
 #   2) another option is to simply count
 #      unique_name=<__project__.counter.next-05d>
-#         the placeholder above is still processed 
+#         the placeholder above is still processed
 #         meaning the counter will be increased by 2 :)
 
 # counter will count (also unique)

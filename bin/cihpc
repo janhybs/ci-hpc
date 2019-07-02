@@ -2,6 +2,20 @@
 # author: Jan Hybs
 
 import sys
+import os
+import pathlib
+
+sys.path.append(
+    pathlib.Path(__file__).parent
+)
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), '..'
+        )
+    )
+)
 
 
 try:

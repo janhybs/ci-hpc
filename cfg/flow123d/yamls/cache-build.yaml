@@ -1,3 +1,4 @@
 # cache build-master folder
 storage:     <cache-dir>
-directories: [build-master]
+directories: 
+  - build-<git.branch>

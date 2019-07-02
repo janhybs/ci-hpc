@@ -22,6 +22,7 @@
 # set(PugiXml_ROOT_HINT       ${PACKAGE_DIR}/pugixml-1.9.0)
 
 cd flow123d
+rm -rf build_tree
 cp config/config-cihpc-meta.cmake config.cmake
 make -j8
 bin/flow123d --version

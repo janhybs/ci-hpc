@@ -1,17 +1,21 @@
 # define variables which will be used in config.yaml later on
 # supported variables types are strings and numbers (for now)
 hello-world-workdir: <os.HOME>/projects/ci-hpc-projects/hello-world
-
+cpu-value:
+  - foo: 2
+    bar: <test.cpu>*2
+  - foo: 3
+    bar: <test.cpu>
 
 # you can also specify conditional variables based on computer hostname value
 # you can use * (asterisk) wildcar if you do not know precisely what hostname
-# will have your computing node 
+# will have your computing node
 # The following will match any value starting with:
 #   charon
 # and ending with:
 #   .nti.tul.cz
 # i.e. charon10.nti.tul.cz or charon6.nti.tul.cz will match
-# 
+#
 # non-conditional variables will be overridden if the name is the same as conditional variables
 charon*.nti.tul.cz:
   hello-world-workdir: /storage/praha1/home/jan-hybs/projects/ci-hpc-projects/hello-world

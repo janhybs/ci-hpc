@@ -6,11 +6,11 @@ import tests
 
 tests.fix_paths()
 
-import logging
+from loguru import logger
 import time
 
 
-logger = logging.getLogger(__name__)
+
 
 import multiprocessing
 from unittest import TestCase

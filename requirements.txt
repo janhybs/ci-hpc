@@ -20,3 +20,5 @@ Flask-Cors
 Flask-Gravatar
 Flask-Login
 Flask-RESTful
+gitpython
+loguru

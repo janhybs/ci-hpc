@@ -9,21 +9,21 @@ stages:
       - url: https://github.com/janhybs/bench-stat.git
         commit: <arg.commit.hello-world> # checkout to this commit
         branch: <arg.branch.hello-world> # under this branch's name
-      
+
     shell: !readfile sh/install.sh
     cache: bench-stat
 
   - stage: memory-cache-test
     output: null
-    
+
     repeat:
       exactly: 1
       no-less-than: 8
-      
+
     parallel:
-      cpus: 0.51
-      prop: <test.cpu>
-      
+      cpus: <cpu-value.foo|i>
+      prop: <cpu-value.bar>
+
     variables:
       - matrix:
         - test:
@@ -37,22 +37,22 @@ stages:
         - test:
             - id: 0
               name: memory-cache-test-all
-            
+
     shell: !readfile sh/test.sh
-      
+
     collect:
       repo: bench-stat
       files: bench-stat/arts/<__unique__>/result-*.json
       module: cihpc.artifacts.modules.generic_module
       move-to: bench-stat/artifacts/<__project__.start.datetime>
       cut-prefix: null
-      
+
       extra:
-        parallel:   15
         metric:     foobar      # additional property of the test you want to save
         test-id:    <test.id|i> # accessing current test
         test-name:  <test.name> # accessing current build matric data
-    
+        cpu-value:  <__stage__.parallel.cpus|i>
+
   - stage: cleanup
     shell: |
       rm -vrf bench-stat/arts/*
