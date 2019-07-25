@@ -30,7 +30,7 @@ class CommitHistoryView(Resource):
                 base64.decodebytes(base64data.encode()).decode()
             )
         else:
-            logger.warning('no options given')
+            logger.warning(f'no options given')
             self.options = dict()
 
         logger.info(strings.to_json(self.options))

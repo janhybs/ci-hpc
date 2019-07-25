@@ -21,8 +21,12 @@
 # set(YamlCpp_ROOT_HINT       ${PACKAGE_DIR}/yamlcpp-0.5.2)
 # set(PugiXml_ROOT_HINT       ${PACKAGE_DIR}/pugixml-1.9.0)
 
+set -e
+
 cd flow123d
 rm -rf build_tree
+rm -rf ../build-*
+make update-build-tree
 cp config/config-cihpc-meta.cmake config.cmake
-make -j8
+make -j18
 bin/flow123d --version

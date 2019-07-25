@@ -18,6 +18,7 @@ from cihpc.cfg.cfgutil import configure_string, configure_object
 from cihpc.common.utils.files.temp_file import TempFile
 from cihpc.common.utils.parallels import parse_cpu_property
 import cihpc.core.db as db
+from cihpc.exceptions.exec_error import ExecError, OnError
 
 
 class ProcessStage(SimpleWorker):
@@ -78,6 +79,15 @@ class ProcessStage(SimpleWorker):
         return dict()
 
     @staticmethod
+    def get_number_of_repetitions(index) -> int:
+        connection = db.CIHPCMongo.get_default()
+        if connection:
+            query = {f'index.{key}': value for key, value in index.items()}
+            total = connection.reports.find(query).count()
+            return total
+        return 0
+
+    @staticmethod
     def determine_number_of_repetitions(index, spec):
         """
 
@@ -110,8 +120,8 @@ class ProcessStage(SimpleWorker):
             else:
                 repeat = 0
 
-            logger.info(f'index: {index}')
-            logger.info(f'query: db.{connection.reports.name}.find({query})')
+            # logger.debug(f'index: {index}')
+            # logger.debug(f'query: db.{connection.reports.name}.find({query})')
             logger.info(f'required: {min_repeat}, found: {total}, repetition: {repeat}')
 
             return repeat
@@ -218,9 +228,16 @@ class ProcessStage(SimpleWorker):
             self._shell_result = self._run_script(args)
 
             if self._shell_result.returncode != 0:
-                if self.stage.on_error in ('exit', 'terminate', 'end', 'break'):
+                if self.stage.on_error in (OnError.EXIT, OnError.BREAK):
                     logger.error(f'Process ended with {self._shell_result.returncode} and on-error is set to {self.stage.on_error}')
-                    return False
+                    raise ExecError(
+                        reason=ExecError.EXECUTION_FAILED,
+                        on_error=self.stage.on_error,
+                        details=dict(
+                            returncode = self._shell_result.returncode,
+                            duration = self._shell_result.duration
+                        )
+                    )
 
         if self._cache:
             self._cache_save()
@@ -273,16 +290,16 @@ class ProcessStage(SimpleWorker):
                 io.fp.write('=' * 80 + '\n')
                 io.fp.flush()
 
-            logger.debug('running ' + ' '.join(args))
+            logger.debug(f'running ' + ' '.join(args))
             process = sp.Popen(args, stdout=io.fp, stderr=sp.STDOUT)
             result.process = process
 
             with process:
                 result.returncode = process.wait()
                 if result.returncode == 0:
-                    logger.debug('ok [%d] ended with %d' % (process.pid, result.returncode))
+                    logger.debug(f'ok [{process.pid}] ended with {result.returncode}')
                 else:
-                    logger.warning('process [%d] ended with %d' % (process.pid, result.returncode))
+                    logger.warning(f'process [{process.pid}] ended with {result.returncode}')
 
             if io.is_writable():
                 io.fp.write('-' * 80 + '\n')
@@ -292,7 +309,7 @@ class ProcessStage(SimpleWorker):
 
     def _cache_save(self):
         if not self._cache.exists():
-            logger.debug('saving cache %s to %s' % (self.stage, self._cache.location))
+            logger.debug(f'saving cache {self.stage} to {self._cache.location}')
             self._cache.save()
 
     def _cache_init(self):
@@ -301,7 +318,7 @@ class ProcessStage(SimpleWorker):
             self._cache = ProcessStepCache(self.stage.cache, self.stage.gits, self.variables)
 
         if self._cache and self._cache.exists():
-            logger.debug('skipped stage %s, using cache %s' % (self.stage, self._cache.location))
+            logger.debug(f'skipped stage {self.stage}, using cache {self._cache.location}')
             self._cache.restore()
             return True
 
@@ -311,9 +328,5 @@ class ProcessStage(SimpleWorker):
         )
         for i in range(len(collect_result.total)):
             if collect_result.total[i] > 0:
-                logger.debug(
-                    'found %d timer(s) in %d file(s)',
-                    collect_result.total[i],
-                    len(collect_result.items[i])
-                )
+                logger.debug(f'found {collect_result.total[i]} timer(s) in {len(collect_result.items[i])} file(s)')
         return collect_result

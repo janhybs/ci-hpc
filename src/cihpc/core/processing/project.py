@@ -1,12 +1,13 @@
 #!/usr/bin/python
 # author: Jan Hybs
-
+from typing import List
 
 from loguru import logger
 import os
 import threading
 
 from cihpc.common.processing.pool import LogStatusFormat, WorkerPool
+from cihpc.common.utils.datautils import merge_dict
 from cihpc.common.utils.parallels import extract_cpus_from_worker
 from cihpc.common.utils.timer import Timer
 from cihpc.core.processing.stage import ProcessStage
@@ -15,6 +16,7 @@ import cihpc.common.utils.progress as progress
 import cihpc.artifacts.base as artifacts_base
 from cihpc.core.structures.project_stage import ProjectStage
 import cihpc.core.db as db
+from cihpc.exceptions.exec_error import OnError
 
 
 class ProcessProject(object):
@@ -22,7 +24,7 @@ class ProcessProject(object):
     :type project:  cihpc.core.structures.project.Project
     """
 
-    def __init__(self, project):
+    def __init__(self, project, initialize_repository=True):
         self.project = project
         self.definition = project
         os.makedirs(self.project.workdir, exist_ok=True)
@@ -33,22 +35,29 @@ class ProcessProject(object):
                 db.CIHPCMongo.get(self.project.name)
             )
 
-        main_repo = self.project.git.main_repo
-        if main_repo:
-            main_repo.initialize()
-            logger.info(f'Repo {main_repo.name} currently at {main_repo.index_info()}')
-            # register info about git to report
+        if initialize_repository:
+            main_repo = self.project.git.main_repo
+            if main_repo:
+                main_repo.initialize()
+                logger.info(f'Repo {main_repo.name} currently at {main_repo.index_info()}')
+                # register info about git to report
 
-            artifacts_base.CIHPCReport.global_git.update(
-                name=main_repo.name,
-                branch=main_repo.branch,
-                commit=main_repo.commit,
-            )
+                artifacts_base.CIHPCReport.global_git.update(
+                    name=main_repo.name,
+                    branch=main_repo.branch,
+                    commit=main_repo.commit,
+                )
 
-        for dep in self.project.git.deps.values():
-            if dep:
-                dep.initialize()
-                logger.info(f'Repo {dep.name} currently at {dep.index_info()}')
+            for dep in self.project.git.deps.values():
+                if dep:
+                    dep.initialize()
+                    logger.info(f'Repo {dep.name} currently at {dep.index_info()}')
+
+    def get_stage_by_name(self, name: str):
+        for stage in self.project.stages:
+            if stage and stage.name == name:
+                return stage
+        return None
 
     def process(self):
         """
@@ -64,20 +73,35 @@ class ProcessProject(object):
                 threads = ProcessStage.create(self.project, stage)
                 self._process_stage_threads(stage, threads)
 
-    def process_stage(self, stage: ProjectStage):
-        threads = ProcessStage.create(self.project, stage)
-        self._process_stage_threads(stage, threads)
+    def get_stage_variable_stats(self, stage: ProjectStage):
+        variables = self.project.global_args
+        variables['__stage__'] = stage.stage_args
 
-    def _process_stage_threads(self, stage: ProjectStage, threads):
+        for i, v in enumerate(stage.variables.expand()):
+            vars = merge_dict(variables, v)
+            index: dict = ProcessStage.expand_index(stage.index, vars)
+            repeat = ProcessStage.determine_number_of_repetitions(index, stage.smart_repeat)
+            yield repeat, index
+
+    def create_process_stage_threads(self, stage:ProjectStage) -> List[ProcessStage]:
+        return ProcessStage.create(self.project, stage)
+
+    def process_stage(self, stage: ProjectStage):
+        return self._process_stage_threads(
+            stage,
+            self.create_process_stage_threads(stage)
+        )
+
+    def _process_stage_threads(self, stage: ProjectStage, threads: List[ProcessStage]):
         with Timer(stage.ord_name) as timer:
             pool = WorkerPool(cpu_count=stage.parallel.cpus, threads=threads)
             pool.update_cpu_values(extract_cpus_from_worker)
 
             if stage.parallel:
-                logger.info('%d job(s) will be now executed in parallel\n'
-                            'allocated cores: %d' % (len(threads), stage.parallel.cpus))
+                logger.info(f'{len(threads)} job(s) will be now executed in parallel\n'
+                            'allocated cores: {stage.parallel.cpus}')
             else:
-                logger.info('%d job(s) will be now executed in serial' % len(threads))
+                logger.info(f'{len(threads)} job(s) will be now executed in serial')
 
             default_status = pool.get_statuses(LogStatusFormat.ONELINE)
             progress_line = progress.Line(total=len(threads), desc='%s: %s' % (stage.ord_name, default_status), tty=False)
@@ -107,11 +131,17 @@ class ProcessProject(object):
             progress_line.close()
 
             if pool.terminate:
-                logger.error(f'Exiting application with 1')
-                exit(1)
+                logger.error('Caught pool terminate signal!')
+                if not pool.exception or pool.exception.on_error is OnError.EXIT:
+                    logger.error(f'Exiting application with 1')
+                    exit(1)
+
+                if pool.exception.on_error is OnError.BREAK:
+                    return False
 
         timers_total = sum([sum(x.collect_result.total) for x in threads if x.collect_result])
-        logger.info('%d processes finished, found %d documents' % (len(threads), timers_total))
+        logger.info(f'{len(threads)} processes finished, found {timers_total} documents')
+        return True
 
     @classmethod
     def configure(cls, o, d):

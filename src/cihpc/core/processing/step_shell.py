@@ -64,9 +64,9 @@ def process_popen(worker):
         with result:
             result.returncode = process.wait()
             if result.returncode == 0:
-                logger.debug('ok [%d] ended with %d' % (process.pid, result.returncode))
+                logger.debug(f'ok [{process.pid}] ended with {result.returncode}')
             else:
-                logger.warning('process [%d] ended with %d' % (process.pid, result.returncode))
+                logger.warning(f'process [{process.pid}] ended with {result.returncode}')
 
     # try to grab output
     result.output = getattr(io.opener, 'output', None)

@@ -1,0 +1,13 @@
+colorama
+cachetools
+pyyaml
+pymongo
+pandas
+numpy
+scipy
+pytest
+pluck
+python-daemon
+python-dateutil
+tqdm
+gitpython

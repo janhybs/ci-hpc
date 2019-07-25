@@ -29,15 +29,15 @@ def parse_cpu_property(value):
         if str.isdigit(value):
             return int(value)
         else:
-            logger.warning('extract_cpus_from_worker: could not parse given value %s' % value)
+            logger.warning(f'extract_cpus_from_worker: could not parse given value {value}')
             return 1
 
     elif isinstance(value, (int, float)):
         return int(value)
 
     else:
-        logger.warning('extract_cpus_from_worker: invalid value type!\n'
-                       'given type %s expected int or int-like string' % str(type(value)))
+        logger.warning(f'extract_cpus_from_worker: invalid value type!\n'
+                       f'given type {type(value)} expected int or int-like string')
         return 1
 
 

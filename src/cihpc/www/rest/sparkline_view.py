@@ -51,7 +51,7 @@ class SparklineView(ConfigurableView):
                 base64.decodebytes(base64data.encode()).decode()
             )
         else:
-            logger.warning('no options given')
+            logger.warning(f'no options given')
             options = dict()
 
         logger.info(strings.to_json(options))

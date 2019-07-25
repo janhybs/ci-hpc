@@ -50,10 +50,10 @@ class ProjectStepRepeat(object):
     #
     #     if not items:
     #         if git_commit:
-    #             logger.info('no history for the step %s and the commit %s\n'
+    #             logger.info(f'no history for the step %s and the commit %s\n'
     #                         'will run %d repetitions' % (step_name, git_commit, self.dynamic_value))
     #         else:
-    #             logger.info('no history for the step %s\n'
+    #             logger.info(f'no history for the step %s\n'
     #                         'will run %d repetitions' % (step_name, self.dynamic_value))
     #
     #         # return the minimum values specified
@@ -69,7 +69,7 @@ class ProjectStepRepeat(object):
     #         total += reps
     #         duration += dura
     #
-    #         logger.debug('found %d reps from %s which took %1.3fsec' % (reps, date, dura))
+    #         logger.debug(f'found %d reps from %s which took %1.3fsec' % (reps, date, dura))
     #
     #     self._remains = self.dynamic_value - total
     #
@@ -82,13 +82,13 @@ class ProjectStepRepeat(object):
     #             estimated_duration = '\nestimated duration is %d secs (ie. %1.1f mins or %1.2f hours)' % (
     #                 int(duration_total), float(duration_total / 60), float(duration_total / 3600)
     #             )
-    #         logger.info('found total of %d results\n'
+    #         logger.info(f'found total of %d results\n'
     #                     'need to run %d more repetitions%s', total, self._remains, estimated_duration)
     #     elif self._remains < 0:
-    #         logger.info('found total of %d results\n'
+    #         logger.info(f'found total of %d results\n'
     #                     'no need to run any more repetitions (they are %d extra)', total, total - self._remains)
     #     else:
-    #         logger.info('found total of %d results\n'
+    #         logger.info(f'found total of %d results\n'
     #                     'no need to run any more repetitions', total)
     #
     #     # 0 is the minimum value we want

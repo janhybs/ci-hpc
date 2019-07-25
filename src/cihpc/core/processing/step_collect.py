@@ -46,7 +46,7 @@ def process_step_collect(project, step, process_result, format_args=None):
     :type project:        structures.project.Project
     :type process_result: proc.step.step_shell.ProcessStepResult
     """
-    logger.debug('collecting artifacts')
+    logger.debug(f'collecting artifacts')
     result = namedtuple('CollectResult', ['total', 'items'])(total=[], items=[])
 
     logger.info(f'loading module {step.collect.module}')
@@ -80,7 +80,7 @@ def process_step_collect(project, step, process_result, format_args=None):
 
     if step.collect.parse:
         reports = process_step_collect_parse(project, step, process_result, format_args)
-        logger.debug('artifacts: found {} reports to process', len(reports))
+        logger.debug(f'artifacts: found {len(reports)} reports to process')
 
         for report, file in iter_reports(reports, conversion, is_file=False):
             try:
@@ -90,15 +90,15 @@ def process_step_collect(project, step, process_result, format_args=None):
                 results.append(collect_result)
             except Exception as e:
                 logger.exception(
-                    'artifact processing failed (parse method) \n'
-                    'module: {}\n'
-                    'file: {}\n', str(CollectModule), str(file)
+                    f'artifact processing failed (parse method) \n'
+                    f'module: {CollectModule}\n'
+                    f'file: {file}\n'
                 )
                 logger.debug(str(report))
 
         for file, timers in timers_info:
-            logger.debug('%20s: %5d timers found' % (file, timers))
-        logger.debug('artifacts: found {} timer(s) in {} file(s)', timers_total, len(reports))
+            logger.debug(f'%20s: %5d timers found' % (file, timers))
+        logger.debug(f'artifacts: found {timers_total} timer(s) in {len(reports)} file(s)')
 
         # insert artifacts into db
         if step.collect.save_to_db:
@@ -119,7 +119,7 @@ def process_step_collect(project, step, process_result, format_args=None):
     if step.collect.files:
         files_glob = configure_string(step.collect.files, format_args)
         files = glob.glob(files_glob, recursive=True)
-        logger.debug('artifacts: found %d files to process' % len(files))
+        logger.debug(f'artifacts: found {len(files)} files to process')
 
         for report, file in iter_reports(files, conversion, is_file=True):
             try:
@@ -129,15 +129,15 @@ def process_step_collect(project, step, process_result, format_args=None):
                 results.append(collect_result)
             except Exception as e:
                 logger.warning(
-                    'artifact processing failed (files method) \n'
-                    'module: %s\n'
-                    'file: %s\n' % (str(CollectModule), str(file))
+                    f'artifact processing failed (files method) \n'
+                    f'module: {CollectModule}\n'
+                    f'file: {file}\n'
                 )
                 logger.debug(str(report))
 
         for file, timers in timers_info:
-            logger.debug('%20s: %5d timers found' % (file, timers))
-        logger.debug('artifacts: found %d timer(s) in %d file(s)' % (timers_total, len(files)))
+            logger.debug(f'%20s: %5d timers found' % (file, timers))
+        logger.debug(f'artifacts: found {timers_total} timer(s) in {len(reports)} file(s)')
 
         # insert artifacts into db
         if step.collect.save_to_db:
@@ -146,7 +146,7 @@ def process_step_collect(project, step, process_result, format_args=None):
         # move results to they are not processed twice
         if step.collect.move_to:
             move_to = configure_string(step.collect.move_to, format_args)
-            logger.debug('artifacts: moving %d files to %s' % (len(files), move_to))
+            logger.debug(f'artifacts: moving {len(files)} files to {move_to}')
 
             for file in files:
                 old_filepath = os.path.abspath(file)

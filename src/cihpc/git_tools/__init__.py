@@ -94,17 +94,17 @@ class CommitHistoryExecutor(Daemon):
         self.commit_browser.load_commits()
         self.commit_browser.pick_commits()
 
-        logger.info('starting commit processing')
+        logger.info(f'starting commit processing')
         for commit in self.commit_browser.commits:
-            logger.info('%s starting' % commit.short_format)
+            logger.info(f'%s starting' % commit.short_format)
 
             with Timer(commit.short_format) as timer:
                 args = self.args_constructor.construct_arguments(commit.hash)
-                logger.info(' '.join([str(x) for x in args]))
+                logger.info(f' '.join([str(x) for x in args]))
                 process = subprocess.Popen(args, cwd=global_configuration.cwd)
                 process.wait()
 
-            logger.info('%s took %s [%d]' % (commit.short_format, timer.pretty_duration, process.returncode))
+            logger.info(f'%s took %s [%d]' % (commit.short_format, timer.pretty_duration, process.returncode))
 
 
 class WebhookService(Daemon):
@@ -217,7 +217,7 @@ project is `foo`): \n
 
         """
 
-        logger.info('%s starting' % payload.after)
+        logger.info(f'%s starting' % payload.after)
 
         with Timer(payload.after) as timer:
             try:
@@ -230,7 +230,7 @@ project is `foo`): \n
                 returncode = -1
                 logger.exception('Error while starting the process %s' % self.webhook_trigger)
 
-        logger.info('%s took %s [%d]' % (payload.after, timer.pretty_duration, returncode))
+        logger.info(f'%s took %s [%d]' % (payload.after, timer.pretty_duration, returncode))
 
         return returncode
 
@@ -239,7 +239,7 @@ project is `foo`): \n
 
         
 
-        logger.info('starting worker thread')
+        logger.info(f'starting worker thread')
         self._start_worker_thread()
 
         app = Flask(self.name)
@@ -283,7 +283,7 @@ project is `foo`): \n
             self.flask_opts.get('port')
         )
         app.run(**self.flask_opts)
-        logger.info('flask terminated')
+        logger.info(f'flask terminated')
         return app
 
 
@@ -300,11 +300,10 @@ def main():
         logger.error('termination execution')
         sys.exit(1)
     else:
-        logger.debug('determined config dir: %s' % project_dir)
+        logger.debug(f'determined config dir: {project_dir}')
         global_configuration.project_cfg_dir = project_dir
 
-    logger.info('running webhook server for the configuration \n'
-                '  %s' % project_dir)
+    logger.info(f'running webhook server for the configuration \n{project_dir}')
 
     webhook_trigger = WebhookTrigger.from_file(os.path.join(project_dir, 'webhook.yaml'))
 

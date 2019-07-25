@@ -50,14 +50,15 @@ class ProjectStepVariables(ComplexClass):
                     values.append(list(itertools.repeat(value, total)))
 
             product = [{names[v_j]: values[v_j][v_i] for v_j in range(len(names))} for v_i in range(total)]
-            logger.debug('created value matrix with %d configurations', len(product))
-        elif section_name == 'matrix':
+            logger.debug(f'created value matrix with {len(product)} configurations')
 
+        elif section_name == 'matrix':
             values = [ensure_list(extract_first(y.values())) for y in variables]
             product = list(dict(zip(names, x)) for x in itertools.product(*values))
-            logger.debug('created build matrix with %d configurations', len(product))
+            logger.debug(f'created build matrix with {len(product)} configurations')
+            
         else:
-            raise Exception('Invalid variable type %s' % section_name)
+            raise Exception(f'Invalid variable type {section_name}')
 
         return product
 

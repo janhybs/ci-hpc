@@ -35,7 +35,7 @@ def process_step_measure(step, measure, shell_processing):
     if measure.type is not measure.Type.TYPE_INSTRUMENT_SHELL:
         return
 
-    logger.info('measuring artifacts')
+    logger.info(f'measuring artifacts')
 
     kwargs = dict(
         datetime=datetime.datetime.now().strftime('%Y_%m_%d-%H_%M_%S'),

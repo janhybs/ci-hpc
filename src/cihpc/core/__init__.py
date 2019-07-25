@@ -1,17 +1,17 @@
 #!/bin/python3
 # author: Jan Hybs
 
-import argparse
 import collections
 import locale
 from loguru import logger
-import os
 import sys
+
+from cihpc.core.utils import iter_project_definition
 
 
 logger.level('DURATION', no=38, color='<Y><bold><r>')
 # logger.configure(handlers=[])
-from cihpc.core.parsers import ArgAction, parse_args
+from cihpc.core.parsers.run_parser import ArgAction, parse_args
 
 
 if locale.getpreferredencoding().upper() not in ('UTF8', 'UTF-8'):
@@ -73,100 +73,10 @@ def _git_foreach(args, project):
             limit=args.watch_commit_limit,
             commit_policy=args.watch_commit_policy,
         )
-        logger.info('analyzing last %d commits, commit pick policy: %s' % (
-            commit_browser.limit, commit_browser.commit_policy))
+        logger.info(f'analyzing last {commit_browser.limit} commits, commit pick policy: {commit_browser.commit_policy}')
         service = CommitHistoryExecutor(project.definition.name, args_constructor, commit_browser)
 
         service.run()
-
-
-def iter_project_definition(args: argparse.Namespace = None):
-    from cihpc.cfg.config import global_configuration
-    import cihpc.cfg.cfgutil as cfgutil
-    from cihpc.cfg import config as env
-
-    from cihpc.common.utils.parsing import defaultdict_type
-    from cihpc.common.utils import strings as strings_utils
-
-    from cihpc.core.processing.project import ProcessProject
-    from cihpc.core.structures.project import Project
-    from cihpc.core.execution import SeparateExecutor, ExecutionFactor
-
-    # -------------------------------------------------------
-
-    # all configuration files are cfg/<project-name> directory if not set otherwise
-    project_dir = cfgutil.find_valid_configuration(
-        args.config_dir,
-        global_configuration.home,
-        file='config.yaml',
-        raise_if_not_found=True
-    )
-
-    if not project_dir:
-        logger.error('termination execution')
-        sys.exit(1)
-    else:
-        logger.debug('determined config dir: %s' % project_dir)
-        config_path = os.path.join(project_dir, 'config.yaml')
-
-        global_configuration.project_cfg_dir = project_dir
-        global_configuration.project_cfg = config_path
-
-    # this file contains all the sections and actions for installation and testing
-    config_yaml = cfgutil.yaml_load(cfgutil.read_file(config_path))
-    project_name = config_yaml.get('project', None)
-
-    if project_name is None:
-        logger.error('configuration file\n%s\n'
-                     'does not contain required field "project"' % config_path)
-        logger.error(cfgutil.read_file(config_path))
-        sys.exit(1)
-
-    logger.info('running cihpc for the project %s' % project_name)
-    logger.debug('app args: %s', str(args))
-
-    # convert list ["key:value", "key2:value2", ...] to dict {key:value, key2:value2}
-    # default value for this dictionary is string value 'master'
-    args.git_branch = defaultdict_type(args.git_branch, 'master', project_name)
-
-    # default value for this dictionary is string value ''
-    args.git_commit = defaultdict_type(args.git_commit, '', project_name)
-
-    # this file contains only variables which can be used in config.yaml
-    variables_path = os.path.join(project_dir, 'variables.yaml')
-
-    # update cpu count
-    variables = cfgutil.load_config(variables_path)
-    # variables['cpu-count'] = args.cpu_count
-
-    global_configuration.project_name = project_name
-
-    # -----------------------------------------------------------------
-
-    # otherwise load configs
-    project_configs = cfgutil.configure_file(config_path, variables)
-    for project_config in project_configs:
-        # clear the cache
-        # from cihpc.artifacts.modules import CIHPCReportGit, CIHPCReport
-        #k
-        # CIHPCReport.inited = False
-        # CIHPCReportGit.instances = dict()
-
-        logger.debug('yaml configuration: \n%s', strings_utils.to_yaml(project_config))
-
-        # specify some useful global arguments which will be available in the config file
-        global_args_extra = {
-            'tmp'         : env.__tmp__,
-            'project-name': project_name,
-            'project-dir' : project_dir,
-            'arg'         : dict(
-                branch=collections.defaultdict(lambda: 'master', **dict(args.git_branch)),
-                commit=collections.defaultdict(lambda: '', **dict(args.git_commit)),
-            )
-        }
-
-        # parse config
-        yield Project(project_name, global_args_extra, **project_config)
 
 
 def main(cmd_args=None):
@@ -174,7 +84,6 @@ def main(cmd_args=None):
 
     from cihpc.core.processing.project import ProcessProject
     from cihpc.core.structures.project import Project
-    from cihpc.core.execution import SeparateExecutor, ExecutionFactor
 
     # parse args
     args = parse_args(cmd_args)

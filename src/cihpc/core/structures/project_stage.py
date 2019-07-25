@@ -1,5 +1,6 @@
 #!/bin/python3
 # author: Jan Hybs
+import enum
 
 import cihpc.common.utils.strings as strings
 from cihpc.core.structures.a_project import ComplexClass
@@ -11,6 +12,7 @@ from cihpc.core.structures.project_step_measure import ProjectStepMeasure
 from cihpc.core.structures.project_step_parallel import ProjectStepParallel
 from cihpc.core.structures.project_step_repeat import ProjectStepRepeat
 from cihpc.core.structures.project_step_variables import ProjectStepVariables
+from cihpc.exceptions.exec_error import OnError
 
 
 class Props(object):
@@ -86,7 +88,9 @@ class ProjectStage(ComplexClass):
             self.index = kwargs.get('index', dict())
 
             # on error behaviour
-            self.on_error = kwargs.get('on-error', 'continue')
+            self.on_error = OnError(
+                kwargs.get('on-error', 'continue')
+            )
 
             # artifact collection
             self.collect = ProjectStepCollect(kwargs.get(Props.COLLECT))

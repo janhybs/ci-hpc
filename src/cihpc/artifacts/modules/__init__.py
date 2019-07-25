@@ -136,7 +136,7 @@ def parse_output(out, line=None):
 #         timestamp = int(parse_output(
 #             check_output('git show -s --format=%%ct %s' % commit, shell=True, cwd=root)
 #         ))
-#         logger.debug('current git ord of *%s* is at:\n'
+#         logger.debug(f'current git ord of *%s* is at:\n'
 #                      'commit=%s, branch=%s', repo, commit, branch)
 #
 #         git = CIHPCReportGit()

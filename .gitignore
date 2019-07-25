@@ -98,7 +98,6 @@ venv.bak/
 .mypy_cache/
 
 # Pycharm project
-/.idea
 /projects
 /cfg/secret.yaml
 /images
@@ -114,6 +113,10 @@ tests/*.log
 tests/tmp.*
 tmp.*
 foo.log
+/.tmp/
+/tmp/
+/.vscode/
+/.idea*
 
 
 # Docs

@@ -64,9 +64,9 @@ class SeparateExecutor(object):
     @staticmethod
     def _load_content(execute_path):
         if not execute_path or not os.path.exists(execute_path):
-            logger.warning('could not found %s\n'
-                           'will use a generated one, which may not '
-                           'be suitable for every system' % execute_path)
+            logger.warning(f'could not found {execute_path}\n'
+                           f'will use a generated one, which may not '
+                           f'be suitable for every system')
 
         try:
             with open(execute_path, 'r') as fp:
@@ -126,7 +126,7 @@ class AbstractExecutor(object):
         self.temp_file.write(self.script_content)
         self.temp_file.close()
         self.id = None
-        logger.info('created temp file for the execution %s' % self.temp_file.name)
+        logger.info(f'created temp file for the execution %s' % self.temp_file.name)
 
     def clean(self):
         os.unlink(self.script_path)
@@ -201,10 +201,10 @@ class LocalExecutor(AbstractExecutor):
                 stdout=open(self.script_path+'.out', 'w')
             )
             self.id = str(self.process.pid)
-            logger.info('ok, job %s created' % self.id)
-            logger.info('stdout available in %s' % (self.script_path + '.out'))
+            logger.info(f'ok, job %s created' % self.id)
+            logger.info(f'stdout available in %s' % (self.script_path + '.out'))
         except Exception as e:
-            logger.exception('could not submit the job (error: %s) via file %s' % (str(e), self.script_path))
+            logger.exception(f'could not submit the job (error: {e}) via file {self.script_path}')
             raise
 
     def wait(self, timeout=None, kill=True, check_period=(3.0, 60.0)):
@@ -212,16 +212,16 @@ class LocalExecutor(AbstractExecutor):
             self.process.wait(timeout)
             self.clean()
             return self.process.returncode == 0
-        except subprocess.TimeoutExpired as e:
-            logger.warning('reached the job wait timeout, but the job %s did not finish' % self.id)
+        except subprocess.TimeoutExpired:
+            logger.warning(f'reached the job wait timeout, but the job {self.id} did not finish')
 
             if kill:
-                logger.info('killing the job %s' % self.id)
+                logger.info(f'killing the job %s' % self.id)
                 self.kill()
                 self.clean()
                 return False
             else:
-                logger.info('abandoning wait cycle...')
+                logger.info(f'abandoning wait cycle...')
                 return None
 
     def kill(self):
@@ -239,23 +239,23 @@ class PBSProExecutor(AbstractExecutor):
 
         while True:
             if not self._is_running(self.id):
-                logger.info('job %s finished' % self.id)
+                logger.info(f'job %s finished' % self.id)
                 self.clean()
                 return True
 
             if timeout and (time.time() - start_time) > timeout:
-                logger.warning('reached the job wait timeout, but the job %s did not finish' % self.id)
+                logger.warning(f'reached the job wait timeout, but the job {self.id} did not finish')
 
                 if kill:
-                    logger.info('killing the job %s' % self.id)
+                    logger.info(f'killing the job %s' % self.id)
                     self.kill()
                     self.clean()
                     return False
                 else:
-                    logger.info('abandoning wait cycle...')
+                    logger.info(f'abandoning wait cycle...')
                     return None
 
-            logger.info('waiting for the job %s to finish' % self.id)
+            logger.info(f'waiting for the job %s to finish' % self.id)
             time.sleep(sleeper())
 
     def kill(self):
@@ -268,13 +268,13 @@ class PBSProExecutor(AbstractExecutor):
             return False
 
     def submit(self):
-        logger.info('submitting pbs via file %s' % self.script_path)
+        logger.info(f'submitting pbs via file %s' % self.script_path)
 
         try:
             command = ['qsub', self.script_path]
             output = str(subprocess.check_output(command).decode()).strip()
             self.id = self._parse_job_id(output)
-            logger.info('ok, job %s created' % self.id)
+            logger.info(f'ok, job %s created' % self.id)
         except Exception as e:
             logger.exception('could not submit the job (error: %s) via file %s' % (str(e), self.script_path))
             raise

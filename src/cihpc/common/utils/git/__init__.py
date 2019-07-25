@@ -75,10 +75,10 @@ class Git(object):
         if branch:
             branch = branch.replace('origin/', '')
 
-        logger.info('Git checkout repo={self.git.repo} to \n'
-                    'branch={self.git.branch}\n'
-                    'commit={self.git.commit}\n'
-                    'folder={self.dir}'.format(self=self))
+        logger.info(f'Git checkout repo={self.git.repo} to \n'
+                    f'branch={self.git.branch}\n'
+                    f'commit={self.git.commit}\n'
+                    f'folder={self.dir}'.format(self=self))
 
         self.execute("git config core.pager", "", dir=self.dir)  # turn of less pager
         self.execute('git fetch', dir=self.dir).wait()
@@ -103,7 +103,7 @@ class Git(object):
                     self.execute('git checkout -b', branch, dir=self.dir).wait()
 
     def info(self):
-        logger.debug('Repository currently at:')
+        logger.debug(f'Repository currently at:')
         o, e = self.execute_check_output('git branch -vv', dir=self.dir).communicate(timeout=60)
         logger.debug(o.decode())
         o, e = self.execute_check_output('git log -n 10 --graph', '--pretty=format:%h %ar %aN%d %s', dir=self.dir).communicate(timeout=60)

@@ -12,11 +12,11 @@ def process_step_collect_parse(project, step, process_result, format_args=None):
     :type process_result: proc.step.step_shell.ProcessStepResult
     """
 
-    logger.debug('parsing output artifacts')
+    logger.debug(f'parsing output artifacts')
     if not process_result.output:
-        logger.warning('Empty output received, make sure the field ouutput is set to \n'
-                       'output: log+stdout \n'
-                       'in order to capture output of the shell step')
+        logger.warning(f'Empty output received, make sure the field ouutput is set to \n'
+                       f'output: log+stdout \n'
+                       f'in order to capture output of the shell step')
         return []
 
     index = 0
@@ -37,7 +37,7 @@ def process_step_collect_parse(project, step, process_result, format_args=None):
         # broken report
         e = output.find(stop, s + 1, length)
         if e == -1:
-            logger.debug('could not find end of the report file while parsing the output')
+            logger.debug(f'could not find end of the report file while parsing the output')
             break
 
         index = e + le + 1

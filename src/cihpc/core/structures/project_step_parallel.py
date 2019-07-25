@@ -30,8 +30,8 @@ class ProjectStepParallel(ComplexClass):
                 self.cpus = determine_cpus(kwargs.get('cpus', 1))
                 self.prop = kwargs.get('prop', None)
             except ValueError as e:
-                logger.warning('error while determining cpus value, will use 1 core\n'
-                               '%s' % str(e))
+                logger.warning(f'error while determining cpus value, will use 1 core\n'
+                               f'{e}')
                 self.cpus = 1
                 self.prop = None
                 self._enabled = False

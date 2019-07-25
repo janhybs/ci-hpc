@@ -39,11 +39,11 @@ class Mongo(object):
         if 'type' in opts:
             opts.pop('type')
 
-        logger.debug('establishing connection to the database')
+        logger.debug(f'establishing connection to the database')
         self.client = MongoClient(**opts)
 
-        logger.debug('connection established %s' % str(self.client))
-        logger.debug('connected to the mongo server %s' % str(self))
+        logger.debug(f'connection established {self.client}')
+        logger.debug(f'connected to the mongo server {self}')
 
     def _warn_first_time(self, warning):
         result = self._was_warned.get(warning) is False
@@ -54,14 +54,14 @@ class Mongo(object):
         if opts:
             return opts
 
-        opts = cfg.get('%s.database' % self.project_name)
+        opts = cfg.get(f'{self.project_name}.database')
         if not opts:
             logger.warning(
                 f'No valid database configuration found for the project {self.project_name} \n'
-                'You *must* specify this in your secret.yaml, if you want to use \n'
-                'database features.',
+                f'You *must* specify this in your secret.yaml, if you want to use \n'
+                f'database features.',
             )
-            raise Exception('No database configuration found for %s' % self.project_name)
+            raise Exception(f'No database configuration found for {self.project_name}')
         return opts
 
     def __repr__(self):
@@ -117,11 +117,10 @@ class CIHPCMongo(Mongo):
         if not opts:
             if self._warn_first_time(self.SECTION_ARTIFACTS):
                 logger.warning(
-                    'No valid artifact configuration found for the project %s \n'
-                    'It is recommended to specify this configuration in secret.yaml, \n'
-                    'it can be as simple as this: \n'
+                    f'No valid artifact configuration found for the project {self.project_name} \n'
+                    f'It is recommended to specify this configuration in secret.yaml, \n'
+                    f'it can be as simple as this: \n'
                     '\n%s\n ',
-                    self.project_name,
                     strings.to_yaml(
                         {self.project_name: {'artifacts': self.artifacts_default_configuration(self.project_name)}}
                     )
@@ -135,7 +134,7 @@ class CIHPCMongo(Mongo):
         if not filter:
             filter = dict()
 
-        logger.info('db.getCollection("%s").find(\n'
+        logger.info(f'db.getCollection("%s").find(\n'
                     '%s\n'
                     ',\n%s\n)',
                     str(self.reports.name),
@@ -161,8 +160,7 @@ class CIHPCMongo(Mongo):
         if not filter:
             filter = dict()
 
-        logger.debug('db.getCollection("%s").findOne(\n%s\n)',
-                     str(self.reports.name),
+        logger.debug(f'db.getCollection("{self.reports.name}").findOne(\n%s\n)' %
                      strings.pad_lines(strings.to_json(filter))
                      )
         return self.reports.find_one(filter, *args, **kwargs)
@@ -194,8 +192,7 @@ class CIHPCMongo(Mongo):
         if args:
             pipeline.extend(args)
 
-        logger.debug('db.getCollection("%s").aggregate(\n%s\n)',
-                     str(self.reports.name),
+        logger.debug(f'db.getCollection("{self.reports.name}").aggregate(\n%s\n)' %
                      strings.pad_lines(strings.to_json(pipeline))
                      )
 
@@ -245,8 +242,7 @@ class CIHPCMongo(Mongo):
                 }
             }
         ]
-        logger.debug('db.getCollection("%s").aggregate(\n%s\n)',
-                     str(self.reports.name),
+        logger.debug(f'db.getCollection("{self.reports.name}").aggregate(\n%s\n)' %
                      strings.pad_lines(strings.to_json(pipeline))
                      )
         return list(self.reports.aggregate(pipeline))

@@ -164,7 +164,7 @@ class WWWServer(Daemon):
             self.flask_opts.get('port')
         )
         app.run(**self.flask_opts)
-        logger.info('flask terminated')
+        logger.info(f'flask terminated')
         return app
 
 
@@ -182,7 +182,7 @@ def main(cmd_args=None):
     if args.config_dir:
         global_configuration.home = args.config_dir
 
-    logger.info('using config dir %s' % global_configuration.home)
+    logger.info(f'using config dir {global_configuration.home}')
 
     if args.action == 'debug':
         args.debug = True

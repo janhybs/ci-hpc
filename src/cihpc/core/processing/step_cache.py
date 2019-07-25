@@ -62,10 +62,10 @@ class ProcessStepCache(object):
         for dirname in self.directories:
             from_dir = os.path.join(self.location, dirname)
             to_dir = os.path.join(self.cwd, dirname)
-            logger.debug('restoring cache dir %s' % dirname)
+            logger.debug(f'restoring cache dir {dirname}')
 
             if os.path.exists(to_dir):
-                logger.debug('rm tree %s' % to_dir)
+                logger.debug(f'rm tree {to_dir}')
                 shutil.rmtree(to_dir)
             shutil.copytree(from_dir, to_dir)
 
@@ -74,12 +74,12 @@ class ProcessStepCache(object):
         for dirname in self.directories:
             from_dir = os.path.join(self.cwd, dirname)
             to_dir = os.path.join(self.location, dirname)
-            logger.debug('saving cache dir %s' % dirname)
+            logger.debug(f'saving cache dir {dirname}')
 
             if os.path.exists(to_dir):
-                logger.debug('rm tree %s' % to_dir)
+                logger.debug(f'rm tree {to_dir}')
                 shutil.rmtree(to_dir)
             shutil.copytree(from_dir, to_dir)
 
     def __repr__(self):
-        return 'ProcessStepCache(%s)' % self.value
+        return f'ProcessStepCache({self.value})' 

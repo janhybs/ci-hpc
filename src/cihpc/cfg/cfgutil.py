@@ -55,7 +55,7 @@ class Config(object):
             import platform
 
             cls._hostname = platform.node()
-            logger.debug('determined hostname as "%s"', cls._hostname)
+            logger.debug(f'determined hostname as "{cls._hostname}"')
         return cls._hostname
 
     @classmethod
@@ -83,8 +83,8 @@ class Config(object):
             with open(config_file, 'r') as fp:
                 cls._cfg = yaml_load(fp.read()) or dict()
         except Exception as e:
-            logger.exception('Failed to load/parse %s configuration file, will use empty dict', config_file)
-            logger.warning('You may want to create this file in order to use database connection')
+            logger.exception(f'Failed to load/parse {config_file} configuration file, will use empty dict')
+            logger.warning(f'You may want to create this file in order to use database connection')
             cls._cfg = dict()
         return cls._instance
 
@@ -158,7 +158,7 @@ def load_config(path, replace=True, hostname_conditions=True, hostname=None):
 
         # we found our hostname match
         if re.match(regex, host):
-            logger.debug('setting conditional variables (hostname %s matches definition %s)', host, k)
+            logger.debug(f'setting conditional variables (hostname {host} matches definition {k})')
             result.update(other_dict)
             return result
     return result
@@ -222,6 +222,7 @@ def configure_object(obj, vars, preserve_if_missing=False):
         return configure_string(obj, vars, preserve_if_missing)
 
 
+_warn_cache = dict()
 def _get_property(obj, val, default=_no_such_value):
     """
     :type val: str
@@ -235,7 +236,10 @@ def _get_property(obj, val, default=_no_such_value):
             else:
                 root = getattr(root, k)
         except:
-            logger.debug('could not find propery %s on %s' % (str(val), str(obj)))
+            key = str(val), id(obj)
+            if key not in _warn_cache:
+                # logger.debug(f'could not find propery {val} on {obj')
+                _warn_cache[key] = True
             return default
     return root
 

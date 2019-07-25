@@ -15,9 +15,7 @@ from cihpc.common.processing import ComplexSemaphore
 from cihpc.common.utils.events import EnterExitEvent
 from cihpc.common.utils.timer import Timer
 from cihpc.core.processing.step_shell import ProcessStepResult
-
-
-
+from cihpc.exceptions.exec_error import ExecError
 
 
 class PoolInt(object):
@@ -58,6 +56,7 @@ class SimpleWorker(threading.Thread):
         self.timer = Timer(self.name)
         self._pretty_name = None
         self.terminate = False
+        self.exception = None
 
     @property
     def status(self):
@@ -65,7 +64,7 @@ class SimpleWorker(threading.Thread):
 
     @status.setter
     def status(self, value):
-        # logger.debug('[%s]%s -> %s' % (str(self), str(self._status), str(value)))
+        # logger.debug(f'[%s]%s -> %s' % (str(self), str(self._status), str(value)))
         self._status = value
 
     def _run(self):
@@ -79,9 +78,12 @@ class SimpleWorker(threading.Thread):
         self.thread_event.on_enter(self)
 
         with self.timer:
-            can_continue = self._run()
-            if not can_continue:
+            try:
+                self._run()
+            except ExecError as e:
+                logger.error(f'Caught ExecError {e.reason}!')
                 self.terminate = True
+                self.exception = e
 
         self.semaphore.release(value=self.cpus)
         self.status = WorkerStatus.EXITING
@@ -113,6 +115,7 @@ class Worker(SimpleWorker):
 class WorkerPool(object):
     """
     :type threads: list[cihpc.common.processing.pool.SimpleWorker]
+    :type exception: cihpc.exceptions.exec_error.ExecError
     """
 
     def __init__(self, cpu_count, threads):
@@ -122,8 +125,9 @@ class WorkerPool(object):
         self.thread_event = EnterExitEvent('thread')
         self.threads = list()
         self.terminate = False
+        self.exception = None
 
-        logger.debug('process limit set to %d' % self.processes)
+        logger.debug(f'process limit set to {self.processes}' % )
         self.add_threads(*threads)
 
     def add_threads(self, *threads: Worker):
@@ -155,8 +159,10 @@ class WorkerPool(object):
             self.thread_event.on_exit(thread)
 
             if thread.terminate:
+                logger.error('Caught pool terminate signal!')
                 self.terminate = True
-                return
+                self.exception = thread.exception
+                return False
 
     def start_parallel(self):
         # start
@@ -180,8 +186,10 @@ class WorkerPool(object):
                     not_joined.remove(thread)
 
                     if thread.terminate:
+                        logger.error('Caught pool terminate signal!')
                         self.terminate = True
-                        return
+                        self.exception = thread.exception
+                        return False
 
         return self.result
 

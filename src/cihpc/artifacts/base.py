@@ -21,7 +21,7 @@ class ICollectTool(object):
     exclude = None
 
     def process_file(self, f: str) -> list:
-        raise NotImplemented('Method must be implemented')
+        raise NotImplementedError('Method must be implemented')
 
 
 class LogPolicy(enum.Enum):
@@ -114,7 +114,7 @@ class CIHPCReport(dotdict):
         # elif global_configuration.project_git:
         #     cls.global_git = CIHPCReportGit.get(global_configuration.project_git.repo)
         # else:
-        #     logger.warning('no git repository set')
+        #     logger.warning(f'no git repository set')
 
         cls.global_system = system_info()
         cls.inited = True
@@ -268,7 +268,7 @@ class AbstractCollectModule(object):
         :type collect_results: list[CollectResult]
         """
 
-        logger.debug('saving %d report files to database' % len(collect_results))
+        logger.debug(f'saving {len(collect_results)} report files to database')
         cihpc_mongo = db.CIHPCMongo.get_default()
 
         results = list()
@@ -277,13 +277,13 @@ class AbstractCollectModule(object):
             # save logs first
             if item.logs and item.items:
                 log_ids = cihpc_mongo.files.insert_many(item.logs).inserted_ids
-                logger.debug('inserted %d files' % len(log_ids))
+                logger.debug(f'inserted {len(log_ids)} files')
                 item.update(log_ids)
 
             # insert rest to db
             if item.items:
                 results.append(cihpc_mongo.reports.insert_many(item.items))
-        logger.debug('inserted %d reports' % len(results))
+        logger.debug(f'inserted {len(results)} reports')
         return results
 
     def process(self, object, from_file=None):

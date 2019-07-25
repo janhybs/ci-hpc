@@ -34,13 +34,9 @@ class ProjectGit:
                 self.deps[repo.name] = repo
 
         else:
-            logger.warning('No git repository provided, please specify field "git" in "config.yaml')
+            logger.warning(f'No git repository provided, please specify field "git" in "config.yaml')
             self.main_repo = None
             self.deps = dict()
-
-    def configure(self, kwargs):
-        print(kwargs)
-        exit(0)
 
     @classmethod
     def _from_dict(cls, **kwargs):
@@ -66,11 +62,14 @@ class GitSpec:
         self._commit = commit or None
         self.checkout = kwargs.get('checkout', True)
         self.clean_before_checkout = kwargs.get('clean-before-checkout', False)
-        self.dir = None
         self.repo = None
+        self._dir = kwargs.get('dir', None)
+
+    @property
+    def dir(self):
+        return self._dir or os.path.abspath(os.path.join(os.getcwd(), self.name))
 
     def initialize(self):
-        self.dir = os.path.abspath(os.path.join(os.getcwd(), self.name))
         logger.info(f'Initializing repo {self.name}')
 
         if not self.checkout:
@@ -81,6 +80,7 @@ class GitSpec:
 
             # easy scenario, branch set, commit not
             if self._branch and not self._commit:
+                logger.info(f'Checking out branch {self._branch}')
                 # branch must exists
                 self.repo.git.checkout(self._branch)
                 self.repo.active_branch.set_tracking_branch(self.repo.remote().refs[self._branch])
@@ -89,23 +89,22 @@ class GitSpec:
             # also easy, we have the commit but not the branch
             # only the branch name will be **detached**
             elif not self._branch and self._commit:
+                logger.info(f'Checking out {self._commit} under branch DETACHED!')
                 self.repo.git.checkout(self._commit)
 
             # both branch and commit are set
             # we checkout to commit and create local only branch
             elif self._branch and self._commit:
-                if self.commit.startswith(self._commit) and self.branch == self._branch:
-                    print('we good')
-
-                else:
-                    self.repo.git.checkout(self._commit)
-                    self.repo.delete_head(self._branch)
-                    new_branch = self.repo.create_head(self._branch)
-                    self.repo.head.reference = new_branch
+                logger.info(f'Checking out {self._commit} under branch {self._branch}')
+                self.repo.git.checkout(self._commit)
+                self.repo.delete_head(self._branch, force=True)
+                new_branch = self.repo.create_head(self._branch)
+                self.repo.head.reference = new_branch
 
             # nothing was specified
             # we go to the latest master
             else:
+                logger.info(f'Checking out the latest commit (branch master)')
                 self._branch = 'master'
                 self.repo.git.checkout(self._branch)
                 self.repo.active_branch.set_tracking_branch(self.repo.remote().refs[self._branch])

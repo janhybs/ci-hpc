@@ -30,7 +30,7 @@ class ConfigurableView(Resource):
 
     @classmethod
     def error_empty_df(cls, filters):
-        logger.info('empty result')
+        logger.info(f'empty result')
         return cls.show_error(
             status=300,
             message='No results found',
@@ -44,7 +44,7 @@ class ConfigurableView(Resource):
 
     @classmethod
     def show_error(cls, message, status=400, description=''):
-        logger.info('error [%d] %s' % (status, message))
+        logger.info(f'error [{status}] {message}')
         return dict(
             status=status,
             message=message,

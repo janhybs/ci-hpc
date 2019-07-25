@@ -45,7 +45,7 @@ class CommitBrowser(object):
         # git log the commits
         self.all_commits = self.git.log(self.limit)
 
-        logger.info('loaded %d commits' % len(self.all_commits))
+        logger.info(f'loaded {len(self.all_commits)} commits')
         day_getter = lambda commit: commit.fs_date.split('-')[0]
         for key, group in itertools.groupby(self.all_commits, key=day_getter):
             msg = '- commits on %s\n' % key.replace('_', '-')
@@ -55,7 +55,7 @@ class CommitBrowser(object):
     def pick_commits(self):
         self.commits = list()
 
-        logger.info('commits which will be tested (marked with +)')
+        logger.info(f'commits which will be tested (marked with +)')
         day_getter = lambda commit: commit.fs_date.split('-')[0]
         for key, group in itertools.groupby(self.all_commits, key=day_getter):
             msg = '- commits on %s\n' % key.replace('_', '-')
