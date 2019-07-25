@@ -5,6 +5,9 @@ python:
   - "3.6"
   - "3.7-dev"
 
+env:
+  PYTHONPATH: $HOME/build/janhybs/ci-hpc/src/:$PYTHONPATH
+
 # cache pip downloaded packages
 cache:
   directories:
