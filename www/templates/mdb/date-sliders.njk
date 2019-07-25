@@ -1,0 +1,35 @@
+<div class="form-group ml-3">
+  <h4>{{ text }}: </h4>
+  {% if desc %}
+    <p class="lead small">{{ desc | safe }}</p>
+  {% endif %}
+
+  {% for slider in items %}
+    <div class="cihpc-slider" data-type='{{ slider.type | default("date") }}'>
+      <label for="slider-{{ slider.name }}">
+        {% if title %}
+            <span class="title">{{ slider.title }}: </span>
+        {% endif %}
+        {% if slider.format %}
+          <span>{{ slider.format | safe }}</span>
+        {% else %}
+          <span class="text"></span>
+        {% endif %}
+      </label>
+      <input class="value custom-range"
+             type="range" name="{{ slider.name }}"
+             data-default='{{ slider.value }}'
+             data-key='{{ key }}'
+             {% if slider.min %}
+               min="{{ slider.min }}"
+             {% endif %}
+             {% if slider.max %}
+               max="{{ slider.max }}"
+             {% endif %}
+             id="slider-{{ slider.name }}">
+             {% if slider.desc %}
+               <p class="lead small">{{ slider.desc | safe }}</p>
+             {% endif %}
+    </div>
+  {% endfor %}
+</div>

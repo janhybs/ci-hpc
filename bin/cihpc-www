@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+# author: Jan Hybs
+
+import sys
+import os
+
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), '..'
+        )
+    )
+)
+
+try:
+    import cihpc.www
+except ImportError as e:
+    print(sys.executable, sys.version)
+    print('sys.path:')
+    for i in range(len(sys.path)):
+        print('%2d) %s' % (i + 1, sys.path[i]))
+    raise
+
+
+print('cihpc-www v%s' % cihpc.__version__, sys.executable, str(sys.version).replace('\n', ' '))
+sys.exit(
+    cihpc.www.main()
+)

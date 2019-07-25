@@ -1,66 +1,58 @@
+project: hello-world
 workdir: <hello-world-workdir>
-init-shell: |
-  # this will be executed everytime before each script
-  set -e
-  
-install:
-  - name: compilation-phase
-    output: stdout+log
-    git:
-    - url: git@github.com:janhybs/bench-stat.git
-      commit: <arg.commit.hello-world> # checkout to this commit
-      branch: <arg.branch.hello-world> # under this branch's name
-      
-    shell: |
-      cd bench-stat
-      
-      # compile source code
-      make -C benchmarks compile
-      ldd benchmarks/O3.out
-      
+init-shell: !readfile sh/init.sh
 
-test:
-  - name: testing-phase
-    output: stdout+log
-    repeat: 7
+stages:
+  - stage: compile
+    enabled: true
+    git:
+      - url: https://github.com/janhybs/bench-stat.git
+        commit: <arg.commit.hello-world> # checkout to this commit
+        branch: <arg.branch.hello-world> # under this branch's name
+
+    shell: !readfile sh/install.sh
+    cache: bench-stat
+
+  - stage: memory-cache-test
+    output: null
+
+    repeat:
+      exactly: 1
+      no-less-than: 8
+
+    parallel:
+      cpus: <cpu-value.foo|i>
+      prop: <cpu-value.bar>
+
     variables:
+      - matrix:
+        - test:
+            - id: 1
+              name: memory-cache-test-l1
+            - id: 2
+              name: memory-cache-test-l2
+            - id: 3
+              name: memory-cache-test-l3
       - matrix:
         - test:
             - id: 0
               name: memory-cache-test-all
-            # - id: 1
-            #   name: memory-cache-test-l1
-            # - id: 2
-            #   name: memory-cache-test-l2
-            
-    shell: |
-      cd bench-stat
-      echo "Running test <test.name> (id=<test.id>)"
-      
-      # usage:
-      #   benchmarks/O3.out [json-output-path] [test-id]
-      
-      
-      # To get reasonable looking output file name we use <__project__> placeholder
-      #   1) one option is to use date and some random string to avoid collision
-      #      unique_name=<__project__.current.datetime>-<__project__.current.random>
-      #
-      #   2) another option is to simply count
-      #      unique_name=<__project__.counter.next-05d>
-      #         the placeholder above is still processed 
-      #         meaning the counter will be increased by 2 :)
-      
-      unique_name=<__project__.counter.next-05d>
-      benchmarks/O3.out benchmark-${unique_name}.json <test.id>
-      
+
+    shell: !readfile sh/test.sh
+
     collect:
       repo: bench-stat
-      files: bench-stat/benchmark-*.json
-      module: artifacts.collect.modules.generic_module
+      files: bench-stat/arts/<__unique__>/result-*.json
+      module: cihpc.artifacts.modules.generic_module
       move-to: bench-stat/artifacts/<__project__.start.datetime>
       cut-prefix: null
-      save-to-db: true
+
       extra:
-        metric:     foobar # additional property of the test you want to save
+        metric:     foobar      # additional property of the test you want to save
         test-id:    <test.id|i> # accessing current test
         test-name:  <test.name> # accessing current build matric data
+        cpu-value:  <__stage__.parallel.cpus|i>
+
+  - stage: cleanup
+    shell: |
+      rm -vrf bench-stat/arts/*

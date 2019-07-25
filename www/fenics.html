@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>CI-HPC</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="css/material.min.css">
+  <link rel="stylesheet" href="css/highcharts.min.css">
+  <link rel="stylesheet" href="css/main.css">
+  
+  <script language="javascript" type="text/javascript" src="js/jquery.min.js"></script>
+  <script language="javascript" type="text/javascript" src="js/nunjucks.min.js"></script>
+  <script language="javascript" type="text/javascript" src="js/material.min.js"></script>
+  <script language="javascript" type="text/javascript" src="js/highcharts.js"></script>
+  <script language="javascript" type="text/javascript" src="js/highcharts-more.js"></script>
+  
+  <script language="javascript" type="text/javascript">
+    window.cihpc = {
+      // projectName: 'hello-world',
+      projectName: 'fenics',
+      flaskApiUrl: 'http://hybs.nti.tul.cz:5000',
+    }
+  </script>
+  <script language="javascript" type="text/javascript" src="js/ci-hpc/main.js"></script>
+</head>
+
+<body>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
+    
+    <header class="mdl-layout__header">
+      <div class="mdl-layout__header-row mdl-color--blue-600  mdl-color-text--white">
+        <span class="mdl-layout-title" id="chartTitle">loading...</span>
+        <div class="mdl-layout-spacer"></div>
+        <div id="options">
+        </div>
+      </div>
+    </header>
+    
+    <div class="mdl-layout__drawer mdl-color--grey-800" id="testsRendered">
+    </div>
+    
+    <main class="mdl-layout__content mdl-color--grey-100">
+      <div class="page-content" id="page-content">
+        <div class="mdl-grid">
+          <div class="mdl-cell mdl-cell--12-col">
+            <div id="chartsHolder"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="warning-msg" class="fs-outer-container hidden">
+        <div class="fs-inner-container">
+          <div class="fs-centered-content"></div>
+        </div>
+      </div>
+      
+      <div id="loading" class="fs-outer-container">
+        <div class="fs-inner-container">
+          <div class="fs-centered-content">
+            <p>Fetching data</p>
+            <div class="mdl-spinner mdl-js-spinner is-active"></div>
+          </div>
+        </div>
+      </div>
+      
+    </main>
+  </div>
+  <dialog class="mdl-dialog" id="dialog">
+     <h4 class="mdl-dialog__title"></h4>
+     <div class="mdl-dialog__content">
+     </div>
+     <div class="mdl-dialog__actions">
+       <button type="button" class="mdl-button close">Ok</button>
+     </div>
+   </dialog>
+</body>
+</html>

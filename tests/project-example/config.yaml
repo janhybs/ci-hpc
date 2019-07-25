@@ -1,0 +1,16 @@
+project: foo
+no-database: true
+
+stages:
+  - stage: install-step
+
+    foo: <foo>
+    bar-foo: <bar.foo>
+
+    shell: |
+      echo foo
+
+
+  - stage: test-step
+    shell: |
+      echo bar

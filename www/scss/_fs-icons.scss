@@ -1,0 +1,43 @@
+// main: main.scss
+
+.result-info {
+  &.warning {
+    .fs-icon i {
+      color: #FF8800;
+    }
+    .fs-icon-strike {
+      background: #FF8800;
+    }
+  }
+  &.error {
+    .fs-icon i {
+      color: #CC0000;
+    }
+    .fs-icon-strike {
+      background: #CC0000;
+    }
+  }
+}
+
+.fs-icon {
+  z-index: 2;
+  position: relative;
+  height: 120px;
+  i {
+    font-size: 5em;
+    background: #FFFFFF;
+    border-radius: 50%;
+    padding: 20px;
+    color: #a71116;
+    animation: pulse-margin 6s infinite;
+  }
+}
+
+.fs-icon-strike {
+  position: relative;
+  top: 60px;
+  height: 3px;
+  opacity: 0.5;
+  z-index: 1;
+  background: #a71116;
+}

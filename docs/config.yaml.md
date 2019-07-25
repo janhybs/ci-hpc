@@ -1,6 +1,6 @@
 # config.yaml specification
 
-## Terminilogy
+## Terminology
   - `section`
   
     By a section we understand either `testing` or `installing` section. A section is a main configuration block which groups together installation or benchmark testing procedures. A `section` can contain zero or more `steps`. 
@@ -53,45 +53,56 @@ test:
 *Note:* keys in `[brackets]` are optional.
 
 ```yaml
-install:                      # value is list of steps
-  - name: string              # name of the step
-  
-    [description]: string     # description of the step
+# value is list of steps
+install:
+    # name of the step
+  - name: string
+   
+    # description of the step
+    [description]: string
     
-    [enabled]: boolean        # default true, if true step is enabled 
-                              # will be processed, otherwised will be skipped
-                              
-    [verbose]: boolean        # default false, if true shell is started with set-x
+    # default true, if true step is enabled 
+    # will be processed, otherwised will be skipped
+    [enabled]: boolean
     
-    [repeat]: int             # default 1, number of this step repetition
-                              # (useful for benchmark testing)
+    # default false, if true shell is started with set-x
+    [verbose]: boolean
     
-    [shell]: string           # bash commands to be executed
-                              
-    [output]: string          # default log+stdout, how should be output 
-                              # of the shell be displayed, possible values:
-                              #   log         - logging to log file only
-                              #   stdout      - only display output
-                              #   log+stdout  - combination of both
+    # default 1, number of this step repetition
+    # (useful for benchmark testing)
+    [repeat]: int
     
-    [container]: string       # if set, will execute shell in side container 
-                              # value must command(s) which when called will
-                              # start container (docker/singularity), command
-                              # must contain string %s at the end
-                              # %s will be subsituted with a suitable command
-                              # 
-                              # examples:
-                              #   container: |
-                              #     docker run --rm -v $(pwd):$(pwd) -w $(pwd) ubuntu %s
-                              #   container: |
-                              #     module load singularity
-                              #     singularity exec -B /mnt sin.simg %s
-                              
-    [variables]:              # complex type, if set, will create build matrix of variables
-                              # detailed explanation below
-                              
-    [collect]:                # complex type, if set, will collect results
-                              # detailed explanation below
+    # bash commands to be executed
+    [shell]: string
+    
+    # default log+stdout, how should be output 
+    # of the shell be displayed, possible values:
+    #   log         - logging to log file only
+    #   stdout      - only display output
+    #   log+stdout  - combination of both
+    [output]: string
+    
+    # if set, will execute shell in side container 
+    # value must command(s) which when called will
+    # start container (docker/singularity), command
+    # must contain string %s at the end
+    # %s will be subsituted with a suitable command
+    # 
+    # examples:
+    #   container: |
+    #     docker run --rm -v $(pwd):$(pwd) -w $(pwd) ubuntu %s
+    #   container: |
+    #     module load singularity
+    #     singularity exec -B /mnt sin.simg %s
+    [container]: string
+    
+    # complex type, if set, will create build matrix of variables
+    # detailed explanation below
+    [variables]: <variables>
+    
+    # complex type, if set, will collect results
+    # detailed explanation below
+    [collect]: <collect>
 ```
 
 
@@ -185,60 +196,65 @@ what these files are, and how to work with them.
 
 ```yaml
 collect:
-  files: string               # value  must be a string containing a path specification.
-                              # pathname can be either absolute (like /foo/bar/result.json) or 
-                              # relative (like bar/*/*.json), and can contain shell-style wildcards
-                              # double asterisk ** will match any files and zero or
-                              # more directories and subdirectories
-                              # the value is usually something like
-                              # directory/*.json
-                              # more here https://docs.python.org/3.6/library/glob.html
-                              
-  repo: string                # path to the repository from which git information is taken
-                              # if set will determine commit, branch and datetime of the current HEAD
-  
-  [module]: string            # a path to the python module which will take care of the parsing and
-                              # storing. There is a generic module which does a decent job, so if
-                              # your result output format can be easily edited, it will work just fine
-                              
-  [move-to]: string           # location where matched files can be moved to after the files has
-                              # been processed. This will simply move the files to a location 
-                              # so if you have multiple files from single execution with the same name
-                              # they will be overwritten, to avoid that see 'cut-prefix' below
-                              # You can avoiding processing the same results twice.
-                              # (it is recommended to put the files away)
-                              
-  [cut-prefix]: string        # if move-to is set, will cut the path prefix of your files
-                              # it is especially useful when your results are located deep structure
-                              # or if they are in a structure, you want to preserve
-                              
-  [extra]: dictionary         # after the processing is done, you can add some extra properties on top
-                              # you can even use variables from build matrix.
-                              # for example:
-                              #     extra:
-                              #       foo: true
-                              #       size: <test-size|i>
-                              # will put extra two fields to a document, which is headed to the database
-                              # they will be put in a system field:
-                              #     {
-                              #       system: {
-                              #         foo: true,
-                              #         size: 1024,
-                              #         ...
-                              #       },
-                              #       problem: {
-                              #         ...
-                              #       }
-                              #     }
-                              # The second variable size will be that of the typo of integer
-                              # this is bacause |i was specified at the end. All possible 
-                              # conversions are:
-                              # |s for string (default)
-                              # |i for integer
-                              # |f for floats
-                              
-  [save-to-db]: boolean       # if true, will save the processed results to the DB
-  
-```
+  # value  must be a string containing a path specification.
+  # pathname can be either absolute (like /foo/bar/result.json) or 
+  # relative (like bar/*/*.json), and can contain shell-style wildcards
+  # double asterisk ** will match any files and zero or
+  # more directories and subdirectories
+  # the value is usually something like
+  # directory/*.json
+  # more here https://docs.python.org/3.6/library/glob.html
+  files: string
 
-[« back to docs](README.md)
+  # path to the repository from which git information is taken
+  # if set will determine commit, branch and datetime of the current HEAD
+  repo: string
+  
+  # a path to the python module which will take care of the parsing and
+  # storing. There is a generic module which does a decent job, so if
+  # your result output format can be easily edited, it will work just fine
+  [module]: string
+
+  # location where matched files can be moved to after the files has
+  # been processed. This will simply move the files to a location 
+  # so if you have multiple files from single execution with the same name
+  # they will be overwritten, to avoid that see 'cut-prefix' below
+  # You can avoiding processing the same results twice.
+  # (it is recommended to put the files away)
+  [move-to]: string
+
+  # if move-to is set, will cut the path prefix of your files
+  # it is especially useful when your results are located deep structure
+  # or if they are in a structure, you want to preserve
+  [cut-prefix]: string
+
+  # after the processing is done, you can add some extra properties on top
+  # you can even use variables from build matrix.
+  # for example:
+  #     extra:
+  #       foo: true
+  #       size: <test-size|i>
+  # will put extra two fields to a document,
+  # which is headed to the database
+  # they will be put in a system field:
+  #     {
+  #       system: {
+  #         foo: true,
+  #         size: 1024,
+  #         ...
+  #       },
+  #       problem: {
+  #         ...
+  #       }
+  #     }
+  # The second variable size will be that of the typo of integer
+  # this is bacause |i was specified at the end. All possible 
+  # conversions are:
+  #     |s for string (default)
+  #     |i for integer
+  #     |f for floats
+  [extra]: dictionary
+
+  # if true, will save the processed results to the DB
+  [save-to-db]: boolean
+```

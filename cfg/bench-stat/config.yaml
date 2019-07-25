@@ -1,0 +1,24 @@
+project: bench-stat
+workdir: <workdir>
+
+stages:
+  - stage: install
+    git: https://github.com/janhybs/bench-stat.git
+    shell: make -C bench-stat/benchmarks compile
+    cache: bench-stat
+
+  - stage: test
+    repeat: 2
+    shell: |
+      bench-stat/benchmarks/O3.out result-<__unique__>.json 1
+
+    collect:
+      repo: bench-stat
+      files: result-<__unique__>.json
+      module: cihpc.artifacts.modules.generic_module
+      move-to: artifacts/<__project__.start.date>
+      cut-prefix: null
+
+      extra:
+        cpus:       <__stage__.parallel.cpus|i>
+        repeat:     <__stage__.parallel.repeat.value|i>

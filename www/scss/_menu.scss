@@ -1,0 +1,81 @@
+// main: main.scss
+
+.list-group.list-group-root {
+  .benchmark-root {
+    margin-bottom: 0.5rem;
+    color: $primary;
+    font-weight: bold;
+    background: fade_out($primary, 0.8);
+    border-radius: 0.5rem;
+    
+    &.disabled {
+      color: #444;
+    }
+    
+    &.active {
+      background: $primary;
+      color: #fff;
+      
+      &:hover {
+        color: #fff;
+      }
+    }
+    
+    &:hover {
+      color: darken($primary, 20%);
+    }
+  }
+  
+  & > .list-group > {
+    .list-group-item {
+      padding-left: 30px;
+    }
+    .list-group > .list-group-item {
+      padding-left: 45px;
+    }
+  }
+}
+
+.list-group-item {
+  border: none;
+  background: transparent;
+  color: $primary;
+  
+  &:hover {
+    color: darken($primary, 20%);
+  }
+  &.active {
+    background: $primary;
+    color: #fff;
+    &:hover {
+      color: #fff;
+    }
+  }
+  
+  .item-body {
+    font-size: .60rem;
+    padding-top: 0.2rem;
+  }
+  &.sm {
+    padding: .25rem .50rem;
+    font-size: 0.8em;
+  }
+}
+
+.cihpc-sidebar {
+  .badge {
+    float: right;
+    color: #fff;
+    box-shadow: none;
+    border-radius: 10rem;
+    padding: 0 .6em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1.5rem;
+    height: 1.5rem;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    background-color: $primary;
+  }
+}

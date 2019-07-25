@@ -1,0 +1,77 @@
+
+@import "options";
+@import "colors";
+@import "animations";
+@import "utils";
+@import "layout";
+@import "charts";
+@import "menu";
+@import "option-holder";
+@import "fs-icons";
+
+body {
+  margin: 0;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.428571;
+  color: #404040;
+  text-align: left;
+  background-color: #eee;
+}
+
+pre code, .code {
+ color: #e83e8c;
+}
+
+.cihpc-navbar li.nav-item a:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+    color: #000;
+}
+
+.error .card code {
+  color: #ffdc72;
+  font-weight: bold;
+  pre {
+    color: #ffdc72;
+    font-weight: bold;
+    text-align: left;
+  }
+}
+
+#configure-view.disabled {
+ opacity: 0.5;
+}
+
+#view-mode > i {
+  display: none;
+}
+#view-mode[data-mode="small"] > i.layout-small {
+  display: inherit;
+}
+#view-mode[data-mode="medium"] > i.layout-medium {
+  display: inherit;
+}
+#view-mode[data-mode="large"] > i.layout-large {
+  display: inherit;
+}
+
+
+.bg-primary {
+    background-color: $primary !important;
+}
+
+.bg-secondary {
+    background-color: $secondary !important;
+}
+
+table.table th {
+  font-weight: 700;
+}
+
+.error-image {
+  background: #d04746 url('../imgs/500-error.png');
+    background-size: 50% !important;
+    background-repeat: no-repeat;
+    background-position: bottom right !important;
+}

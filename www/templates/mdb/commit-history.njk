@@ -1,0 +1,34 @@
+<div class="mx-5 w-100">
+  <div class="card">
+    <table id="{{ id }}" class="table table-hover table-sm" cellspacing="0" width="100%">
+      <thead class="primary-gradient text-white">
+        <tr>
+          <th class="th-sm">ID</th>
+          {% for key in keys %}
+            {% if key != '_id' %}
+            <th class="th-sm">
+              {{ key }}
+            </th>
+            {% endif %}
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td class="th-sm">
+              <a href='{{ commit_url }}/{{ item._id.hash }}'>{{ item._id.date }}</a>
+            </td>
+            {% for key in keys %}
+              {% if key != '_id' %}
+              <td class="th-sm">
+                {{ item[key] }}
+              </td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

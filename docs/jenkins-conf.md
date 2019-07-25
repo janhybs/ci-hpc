@@ -12,17 +12,19 @@
 
       ![jenkins-plugins](imgs/jenkins-plugins-2.png)    
 
-# Configuring a Jenkins server
+## Configuring a Jenkins server
   1. Create new Job (type can be `Freestyle project`)
   
       ![jenkins-new](imgs/jenkins-new.png)
 
   2. Setup git connection to your repository
+  
       ![jenkins-git](imgs/jenkins-git.png)
 
   3. Make sure `Poll SCM` is set (CRON syntax)
   
       *Note:* The value `H 18 * * *` translates to daily, between 6PM to 7PM
+      
       ![jenkins-poll](imgs/jenkins-poll.png)
 
   4. Add Shell `Build` step to your project:
@@ -37,6 +39,7 @@
       CIHPC_HPC_URL="charon-ft.nti.tul.cz"
       CIHPC_WORKSPACE="/storage/praha1/home/jan-hybs/projects/ci-hpc"
       ```
+      
       ![jenkins-shell](imgs/jenkins-shell.png)
       
       - when using *SSH Key-Based Authentication*:
@@ -107,12 +110,14 @@
           ```
           
           Setup `Bindings`
+          
           ![jenkins-creds](imgs/jenkins-creds.png)
           
           Add `SSH Username with private key` kind
+          
           ![jenkins-creds-2](imgs/jenkins-creds-2.png)
   
-# `cihpc` arguments
+## cihpc arguments
 When calling `bin/cihpc` binary you can pass plenty of arguments (see the file),
 but couple of them are worth mentioning in this section: 
   - arguments `install` and `test`
@@ -153,6 +158,3 @@ but couple of them are worth mentioning in this section:
     ```
     *Note:* by default no system is set,
     you should **always** set which system to use.
-    
-    
-[« back to docs](README.md)

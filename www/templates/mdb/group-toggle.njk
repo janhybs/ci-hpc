@@ -1,0 +1,68 @@
+{% if radio %}
+  <div class="form-group ml-3" id="form-{{ key }}">
+    <h4>{{ text }}: </h4>
+    {% if desc %}
+      <p class="lead small">{{ desc | safe }}</p>
+    {% endif %}
+    
+    {% for item in items %}
+      <div class="custom-control custom-radio custom-control-inline-not {{ item.style }}">
+        <input type="radio" class="custom-control-input"
+               id="{{ key }}-{{ item.name }}"
+               name="{{ key }}"
+               value="{{ item.name }}"
+               data-key="{{ key }}"
+               {{ "checked" if item.checked else "" }}>
+        <label class="custom-control-label" for="{{ key }}-{{ item.name }}">
+          {{ item.text }}
+          {% if item.desc %}
+            <p class="lead small font-italic">{{ item.desc | safe }}</p>
+          {% endif %}
+        </label>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+<div class="form-group ml-3" id="form-{{ key }}">
+  <h4>{{ text }}: </h4>
+  {% if desc %}
+    <p class="lead small">{{ desc | safe }}</p>
+  {% endif %}
+  
+  {% for item in items %}
+    <div class="custom-control custom-checkbox custom-control-inline-not {{ item.style }}">
+      <input type="checkbox" class="custom-control-input"
+             id="{{ key }}-{{ item.text }}"
+             name="{{ item.name }}"
+             value="{{ item.name }}"
+             data-key="{{ key }}"
+             {{ "checked" if item.checked else "" }}>
+      <label class="custom-control-label" for="{{ key }}-{{ item.text }}">
+            {{ item.text }}
+            {% if item.desc %}
+              <p class="lead small font-italic">{{ item.desc | safe }}</p>
+            {% endif %}
+          </label>
+          </label>
+    </div>
+  {% endfor %}
+</div>
+
+  {# <div class="btn-group ml-3" data-toggle="buttons" id="form-{{ key }}">
+    <button type="button" class="btn btn-rounded-sm btn-outline-primary btn-sm group disabled">{{ name }}</button>
+    
+    {% for item in items %}
+    <label class="btn btn-rounded-sm btn-primary btn-sm {% if item.checked %} active {% endif %}"
+           id="{{ key }}-{{ item.text }}"
+           title="{{ desc|default("If on, will split chart into groups by this property")}}">
+           <input
+             type="checkbox"
+             name="{{ item.name }}" 
+             value="{{ item.name }}"
+             data-key="{{ key }}"
+             autocomplete="off" 
+             {% if item.checked %} checked {% endif %}> {{ item.text }} 
+     </label>
+    {% endfor %}
+  </div> #}
+{% endif %}

@@ -1,0 +1,5 @@
+branches:
+  - master
+  - release*
+
+action: !readfile scripts/flowdb-charon-trigger.sh

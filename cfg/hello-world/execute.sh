@@ -1,39 +1,46 @@
 #!/bin/bash --login
+#
+#PBS -l select=1:ncpus=1:mem=1gb
+#PBS -l walltime=00:15:00
 #PBS -j oe
 #PBS -q charon
-#PBS -l select=1:ncpus=1:mem=2gb
-#PBS -l walltime=00:10:00
-# # disabled option -l place=excl
-# interactive for testing
-# qsub -j oe -q charon -l select=1:ncpus=1:mem=2gb -l walltime=00:59:00 -I
-# qsub -j oe -l select=1:ncpus=1:mem=2gb -l walltime=00:59:00 -I
+# P B S -l place=excl
 
-module load python-3.6.2-gcc
-module load python36-modules-gcc
 
-echo "installing pip packages: <ci-hpc-install>"
-<ci-hpc-install>
-
+# hard path is recommended since script location is elsewhere when in PBS
+ROOT=/storage/praha1/home/jan-hybs/projects/ci-hpc
 NOW=$(date "+%Y-%m-%d_%H-%M-%S")
+cd $ROOT
 
 # print some debug info
-echo "[$NOW] running installation script"
+echo "#############################################"
+echo "host: $(hostname)"
+echo "time: $(date)"
+echo "user: $(whoami) ($(id))"
+echo "pwd:  $(pwd)"
+echo "[$NOW] running installation script with following args:"
+echo "$@"
+echo "#############################################"
 if [[ -n "$PBS_JOBID" ]]; then
-  echo "Running job $PBS_JOBNAME ($PBS_JOBID) in `pwd`"
-  echo "Time: `date`"
-  echo "Running on master node: `hostname`"
+  echo "Running job $PBS_JOBNAME ($PBS_JOBID) "
   echo "Using nodefile :         $PBS_NODEFILE"
   cat $PBS_NODEFILE
-else
-  echo "Running job on frontend in `pwd`"
-  echo "Time: `date`"
-  echo "Running on master node: `hostname`"
+  echo "#############################################"
 fi
-echo "#################################################"
 
+
+# Example for the HPC charon.nti.tul.cz
 # ------------------------------------------------------------------------------
-# the following placeholder will be replaced later on
-echo "<ci-hpc-exec>"
-<ci-hpc-exec>
+
+. /etc/profile
+module purge
+module load metabase
+module load python-3.6.2-gcc
+module load python36-modules-gcc
+module list -t
+set -x
+
+# the following line will be replaced later on
+<ci-hpc-exec> 2>&1 | tee .pbs.job.log
 
 exit $?

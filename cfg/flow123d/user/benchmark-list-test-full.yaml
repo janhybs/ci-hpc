@@ -1,0 +1,86 @@
+ # 01_square_regular_grid
+ # weak scale
+ - values:
+   - benchmark:  01_square_regular_grid
+   - mesh:       [ 1_15662_el, 2_31498_el, 3_47122_el, 4_62302_el ]
+   - cpu:        [ 1, 2, 3, 4 ]
+   - weak:       [ 1, 1, 1, 1 ]
+   - strong:     [ 0, 0, 0, 1 ]
+ # strong scale
+ - values:
+   - benchmark:  01_square_regular_grid
+   - mesh:       [ 4_62302_el, 4_62302_el, 4_62302_el ]
+   - cpu:        [ 1, 2, 3 ]
+   - weak:       [ 0, 0, 0 ]
+   - strong:     [ 1, 1, 1 ]
+ 
+ # ------------------------------------------------------------------------
+ # 02_cube_123d
+ # weak scale
+ - values:
+   - benchmark:  02_cube_123d
+   - mesh:       [ 1_15786_el, 2_29365_el, 3_47367_el, 4_58803_el ]
+   - cpu:        [ 1, 2, 3, 4 ]
+   - weak:       [ 1, 1, 1, 1 ]
+   - strong:     [ 0, 0, 0, 1 ]
+ # strong scale
+ - values:
+   - benchmark:  02_cube_123d
+   - mesh:       [ 4_58803_el, 4_58803_el, 4_58803_el ]
+   - cpu:        [ 1, 2, 3 ]
+   - weak:       [ 0, 0, 0 ]
+   - strong:     [ 1, 1, 1 ]
+ 
+ # ------------------------------------------------------------------------
+ # 03_mesh_read
+ # weak scale
+ - values:
+   - benchmark:  03_mesh_read
+   - mesh:       [ 1_15786_el, 2_29365_el, 3_47367_el, 4_58803_el ]
+   - cpu:        [ 1, 2, 3, 4 ]
+   - weak:       [ 1, 1, 1, 1 ]
+   - strong:     [ 0, 0, 0, 1 ]
+ # strong scale
+ - values:
+   - benchmark:  03_mesh_read
+   - mesh:       [ 4_58803_el, 4_58803_el, 4_58803_el ]
+   - cpu:        [ 1, 2, 3 ]
+   - weak:       [ 0, 0, 0 ]
+   - strong:     [ 1, 1, 1 ]
+ 
+ # ------------------------------------------------------------------------
+ # 05_dfn_2d
+ # strong scale
+ - values:
+   - benchmark:  05_dfn_2d
+   - mesh:       1_1618_el
+   - cpu:        [ 1, 2, 3, 4 ]
+   - weak:       [ 1, 1, 1, 1 ]
+   - strong:     [ 0, 0, 0, 1 ]
+ 
+ # ------------------------------------------------------------------------
+ # 04_kravi_hora
+ # strong scale
+ - values:
+   - benchmark: 04_kravi_hora
+   - mesh:   1_212773_el
+   - weak:   1
+   - strong: 0
+   - cpu:    1
+ 
+ # ------------------------------------------------------------------------
+ # # for testing purposes
+ # - values:
+ #   - benchmark:  01_square_regular_grid
+ #   - mesh:       [ 1_15662_el , 2_31498_el, 2_31498_el ]
+ #   - cpu:        [ 1, 2, 1 ]
+ #   - weak:       [ 1, 1, 0 ]
+ #   - strong:     [ 0, 1, 1 ]
+ #
+ # - values:
+ #   - benchmark:  01_square_regular_grid
+ #   - mesh:       1_15662_el
+ #   - cpu:        1
+ #   - weak:       1
+ #   - strong:     0
+ # ------------------------------------------------------------------------

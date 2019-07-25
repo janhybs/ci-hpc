@@ -1,0 +1,35 @@
+// main: main.scss
+
+#cihpc-option-holder {
+  .btn.group {
+    color: #000 !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    font-weight: bold;
+  }
+  .btn-group .btn {
+    &:not(.active) {
+      color: #000 !important;
+    }
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+  }
+  .text {
+    padding: 0;
+    margin: 0;
+    line-height: 2.5rem;
+  }
+}
+
+.modal .modal-full-height.modal-md {
+   width: 500px;
+   max-width: 500px;
+}
+
+.custom-checkbox.predefined .custom-control-input:checked ~ .custom-control-label::before {
+  background-color: #2bbbad;
+}
+
+.custom-control-input:disabled ~ .custom-control-label {
+  opacity: 0.5;
+}

@@ -1,0 +1,7 @@
+ # main flow123d repository
+ - url: https://github.com/flow123d/flow123d.git
+   commit: <arg.commit.flow123d>   # checkout to this commit
+   branch: <arg.branch.flow123d>   # under this branch's name
+   
+ # benchmark repository, will always be at latest commit
+ - url: https://github.com/flow123d/bench_data.git

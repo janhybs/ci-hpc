@@ -1,0 +1,12 @@
+install:
+  - name: installation
+    shell: |
+      pwd
+      echo installing
+
+test:
+  - name: simple-testing
+    shell: |
+      echo "test-start"
+      sleep 2
+      echo "test-stop"

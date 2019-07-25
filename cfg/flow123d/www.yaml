@@ -1,0 +1,122 @@
+name:                 Flow123d
+desc:                 Transport Processes in Fractured Media
+date-format:          long                                    # long or short or null
+git-url:              https://github.com/flow123d/flow123d    # url of the git repo
+logo:                 http://flow123d.github.io/assets/img/flow123d-logo.svg
+
+fields:
+  result.duration:          result.duration
+  result.returncode:        result.returncode
+
+  git.datetime:             git.datetime
+  git.commit:               git.commit
+  git.branch:               git.branch
+
+  problem.test:             problem.test-name
+  problem.case:             problem.case-name
+  problem.subcase:          null
+
+  problem.cpu:              problem.cpu
+  # problem.size:             problem.size      # number of elements / degrees of freedom
+  problem.size:             = int(row['problem.mesh'].split('_')[1])      # number of elements/ degrees of freedom
+  problem.per.cpu:          = int(row['problem.task-size'] / row['problem.cpu'])
+  problem.scale:            = 'weak' if int(row['problem.weak'] == 1) else 'strong'
+
+  # tell the db to also select following fields
+  extra:
+    - problem.task-size
+    - problem.weak
+    - problem.mesh
+    # - problem.size
+
+# main view showing duration in time
+test-view:
+
+  # key is the field name and value is human readable value
+  groupby:
+    problem.scale:  scale
+    git.branch:     branch
+
+
+# secondary view showing frame break down
+frame-view:
+  unwind: timers                      # will take fields 'timers' (which must be a array)
+                                      # and will put individual items to seperate document
+  fields:
+    timers.duration: timers.duration
+    timers.name:     timers.name
+    timers.path:     timers.path
+
+  groupby:                            # how can the benchmark frames be separated
+    git.datetime:   date
+    problem.cpu:    cpus
+    problem.scale:  scale
+    problem.size:   size
+
+
+
+
+
+
+
+# test structure which will be displayed
+# name is mandatory
+tests:
+    - name:                     01_square_regular_grid
+      desc:                     01_square_regular_grid benchmark on 2D mesh
+      disabled:                 true
+      filters:
+        result.returncode:      0
+
+      tests:
+        - name:                 transport
+          mode:                 time-series
+          desc:                 Simple transport
+
+    - name:                     02_cube_123d
+      mode:                     time-series
+      disabled:                 true
+      filters:
+        result.returncode:      0
+
+      tests:
+        - name:                 flow_LMH_dg_heat
+
+        - name:                 flow_LMH_richards
+
+        - name:                 flow_bddc
+
+        - name:                 flow_bddc_fieldformula
+
+        - name:                 flow_dg_sorption
+
+        - name:                 flow_fv
+
+        - name:                 flow_fv_sorption
+
+        - name:                 flow_unsteady_dg
+
+    - name:                     03_mesh_read
+      disabled:                 true
+      filters:
+        result.returncode:      0
+
+      tests:
+        - name:                 mesh_read
+          mode:                 time-series
+          tests:
+            - name:             weak scaling
+              level:            null
+              mode:             scale-view
+              filters:
+                problem.weak:   true
+            - name:             strong scaling
+              level:            null
+              mode:             scale-view
+              filters:
+                problem.strong: true
+
+    - name:                     05_dfn_2d
+      disabled:                 false
+      filters:
+        result.returncode:      0
