@@ -127,7 +127,7 @@ class WorkerPool(object):
         self.terminate = False
         self.exception = None
 
-        logger.debug(f'process limit set to {self.processes}' % )
+        logger.debug(f'process limit set to {self.processes}')
         self.add_threads(*threads)
 
     def add_threads(self, *threads: Worker):
